@@ -17,12 +17,21 @@ export const createApp = () => {
   }));
   app.use(cors({
     origin: (origin, callback) => {
-      // Cho phép requests không có origin (như curl, mobile apps) hoặc thuộc allowed origins
-      if (!origin || config.corsOrigins.includes(origin) || config.nodeEnv === 'development') {
-        callback(null, true);
-      } else {
-        callback(new Error('Blocked by CORS'));
+      // Cho phép requests không có origin (curl, mobile app, cùng origin qua proxy)
+      if (!origin || config.nodeEnv === 'development') {
+        return callback(null, true);
       }
+      // Nếu cấu hình '*' hoặc origin nằm trong danh sách CORS_ORIGINS
+      const allowedOrigins = config.corsOrigins.map(o => o.trim());
+      if (
+        allowedOrigins.includes('*') ||
+        allowedOrigins.includes(origin) ||
+        origin.endsWith('.vercel.app') ||
+        origin.endsWith('.onrender.com')
+      ) {
+        return callback(null, true);
+      }
+      callback(new Error('Blocked by CORS'));
     },
     credentials: true,
   }));
