@@ -23,8 +23,11 @@ export const Hero: React.FC<HeroProps> = ({
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
   const quickTags = useMemo(() => {
-    const values = booths.flatMap(booth => [booth.publisher, language === 'vi' ? booth.name : booth.nameEn]).filter(Boolean);
-    return [...new Set(values)].slice(0, 6).map(value => ({ label: value, query: value }));
+    // Ưu tiên hiển thị tên nhà xuất bản / gian hàng ngắn gọn, sạch sẽ, không trùng lặp
+    const rawList = booths.map(b => b.publisher || (language === 'vi' ? b.name : b.nameEn)).filter(Boolean);
+    const unique = Array.from(new Set(rawList.map(item => item.trim())));
+    // Lấy tối đa 4 tag tiêu biểu để hàng gợi ý gọn gàng, vừa vặn trên mọi kích thước màn hình
+    return unique.slice(0, 4).map(value => ({ label: value, query: value }));
   }, [booths, language]);
 
   // Gợi ý thông minh tức thì theo từ khóa nhập vào

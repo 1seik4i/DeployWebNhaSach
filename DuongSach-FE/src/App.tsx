@@ -575,7 +575,7 @@ export function App() {
           {publicDataError && <p className="app-loading-state" role="alert">{publicDataError}</p>}
           <Hero 
             language={language}
-            onExploreClick={() => scrollToSection('gioi-thieu')}
+            onExploreClick={() => scrollToSection('gian-hang')}
             onMapClick={() => scrollToSection('ban-do')}
             onSearch={handleHeroSearch}
             booths={booths}
