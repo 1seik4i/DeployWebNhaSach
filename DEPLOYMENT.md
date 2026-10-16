@@ -4,11 +4,22 @@
 
 Xem `SUBMODULES.md` để clone và cập nhật FE/BE từ repo nguồn. Nếu import repo
 `DeployWebNhaSach` vào nền tảng deploy, đặt Root Directory backend là
-`DuongSach-BE` và frontend là `DuongSach-FE`. Blueprint Path là
-`DuongSach-BE/render.yaml`; với Blueprint này, thêm `rootDir: DuongSach-BE`
-vào web service nếu dùng repo tổng (bản hiện tại dành cho repo BE riêng).
+`DuongSach-BE` và frontend là `DuongSach-FE`. Blueprint Path là `render.yaml`
+ở gốc repo tổng; Blueprint này đã có `rootDir: DuongSach-BE`.
 Hệ thống build cần tải được cả hai submodule, đặc biệt khi repo nguồn private.
 Hướng dẫn phía dưới áp dụng khi import từng repo nguồn riêng.
+
+### Service Render đã tạo thủ công ở thư mục gốc
+
+Nếu Root Directory để trống, các file `package.json` và `package-lock.json`
+ở gốc cũng hỗ trợ Build Command `npm ci && npm run generate` và Start Command
+`npm start`. Script `generate` cài dependencies production trong `DuongSach-BE`
+rồi tạo Prisma Client; script `start` chạy backend trong đúng thư mục BE.
+Không chạy thêm `cd DuongSach-BE` nếu Root Directory đã là `DuongSach-BE`.
+
+Sau khi push cấu hình mới, chọn **Manual Deploy > Deploy latest commit**.
+Thêm/sửa `render.yaml` không tự cấu hình lại service tạo thủ công.
+Nếu log vẫn dùng commit cũ, kiểm tra branch `master` và commit đang deploy.
 
 ## 1. Backend and database on Render
 
