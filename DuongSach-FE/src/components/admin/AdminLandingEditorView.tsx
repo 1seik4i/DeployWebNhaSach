@@ -1175,7 +1175,7 @@ export const AdminLandingEditorView: React.FC<AdminLandingEditorViewProps> = ({
                         }}
                       >
                         <Plus size={14} />
-                        <span>{vi ? '+ Thêm Logo Đối tác Giáo dục' : '+ Add Education Partner'}</span>
+                        <span>{vi ? 'Thêm Logo Đối tác Giáo dục' : 'Add Education Partner'}</span>
                       </button>
                     </div>
                     <div className="journey-partners-cat-line" style={{ marginBottom: '1.25rem' }} />
@@ -1347,7 +1347,7 @@ export const AdminLandingEditorView: React.FC<AdminLandingEditorViewProps> = ({
                         }}
                       >
                         <Plus size={14} />
-                        <span>{vi ? '+ Thêm Logo Doanh Nghiệp' : '+ Add Corporate Partner'}</span>
+                        <span>{vi ? 'Thêm Logo Doanh Nghiệp' : 'Add Corporate Partner'}</span>
                       </button>
                     </div>
                     <div className="journey-partners-cat-line" style={{ marginBottom: '1.25rem' }} />
@@ -1577,7 +1577,7 @@ export const AdminLandingEditorView: React.FC<AdminLandingEditorViewProps> = ({
                       }}
                     >
                       <Plus size={16} />
-                      <span>{vi ? '+ Thêm bài viết mới' : '+ Add New Article'}</span>
+                      <span>{vi ? 'Thêm bài viết mới' : 'Add New Article'}</span>
                     </button>
                   </div>
                 </div>
