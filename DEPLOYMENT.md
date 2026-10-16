@@ -1,5 +1,15 @@
 # Deploy Render + Vercel
 
+## Deploy từ repo tổng có submodule
+
+Xem `SUBMODULES.md` để clone và cập nhật FE/BE từ repo nguồn. Nếu import repo
+`DeployWebNhaSach` vào nền tảng deploy, đặt Root Directory backend là
+`DuongSach-BE` và frontend là `DuongSach-FE`. Blueprint Path là
+`DuongSach-BE/render.yaml`; với Blueprint này, thêm `rootDir: DuongSach-BE`
+vào web service nếu dùng repo tổng (bản hiện tại dành cho repo BE riêng).
+Hệ thống build cần tải được cả hai submodule, đặc biệt khi repo nguồn private.
+Hướng dẫn phía dưới áp dụng khi import từng repo nguồn riêng.
+
 ## 1. Backend and database on Render
 
 1. Push the `DuongSach-BE` repository, including `render.yaml`, to GitHub.

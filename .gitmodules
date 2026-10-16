@@ -1,0 +1,9 @@
+[submodule "DuongSach-BE"]
+	path = DuongSach-BE
+	url = https://github.com/amazing-intern-fall-2026/DuongSach-BE.git
+	branch = master
+
+[submodule "DuongSach-FE"]
+	path = DuongSach-FE
+	url = https://github.com/amazing-intern-fall-2026/DuongSach-FE.git
+	branch = master
