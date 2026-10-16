@@ -4,7 +4,7 @@
   "private": true,
   "description": "Render entry point for the deployment repository",
   "scripts": {
-    "generate": "npm --prefix DuongSach-BE ci --omit=dev && npm --prefix DuongSach-BE run generate",
+    "generate": "node DuongSach-BE/scripts/renderBuild.js",
     "start": "npm --prefix DuongSach-BE start"
   }
 }

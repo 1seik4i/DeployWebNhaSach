@@ -1,0 +1,242 @@
+.core-values-section {
+  position: relative;
+  overflow: hidden;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  min-height: clamp(580px, 72vh, 740px);
+  display: flex;
+  align-items: center;
+  padding: 5.5rem 0 6rem 0;
+  background-color: #0D2B25;
+  color: #FFFFFF;
+}
+
+/* Vạch vàng mảnh nhẹ ngăn cách trang chào mừng (Hero) và trang Giá trị cốt lõi */
+.core-values-top-gold-divider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1.5px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(201, 155, 82, 0.3) 15%,
+    rgba(201, 155, 82, 0.85) 50%,
+    rgba(201, 155, 82, 0.3) 85%,
+    transparent 100%
+  );
+  z-index: 10;
+}
+
+/* Full-bleed photo wrapper */
+.core-values-photo-wrap {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.core-values-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 45%;
+  transform: scale(1.02);
+  filter: brightness(0.92) contrast(105%);
+  transition: transform 600ms ease;
+}
+
+/* Vertical Gradient Haze Blur Overlay (Làm mờ & tối ở phần trên để chữ hiển thị cực kỳ rõ nét, trong dần về phía dưới để lộ ảnh thực tế) */
+.core-values-overlay-haze {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(13, 43, 37, 0.94) 0%,
+    rgba(13, 43, 37, 0.78) 38%,
+    rgba(13, 43, 37, 0.40) 72%,
+    rgba(13, 43, 37, 0.15) 100%
+  );
+  backdrop-filter: blur(2px);
+  z-index: 1;
+}
+
+.core-values-content {
+  position: relative;
+  z-index: 2;
+  max-width: 1240px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.core-values-header {
+  text-align: left;
+  margin-bottom: 3.5rem;
+  max-width: 720px;
+}
+
+.core-values-eyebrow {
+  display: inline-block;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #C99B52; /* Muted gold */
+  margin-bottom: 0.85rem;
+}
+
+.core-values-title {
+  font-family: var(--font-serif);
+  font-size: clamp(2.2rem, 4vw, 3rem);
+  font-weight: 600;
+  color: #FFFFFF;
+  line-height: 1.2;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+/* 4 Value Blocks Grid with Thin Divider Rules - NO ROUNDED CARDS */
+.core-values-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.22);
+  padding-top: 2.25rem;
+}
+
+.core-value-block {
+  padding: 0 1.75rem 0 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+/* Vertical Divider rule between desktop columns */
+.core-value-block + .core-value-block {
+  border-left: 1px solid rgba(255, 255, 255, 0.24);
+}
+
+.core-value-num {
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: #C99B52;
+  margin-bottom: 0.65rem;
+  opacity: 0.9;
+}
+
+.core-value-heading {
+  font-family: var(--font-serif);
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: #FFFFFF;
+  margin-bottom: 0.75rem;
+  letter-spacing: 0.04em;
+}
+
+.core-value-desc {
+  font-family: var(--font-sans);
+  font-size: 0.88rem;
+  line-height: 1.62;
+  color: rgba(255, 255, 255, 0.88);
+  margin-bottom: 0;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* Tablet & Mobile Breakpoints: Dạng lưới 2x2 chuẩn đẹp */
+@media (max-width: 1024px) {
+  .core-values-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0;
+  }
+  
+  .core-value-block {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .core-value-block:nth-child(2n + 1) {
+    border-left: none;
+  }
+
+  .core-value-block:nth-child(2n) {
+    border-left: none;
+  }
+
+  .core-value-block:nth-child(n + 3) {
+    border-top: 1px solid rgba(255, 255, 255, 0.24);
+  }
+}
+
+@media (max-width: 767px) {
+  .core-values-section {
+    min-height: auto;
+    padding: 3.5rem 1rem 4rem 1rem;
+  }
+
+  .core-values-header {
+    margin-bottom: 2rem;
+  }
+  
+  .core-values-title {
+    font-size: 1.85rem;
+  }
+  
+  .core-values-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0;
+    padding-top: 0;
+  }
+  
+  .core-value-block {
+    padding: 1.25rem 0.85rem;
+  }
+  
+  .core-value-block:nth-child(2n + 1) {
+    border-left: none;
+    padding-left: 0.25rem;
+    padding-right: 0.85rem;
+  }
+
+  .core-value-block:nth-child(2n) {
+    border-left: none;
+    padding-left: 0.85rem;
+    padding-right: 0.25rem;
+  }
+
+  .core-value-block:nth-child(n + 3) {
+    border-top: 1px solid rgba(255, 255, 255, 0.24);
+  }
+  
+  .core-value-num {
+    font-size: 0.76rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .core-value-heading {
+    font-size: 1.12rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .core-value-desc {
+    font-size: 0.78rem;
+    line-height: 1.52;
+  }
+}
+
+@media (max-width: 380px) {
+  .core-value-block {
+    padding: 1rem 0.5rem;
+  }
+  
+  .core-value-heading {
+    font-size: 1.02rem;
+  }
+
+  .core-value-desc {
+    font-size: 0.74rem;
+    line-height: 1.48;
+  }
+}

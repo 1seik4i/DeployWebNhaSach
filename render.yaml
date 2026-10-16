@@ -5,7 +5,7 @@ services:
     rootDir: DuongSach-BE
     region: singapore
     plan: free
-    buildCommand: npm ci && npm run generate
+    buildCommand: node scripts/renderBuild.js
     startCommand: npm start
     healthCheckPath: /api/health
     autoDeployTrigger: commit

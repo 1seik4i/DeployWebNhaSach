@@ -1,0 +1,7 @@
+.public-entity-detail { max-width: 48rem; margin: 0 auto; padding: 2rem 1rem; color: #17382e; }
+.public-entity-detail h1 { font-size: 2rem; overflow-wrap: anywhere; }
+.public-entity-detail img { max-width: 100%; max-height: 24rem; object-fit: contain; }
+.public-entity-description { white-space: pre-wrap; line-height: 1.7; }
+.public-entity-detail dl div { display: flex; flex-wrap: wrap; gap: 1rem; padding: .75rem 0; border-bottom: 1px solid #dce5df; }
+.public-entity-detail dt { min-width: 8rem; font-weight: 600; }
+.public-entity-detail dd { margin: 0; }

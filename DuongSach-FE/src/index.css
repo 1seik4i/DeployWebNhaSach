@@ -1,0 +1,554 @@
+/* ========================================================================== 
+   ĐƯỜNG SÁCH TP.HCM — 70% FIGMA BLEND DESIGN SYSTEM
+   Dominant Palette from Figma (70%):
+   - Dark Forest Teal (Primary dark): #182924 / #1E2D2A / #15221F
+   - Golden Yellow (Accent gold): #E9BC63 / #D4A359
+   - Terracotta Warm Red (Accent red): #C84C32 / #B65A48
+   - Warm Light Cream (Section bg): #FAF8F5
+   - Soft Pale Grey (Section bg): #F4F3EE
+   - Soft Mint Tint (Section bg): #EBF0EE
+   - Dark Charcoal Text: #1F2926 / Muted Slate #4A5552
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;0,700;1,500;1,600;1,700&family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&display=swap');
+@import "tailwindcss";
+
+:root {
+  /* Figma Primary Colors */
+  --figma-dark-primary: #182924;
+  --figma-dark-surface: #1E2D2A;
+  --figma-dark-footer: #15221F;
+  --figma-dark-feedback: #1B2A26;
+
+  --figma-gold: #E9BC63;
+  --figma-gold-hover: #D4A359;
+  --figma-gold-light: rgba(233, 188, 99, 0.15);
+
+  --figma-red: #C84C32;
+  --figma-red-hover: #B03E26;
+
+  --figma-cream-bg: #FAF8F5;
+  --figma-pale-grey: #F4F3EE;
+  --figma-mint-bg: #EBF0EE;
+  --figma-white: #FFFFFF;
+
+  --figma-text-dark: #1F2926;
+  --figma-text-muted: #52605C;
+  --figma-text-faint: #7B8B87;
+
+  /* Borders & Shadows */
+  --figma-border: rgba(24, 41, 36, 0.1);
+  --figma-border-dark: rgba(255, 255, 255, 0.12);
+  --figma-shadow-sm: 0 2px 8px rgba(24, 41, 36, 0.06);
+  --figma-shadow-md: 0 8px 24px rgba(24, 41, 36, 0.08);
+  --figma-shadow-lg: 0 16px 36px rgba(24, 41, 36, 0.14);
+
+  /* Typography with Vietnamese fallback */
+  --font-serif: 'Lora', Georgia, serif;
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-sans: 'Nunito', 'Mulish', 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-ui: 'Nunito', 'Mulish', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Layout */
+  --max-width: 1240px;
+  --header-height: 80px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-pill: 9999px;
+  --transition-normal: 260ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Motion Tokens */
+  --motion-press: 140ms cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-panel: 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-reveal: 380ms cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-unfold: 620ms cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-hero-curtain: 820ms cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scrollbar-gutter: stable;
+  font-size: 16px;
+  background-color: var(--figma-cream-bg);
+  color: var(--figma-text-dark);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11', 'ss01', 'kern';
+}
+
+section[id], header[id], main[id] {
+  scroll-margin-top: 90px;
+}
+
+/* Vạch vàng mảnh nhẹ ngăn cách sang trọng trên tất cả các mép nối section */
+main > section {
+  position: relative;
+}
+
+main > section + section::before,
+footer.figma-footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1.5px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(201, 155, 82, 0.25) 12%,
+    rgba(201, 155, 82, 0.85) 50%,
+    rgba(201, 155, 82, 0.25) 88%,
+    transparent 100%
+  );
+  z-index: 10;
+  pointer-events: none;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--figma-cream-bg);
+  color: var(--figma-text-dark);
+  line-height: 1.7;
+  letter-spacing: -0.006em;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--figma-text-dark);
+  letter-spacing: 0;
+  text-wrap: balance;
+}
+
+h1 { font-size: clamp(2.4rem, 5.5vw, 3.8rem); }
+h2 { font-size: clamp(1.9rem, 4vw, 2.7rem); }
+h3 { font-size: clamp(1.25rem, 2.5vw, 1.7rem); }
+
+p {
+  color: var(--figma-text-muted);
+  margin-bottom: 1rem;
+  line-height: 1.72;
+  font-size: 0.985rem;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: all var(--transition-normal);
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid var(--figma-gold);
+  outline-offset: 3px;
+}
+
+.container {
+  width: 100%;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  position: relative;
+  z-index: 2;
+}
+
+/* Figma Section Eyebrows */
+.figma-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--figma-gold);
+  margin-bottom: 0.75rem;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.figma-eyebrow svg {
+  flex-shrink: 0;
+  vertical-align: middle;
+  display: inline-block;
+}
+
+.figma-section-header {
+  text-align: center;
+  max-width: 740px;
+  margin: 0 auto 3.5rem auto;
+}
+
+.figma-section-title {
+  margin-bottom: 0.85rem;
+  color: var(--figma-text-dark);
+  font-family: var(--font-serif);
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.serif-italic-accent {
+  font-family: var(--font-display);
+  font-style: italic !important;
+  font-weight: 600;
+  color: inherit;
+  letter-spacing: 0.01em;
+  display: inline-block;
+}
+
+.figma-section-subtitle {
+  font-size: 1.05rem;
+  color: var(--figma-text-muted);
+}
+
+/* Figma Buttons */
+.btn-figma-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.75rem;
+  background-color: var(--figma-red);
+  color: #FFFFFF;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  font-size: 0.95rem;
+  box-shadow: 0 4px 14px rgba(200, 76, 50, 0.3);
+  transition: all var(--transition-normal);
+}
+
+.btn-figma-primary:hover {
+  background-color: var(--figma-red-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(200, 76, 50, 0.4);
+}
+
+.btn-figma-gold {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.75rem;
+  background-color: var(--figma-gold);
+  color: var(--figma-dark-primary);
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  font-size: 0.95rem;
+  transition: all var(--transition-normal);
+}
+
+.btn-figma-gold:hover {
+  background-color: var(--figma-gold-hover);
+  transform: translateY(-2px);
+}
+
+.btn-figma-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.75rem;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #FFFFFF;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 0.95rem;
+  backdrop-filter: blur(4px);
+  transition: all var(--transition-normal);
+}
+
+.btn-figma-outline:hover {
+  background-color: rgba(255, 255, 255, 0.25);
+  border-color: #FFFFFF;
+  transform: translateY(-2px);
+}
+
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(24, 41, 36, 0.75);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  z-index: 1000;
+  animation: fadeIn 200ms ease;
+}
+
+.modal-content {
+  background-color: #FFFFFF;
+  border: 1px solid var(--figma-border);
+  border-radius: var(--radius-md);
+  padding: 2.25rem;
+  max-width: 620px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--figma-shadow-lg);
+  position: relative;
+  animation: slideUp 250ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  color: #1A2823;
+  background: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 50;
+  transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-close:hover {
+  background-color: #1A2823;
+  color: #FFFFFF;
+  transform: scale(1.08);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+}
+
+.modal-close:active {
+  transform: scale(0.96);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulseGold {
+  0% { box-shadow: 0 0 0 0 rgba(233, 188, 99, 0.7); }
+  70% { box-shadow: 0 0 0 14px rgba(233, 188, 99, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(233, 188, 99, 0); }
+}
+
+/* One-shot ripple for map pin highlight (Khoảnh khắc 3) */
+@keyframes rippleOnce {
+  0% {
+    transform: scale(0.9);
+    box-shadow: 0 0 0 0 rgba(233, 188, 99, 0.9), 0 0 0 0 rgba(200, 76, 50, 0.7);
+  }
+  50% {
+    transform: scale(1.18);
+    box-shadow: 0 0 0 16px rgba(233, 188, 99, 0.4), 0 0 0 8px rgba(200, 76, 50, 0.3);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 24px rgba(233, 188, 99, 0), 0 0 0 12px rgba(200, 76, 50, 0);
+  }
+}
+
+/* One-shot card highlight pulse (Khoảnh khắc 3 khi quay về gian hàng) */
+@keyframes cardHighlightOnce {
+  0% {
+    box-shadow: 0 0 0 0 rgba(233, 188, 99, 0);
+    transform: translateY(0);
+  }
+  30% {
+    box-shadow: 0 0 0 4px rgba(233, 188, 99, 0.75), 0 12px 28px rgba(24, 41, 36, 0.12);
+    transform: translateY(-4px);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(233, 188, 99, 0), 0 4px 16px rgba(0, 0, 0, 0.04);
+    transform: translateY(0);
+  }
+}
+
+/* Universal Button Pressed Motion */
+button:active:not(:disabled),
+.btn-figma-primary:active,
+.btn-figma-outline:active,
+.category-pill-btn:active,
+.map-pill-btn:active,
+.figma-tab-btn:active {
+  transform: scale(0.97);
+  transition: transform var(--motion-press);
+}
+
+/* Global Brand Logo Image Utility */
+.portal-logo-img,
+.brand-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+  display: block;
+}
+
+/* Shared notification skin for legacy alert/toast classes. */
+.auth-alert,
+.portal-login-alert,
+.adm-toast-banner,
+.org-toast-banner {
+  border-radius: 8px !important;
+  border: 1px solid #94e7cb !important;
+  background: #e4f8f0 !important;
+  color: #003d35 !important;
+  box-shadow: none !important;
+  border-left-width: 1px !important;
+}
+
+.auth-alert.error,
+.portal-login-alert {
+  border-color: #ff7b86 !important;
+  background: #ffe4e8 !important;
+  color: #ff0000 !important;
+}
+
+.auth-alert.success {
+  border-color: #94e7cb !important;
+  background: #e4f8f0 !important;
+  color: #003d35 !important;
+}
+
+.adm-toast-banner,
+.org-toast-banner {
+  padding: 0.8rem 1.25rem !important;
+  align-items: flex-start !important;
+  gap: 0.9rem !important;
+  max-width: min(560px, calc(100vw - 32px));
+}
+
+.auth-alert svg,
+.portal-login-alert svg,
+.adm-toast-banner svg,
+.org-toast-banner svg {
+  color: currentColor !important;
+  flex-shrink: 0;
+}
+
+.emoji-experience-rating {
+  width: fit-content;
+  max-width: 100%;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.emoji-experience-row {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.45rem, 2vw, 0.9rem);
+}
+
+.emoji-experience-caption {
+  margin-left: 1rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #C84C32;
+  white-space: nowrap;
+  animation: fadeIn 200ms ease;
+}
+
+.emoji-experience-btn {
+  width: 46px;
+  height: 46px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  font-size: 2.35rem;
+  line-height: 1;
+  filter: grayscale(1) brightness(0.7);
+  opacity: 0.55;
+  transition: transform 180ms ease, filter 180ms ease, opacity 180ms ease;
+}
+
+.emoji-experience-btn:not(.active):hover,
+.emoji-experience-btn:not(.active):focus-visible {
+  transform: translateY(-3px) scale(1.08);
+  filter: grayscale(0) brightness(1);
+  opacity: 1;
+}
+
+.emoji-experience-btn.is-lit {
+  filter: grayscale(0) brightness(1);
+  opacity: 1;
+}
+
+.emoji-experience-btn.active {
+  transform: translateY(-3px) scale(1.1);
+  filter: grayscale(0) brightness(1);
+  opacity: 1;
+}
+
+.sk05-rating-options,
+.participant-rating-control {
+  display: none !important;
+}
+
+@media (max-width: 520px) {
+  .emoji-experience-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 1.9rem;
+  }
+}
+
+/* Ensure brand icon containers have clean background & clipping for logo */
+.participant-brand-icon,
+.partner-brand-icon,
+.organizer-brand-icon,
+.admin-brand-icon,
+.admin-brand-mark,
+.auth-brand-icon,
+.portal-brand-icon {
+  background-color: #FFFFFF !important;
+  border: 1.5px solid #E9BC63 !important;
+  overflow: hidden;
+  padding: 1px;
+  box-shadow: 0 0 10px rgba(233, 188, 99, 0.35);
+}
+
+/* Tôn trọng người dùng thiết lập reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+

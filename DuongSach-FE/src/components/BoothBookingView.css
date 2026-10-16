@@ -1,0 +1,12 @@
+.booth-workflow { display: flex; flex-wrap: wrap; gap: 12px; color: #456553; background: #edf5ef; padding: 16px 20px; border-radius: 10px; margin-bottom: 24px; font-size: 14px; }
+.booth-current { display: flex; align-items: center; gap: 16px; padding: 20px; margin-bottom: 24px; background: #fff8e9; border: 1px solid #ebd5a5; border-radius: 12px; }
+.booth-current div { flex: 1; }
+.booth-current p { font-size: 14px; margin: 6px 0 0; }
+.booth-status { display: inline-block; padding: 5px 10px; border-radius: 20px; font-size: 12px; white-space: nowrap; }
+.booth-status.available { color: #23623f; background: #e9f6ed; }
+.booth-status.pending { color: #885e16; background: #fff3d8; }
+.booth-status.assigned { color: #395ea6; background: #eaf0fe; }
+.booth-history-title { margin: 32px 0 16px; font-size: 21px; }
+.booth-booking-actions { display: flex; gap: 8px; }
+@media (min-width: 1100px) { .facility-summary.booth-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 700px) { .booth-current { flex-wrap: wrap; } .booth-current div { min-width: 200px; } }

@@ -1,0 +1,1158 @@
+/* ==========================================================================
+   ORGANIZATION EXPERIENCE (BỘ MÁY TỔ CHỨC ĐƯỜNG SÁCH TP.HCM)
+   Inherits "Về Đường Sách" Signature Design System & Apple HIG Craft
+   ========================================================================== */
+
+.org-sheet {
+  --org-ink: #182924;
+  --org-canopy: #162e23;
+  --org-brass: #b27b22;
+  --org-gold: #d4af37;
+  --org-paper: #f7f5ed;
+  --org-rule: #e5eadf;
+  --org-ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --org-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+
+  position: fixed;
+  inset: 0;
+  z-index: 450;
+  background: #F7F5ED;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  transform: translateX(100%);
+  visibility: hidden;
+  transition:
+    transform 480ms var(--org-ease-drawer),
+    visibility 480ms ease;
+  box-shadow: -15px 0 50px rgba(16, 36, 27, 0.35);
+  scrollbar-gutter: stable;
+  padding-top: 0;
+}
+
+.org-sheet.is-open {
+  transform: translateX(0);
+  visibility: visible;
+  transition:
+    transform 480ms var(--org-ease-drawer),
+    visibility 0s;
+}
+
+.org-document {
+  min-height: 100%;
+  color: #243D32;
+  background: #F7F5ED;
+  font-family: inherit;
+  line-height: 1.6;
+  overflow-x: clip;
+  isolation: isolate;
+}
+
+.org-container {
+  width: min(1200px, calc(100% - 48px));
+  margin-inline: auto;
+}
+
+/* --------------------------------------------------------------------------
+   Top Sticky Navigation Bar
+   -------------------------------------------------------------------------- */
+.org-topbar {
+  background: #FFFFFF;
+  border-bottom: 1px solid #E5EADF;
+  padding: 0.85rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 3px 12px rgba(24, 41, 36, 0.035);
+}
+
+.org-topbar-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.org-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #F0F4EC;
+  border: 1px solid #DCE5D7;
+  color: #1B3528;
+  padding: 8px 16px;
+  border-radius: 99px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+  text-decoration: none;
+}
+
+.org-back-btn:hover {
+  background: #E3ECE0;
+  color: #11281E;
+  transform: translateX(-2px);
+}
+
+.org-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: #6E8276;
+}
+
+.org-breadcrumbs a {
+  color: #6E8276;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.org-breadcrumbs a:hover {
+  color: #1B3528;
+}
+
+.org-breadcrumbs span.active {
+  color: #1B3528;
+  font-weight: 600;
+}
+
+/* --------------------------------------------------------------------------
+   Hero Section: FPTU Signature Style (Gradient overlay + background photo)
+   -------------------------------------------------------------------------- */
+.org-hero-fptu {
+  position: relative;
+  width: 100%;
+  min-height: clamp(460px, calc(100svh - 260px), 560px);
+  display: flex;
+  align-items: center;
+  background: #FFFFFF;
+  overflow: hidden;
+  border-bottom: 1px solid #E5EADF;
+  padding: 0;
+}
+
+.org-hero-bg-photo {
+  position: absolute;
+  inset: 0;
+  background-image: url('/duong_sach_hero_bg.jpg');
+  background-position: center 36%;
+  background-size: cover;
+  background-repeat: no-repeat;
+  filter: contrast(1.05) brightness(1.02) saturate(1.08);
+  transform: scale(1.045);
+  transform-origin: center center;
+}
+
+.org-hero-gradient-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    #FFFFFF 0%,
+    #FFFFFF 24%,
+    rgba(255, 255, 255, 0.98) 38%,
+    rgba(255, 255, 255, 0.88) 50%,
+    rgba(255, 255, 255, 0.5) 68%,
+    rgba(255, 255, 255, 0.12) 86%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  pointer-events: none;
+}
+
+.org-hero-gradient-overlay::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: linear-gradient(to top, rgba(255, 255, 255, 0.96) 0%, rgba(255, 255, 255, 0) 100%);
+  pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  .org-hero-fptu {
+    min-height: 400px;
+  }
+  .org-hero-gradient-overlay {
+    background: linear-gradient(
+      to bottom,
+      #FFFFFF 0%,
+      rgba(255, 255, 255, 0.95) 50%,
+      rgba(255, 255, 255, 0.5) 80%,
+      rgba(255, 255, 255, 0.1) 100%
+    );
+  }
+}
+
+.org-hero-container {
+  position: relative;
+  z-index: 5;
+  width: min(1200px, calc(100% - 48px));
+  margin-inline: auto;
+  padding: 4rem 0;
+}
+
+.org-hero-brand-lockup {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: 660px;
+}
+
+.org-hero-era {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1.1rem;
+  color: #8C6D2D;
+  font-size: 0.74rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.org-hero-era > span {
+  width: 2.2rem;
+  height: 1px;
+  background: #B27B22;
+}
+
+.org-hero-era i {
+  font-style: normal;
+}
+
+.org-hero-title {
+  font-family: var(--font-display, 'Playfair Display', Georgia, serif);
+  font-size: clamp(2.2rem, 4.5vw, 3.6rem);
+  font-weight: 750;
+  color: #162E23;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  margin: 0 0 1rem;
+}
+
+.org-hero-title em {
+  font-style: italic;
+  color: #B27B22;
+  font-weight: 800;
+  text-shadow: 0 2px 14px rgba(178, 123, 34, 0.16);
+}
+
+.org-hero-lead {
+  color: #425D50;
+  font-size: 0.98rem;
+  line-height: 1.72;
+  margin: 0;
+  max-width: 540px;
+}
+
+/* --------------------------------------------------------------------------
+   Section Common Headers
+   -------------------------------------------------------------------------- */
+.org-section-header {
+  position: relative;
+  text-align: center;
+  max-width: 680px;
+  margin: 0 auto 3rem auto;
+}
+
+.org-section-header::after {
+  content: '';
+  display: block;
+  width: 52px;
+  height: 1px;
+  margin: 1.25rem auto 0;
+  background: linear-gradient(90deg, transparent, #B27B22, transparent);
+}
+
+.org-section-header.light::after {
+  background: linear-gradient(90deg, transparent, #F1D486, transparent);
+}
+
+.org-section-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #A68144;
+  font-size: 0.8rem;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.org-section-kicker.gold {
+  color: #F1D486;
+}
+
+.org-section-heading {
+  font-size: clamp(1.8rem, 3vw, 2.3rem);
+  color: #162E23;
+  font-family: var(--font-display, Georgia, serif);
+  font-weight: 750;
+  margin: 0 0 0.75rem 0;
+  line-height: 1.25;
+}
+
+.org-section-heading.light {
+  color: #FFFFFF;
+}
+
+.org-section-sub {
+  font-size: 0.95rem;
+  color: #556D60;
+  line-height: 1.68;
+  margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   1. 5 Core Functional Departments Bento Section
+   -------------------------------------------------------------------------- */
+.org-depts-section {
+  padding: 4.5rem 0;
+  background: #FFFFFF;
+  border-bottom: 1px solid #E5EADF;
+}
+
+.org-depts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+}
+
+.org-dept-card {
+  background: #FAFAF7;
+  border: 1px solid #E5EADF;
+  border-radius: 16px;
+  padding: 1.75rem 1.4rem;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 14px rgba(24, 41, 36, 0.03);
+  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.org-dept-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #182924 0%, #D4AF37 100%);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.org-dept-card:hover {
+  transform: translateY(-4px);
+  background: #FFFFFF;
+  border-color: #D4AF37;
+  box-shadow: 0 12px 28px rgba(24, 41, 36, 0.08);
+}
+
+.org-dept-card:hover::before {
+  opacity: 1;
+}
+
+.org-dept-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.15rem;
+}
+
+.org-dept-icon-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #1B3528 0%, #2A473E 100%);
+  color: #E9BC63;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(27, 53, 40, 0.16);
+}
+
+.org-dept-num {
+  font-family: var(--font-display, Georgia, serif);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #B27B22;
+  opacity: 0.5;
+}
+
+.org-dept-title {
+  font-family: var(--font-display, Georgia, serif);
+  font-size: 1.08rem;
+  font-weight: 750;
+  color: #14241F;
+  margin: 0 0 0.55rem;
+  line-height: 1.35;
+}
+
+.org-dept-desc {
+  font-size: 0.85rem;
+  color: #556B60;
+  line-height: 1.58;
+  margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   2. Leadership Directory Section with Filter Pills & Search
+   -------------------------------------------------------------------------- */
+.org-directory-section {
+  padding: 4.5rem 0;
+  background: #F8FAF6;
+  border-bottom: 1px solid #E5EADF;
+}
+
+.org-directory-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.org-search-box {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  background: #FFFFFF;
+  border: 1px solid #D6E0D3;
+  border-radius: 99px;
+  padding: 0.65rem 1.15rem;
+  width: min(380px, 100%);
+  box-shadow: 0 2px 8px rgba(24, 41, 36, 0.03);
+  transition: all 0.2s ease;
+}
+
+.org-search-box:focus-within {
+  border-color: #1B3528;
+  box-shadow: 0 0 0 3px rgba(27, 53, 40, 0.1);
+}
+
+.org-search-box input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 0.88rem;
+  color: #162E23;
+  flex: 1;
+}
+
+.org-search-clear {
+  background: #F0F4EC;
+  border: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #556B60;
+  transition: background-color 0.15s ease;
+}
+
+.org-search-clear:hover {
+  background: #E0E8DC;
+  color: #14241F;
+}
+
+.org-filter-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 2.25rem;
+  flex-wrap: wrap;
+}
+
+.org-filters {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.org-filter-btn {
+  background: #FFFFFF;
+  border: 1px solid #DCE5D7;
+  color: #4A6356;
+  padding: 0.45rem 0.95rem;
+  border-radius: 99px;
+  font-size: 0.82rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.org-filter-btn:hover {
+  background: #F0F4EC;
+  color: #1B3528;
+  border-color: #CBD8C6;
+}
+
+.org-filter-btn.is-active {
+  background: #162E23;
+  border-color: #162E23;
+  color: #FFFFFF;
+  box-shadow: 0 4px 12px rgba(22, 46, 35, 0.2);
+}
+
+.org-count-label {
+  font-size: 0.82rem;
+  color: #7B8F83;
+  font-weight: 600;
+}
+
+/* --------------------------------------------------------------------------
+   Campus FPTU 3-Tier Leadership Photo Architecture (Refined Premium Cards)
+   -------------------------------------------------------------------------- */
+.org-directory-section {
+  padding: 4.5rem 0 5.5rem;
+  background: #FBFBFA;
+  position: relative;
+}
+
+/* --- Header Section (Frameless, Majestic Typography & Harmonic Colors) --- */
+.org-fptu-header-card {
+  max-width: 880px;
+  margin: 0 auto 3.5rem auto;
+  text-align: center;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0 1rem;
+  box-shadow: none;
+  position: relative;
+}
+
+.org-fptu-header-card::before {
+  display: none;
+}
+
+.org-fptu-card-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(178, 123, 34, 0.08);
+  color: #92580E;
+  border: 1px solid rgba(178, 123, 34, 0.22);
+  padding: 0.38rem 1.15rem;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 750;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  margin-bottom: 1.1rem;
+  box-shadow: 0 2px 8px rgba(178, 123, 34, 0.04);
+}
+
+.org-fptu-card-tag svg {
+  color: #B84E14;
+}
+
+.org-fptu-main-title {
+  font-family: var(--font-display, 'Playfair Display', Georgia, serif);
+  font-size: clamp(2rem, 3.8vw, 2.75rem);
+  font-weight: 800;
+  color: #142C21;
+  margin: 0;
+  line-height: 1.28;
+  letter-spacing: -0.02em;
+}
+
+.org-fptu-title-highlight {
+  color: #C25E1A;
+  background: linear-gradient(135deg, #B84E14 0%, #D96B27 45%, #C25E1A 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 800;
+  display: inline;
+}
+
+.org-fptu-divider-flourish {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 1.25rem auto 1.1rem;
+  max-width: 220px;
+}
+
+.org-fptu-divider-flourish .flourish-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #B27B22, transparent);
+  opacity: 0.6;
+}
+
+.org-fptu-divider-flourish .flourish-dot {
+  width: 3.5px;
+  height: 3.5px;
+  border-radius: 50%;
+  background: #B27B22;
+  opacity: 0.8;
+}
+
+.org-fptu-divider-flourish .flourish-diamond {
+  color: #B84E14;
+  font-size: 0.82rem;
+  line-height: 1;
+  opacity: 0.9;
+}
+
+.org-fptu-subtitle {
+  font-size: 1.02rem;
+  color: #4A6053;
+  line-height: 1.7;
+  margin: 0 auto;
+  max-width: 680px;
+  font-weight: 450;
+}
+
+/* --- 3-TIER HIERARCHICAL ORGANIZATION TREE (Exact Reference Replica) --- */
+.org-tree-wrapper {
+  max-width: 1060px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3.5rem;
+  padding: 1.5rem 0 3.5rem;
+}
+
+.org-tree-tier {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.org-tree-tier.tier-1 {
+  gap: 0;
+}
+
+.org-tree-tier.tier-2 {
+  gap: clamp(3rem, 7vw, 6.5rem);
+  flex-wrap: wrap;
+}
+
+.org-tree-tier.tier-3 {
+  gap: clamp(2rem, 5vw, 4.5rem);
+  flex-wrap: wrap;
+}
+
+.org-tree-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: 280px;
+  max-width: 100%;
+  cursor: pointer;
+  background: transparent;
+  padding: 0.5rem;
+  border-radius: 20px;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
+}
+
+.org-tree-card:hover {
+  transform: translateY(-5px);
+}
+
+/* Circular Avatar Frame with Soft Drop Shadow & Clean White Rim */
+.org-tree-avatar-box {
+  border-radius: 50%;
+  overflow: hidden;
+  position: relative;
+  background: #F8FAFC;
+  border: 4px solid #FFFFFF;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.04);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  margin-bottom: 1.15rem;
+  flex-shrink: 0;
+}
+
+.org-tree-card:hover .org-tree-avatar-box {
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18), 0 0 0 3px rgba(178, 123, 34, 0.6);
+  transform: scale(1.035);
+}
+
+.org-tree-avatar-box.tier-1-avatar {
+  width: 185px;
+  height: 185px;
+}
+
+.org-tree-avatar-box.tier-2-avatar {
+  width: 165px;
+  height: 165px;
+}
+
+.org-tree-avatar-box.tier-3-avatar {
+  width: 152px;
+  height: 152px;
+}
+
+.org-tree-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+  transition: transform 0.4s ease;
+}
+
+.org-tree-card:hover .org-tree-avatar-img {
+  transform: scale(1.06);
+}
+
+/* Clean Typography Underneath Photo */
+.org-tree-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.org-tree-prefix {
+  font-size: 0.88rem;
+  color: #64748B;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.org-tree-name {
+  font-family: inherit;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0;
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  transition: color 0.2s ease;
+}
+
+.org-tree-card.tier-1-card .org-tree-name {
+  font-size: 1.15rem;
+}
+
+.org-tree-card:hover .org-tree-name {
+  color: #B27B22;
+}
+
+.org-tree-role {
+  font-size: 0.85rem;
+  color: #475569;
+  font-weight: 500;
+  margin: 0.15rem 0 0;
+  line-height: 1.45;
+  max-width: 260px;
+}
+
+.org-tree-sub {
+  font-size: 0.76rem;
+  color: #94A3B8;
+  margin: 0.1rem 0 0;
+  line-height: 1.35;
+}
+
+@media (max-width: 768px) {
+  .org-tree-wrapper {
+    gap: 2.5rem;
+  }
+  .org-tree-tier.tier-2,
+  .org-tree-tier.tier-3 {
+    gap: 2rem;
+  }
+  .org-tree-avatar-box.tier-1-avatar {
+    width: 155px;
+    height: 155px;
+  }
+  .org-tree-avatar-box.tier-2-avatar,
+  .org-tree-avatar-box.tier-3-avatar {
+    width: 140px;
+    height: 140px;
+  }
+  .org-tree-card {
+    width: 240px;
+  }
+}
+
+/* --- MODAL DETAILS --- */
+.org-leader-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  animation: orgModalFadeIn 0.2s ease-out;
+}
+
+.org-leader-modal-content {
+  background: #FFFFFF;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 680px;
+  position: relative;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  animation: orgModalPopIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes orgModalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes orgModalPopIn {
+  from { opacity: 0; transform: scale(0.94) translateY(12px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.org-leader-modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid #E2E8F0;
+  background: #FFFFFF;
+  color: #64748B;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.2s ease;
+}
+
+.org-leader-modal-close:hover {
+  background: #F1F5F9;
+  color: #0F172A;
+}
+
+.org-leader-modal-grid {
+  display: flex;
+  gap: 1.75rem;
+  padding: 2.25rem;
+}
+
+@media (max-width: 640px) {
+  .org-leader-modal-grid {
+    flex-direction: column;
+    padding: 1.5rem;
+    gap: 1.25rem;
+  }
+}
+
+.org-leader-modal-photo-box {
+  width: 210px;
+  height: 270px;
+  min-width: 210px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #EDF2F7;
+  flex-shrink: 0;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
+@media (max-width: 640px) {
+  .org-leader-modal-photo-box {
+    width: 100%;
+    min-width: unset;
+    height: 250px;
+  }
+}
+
+.org-leader-modal-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+}
+
+.org-leader-modal-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.org-leader-modal-badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 750;
+  color: #D96B27;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.35rem;
+}
+
+.org-leader-modal-name {
+  font-family: var(--font-display, Georgia, serif);
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #11261D;
+  margin: 0 0 0.3rem;
+  line-height: 1.25;
+}
+
+.org-leader-modal-role {
+  font-size: 0.88rem;
+  color: #D96B27;
+  font-weight: 650;
+  margin: 0 0 0.5rem;
+}
+
+.org-leader-modal-sub {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  color: #64748B;
+  margin: 0 0 0.85rem;
+}
+
+.org-leader-modal-bio-box {
+  font-size: 0.86rem;
+  color: #334155;
+  line-height: 1.65;
+  background: #F8FAFC;
+  padding: 0.95rem 1.1rem;
+  border-radius: 10px;
+  margin-bottom: 0.85rem;
+  border: 1px solid #EDF2F7;
+}
+
+.org-leader-modal-tags {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.85rem;
+}
+
+.org-leader-modal-tag {
+  font-size: 0.72rem;
+  color: #1B3528;
+  background: #EDF4EE;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.org-leader-modal-email {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.82rem;
+  color: #1E293B;
+  font-weight: 600;
+}
+
+.org-leader-modal-email a {
+  color: #D96B27;
+  text-decoration: none;
+}
+
+.org-leader-modal-email a:hover {
+  text-decoration: underline;
+}
+
+
+/* --------------------------------------------------------------------------
+   3. 3 Pillars Section (Operating Principles - Matched with Achievement Style)
+   -------------------------------------------------------------------------- */
+.org-principles-section {
+  padding: 5.5rem 0 6rem;
+  background: #0E2017;
+  color: #FFFFFF;
+  position: relative;
+  border-top: 1px solid rgba(212, 175, 55, 0.2);
+  overflow: hidden;
+}
+
+.org-section-header.light {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.org-section-kicker.gold {
+  display: inline-block;
+  color: #E9BC63;
+  font-size: 0.8rem;
+  font-weight: 750;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin-bottom: 0.65rem;
+}
+
+.org-section-heading.light {
+  font-family: var(--font-display, Georgia, serif);
+  font-size: clamp(2rem, 3.2vw, 2.6rem);
+  font-weight: 750;
+  color: #FFFFFF;
+  margin: 0;
+  line-height: 1.25;
+  text-align: center;
+}
+
+.org-principles-header-desc {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.72);
+  max-width: 680px;
+  margin: 0.85rem auto 0;
+  line-height: 1.65;
+  text-align: center;
+}
+
+.org-principles-accent-line {
+  width: 50px;
+  height: 2px;
+  background: #E9BC63;
+  margin: 1.15rem auto 0;
+  border-radius: 2px;
+  opacity: 0.8;
+}
+
+.org-principles-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.35rem;
+  margin-top: 2.85rem;
+}
+
+@media (max-width: 900px) {
+  .org-principles-grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+}
+
+.org-principle-card {
+  position: relative;
+  display: flex;
+  min-height: 210px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(233, 188, 99, 0.25);
+  border-radius: 12px;
+  padding: 2.2rem 1.6rem 1.8rem;
+  text-align: center;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  transition:
+    border-color 240ms cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 240ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 240ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 240ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.org-principle-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 44px;
+  height: 2.5px;
+  background: #E9BC63;
+  border-radius: 2px;
+  opacity: 0.85;
+  transition: width 260ms ease, opacity 260ms ease;
+}
+
+.org-principle-card:hover::before {
+  width: 68px;
+  opacity: 1;
+}
+
+.org-principle-card::after {
+  content: '';
+  position: absolute;
+  right: -28px;
+  bottom: -28px;
+  width: 92px;
+  height: 92px;
+  border: 1px solid rgba(241, 212, 134, 0.16);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.org-principle-card:hover {
+  transform: translateY(-5px);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(233, 188, 99, 0.45);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.32);
+}
+
+.org-principle-badge {
+  position: relative;
+  display: inline-block;
+  font-size: 2.8rem;
+  font-weight: 800;
+  font-family: var(--font-display, Georgia, serif);
+  color: #E9BC63;
+  line-height: 1.1;
+  margin: 0 auto 0.75rem;
+  text-align: center;
+  border: none;
+  background: none;
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  box-shadow: none;
+  transition: transform 0.25s ease, color 0.25s ease;
+}
+
+.org-principle-card:hover .org-principle-badge {
+  transform: translateY(-2px);
+  color: #FFF2C6;
+  border: none;
+  background: none;
+  box-shadow: none;
+}
+
+.org-principle-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin: 0 0 0.6rem;
+  line-height: 1.4;
+  letter-spacing: 0;
+  text-align: center;
+}
+
+.org-principle-text {
+  font-size: 0.84rem;
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.6;
+  margin: 0;
+  text-align: center;
+}
+
+

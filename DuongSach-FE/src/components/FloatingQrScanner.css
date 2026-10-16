@@ -1,0 +1,594 @@
+/* ==========================================================================
+   QR CODE SCANNER MODAL POPUP (Header Activated)
+   ========================================================================== */
+
+/* Modal Overlay */
+.qr-popup-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 18, 15, 0.76);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: qrBackdropIn 0.25s ease-out;
+}
+
+@keyframes qrBackdropIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Modal Card */
+.qr-popup-card {
+  width: 100%;
+  max-width: 420px;
+  background: #121E1A;
+  color: #FAF8F5;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 24px 55px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(233, 188, 99, 0.25);
+  animation: qrCardSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes qrCardSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Modal Header */
+.qr-popup-header {
+  background: linear-gradient(135deg, #182B24 0%, #0F1C17 100%);
+  color: #FAF8F5;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(233, 188, 99, 0.25);
+}
+
+.qr-popup-title-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.qr-popup-header-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(233, 188, 99, 0.12);
+  border: 1px solid rgba(233, 188, 99, 0.3);
+  color: var(--figma-gold, #D4AF37);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qr-popup-title {
+  font-family: var(--font-serif, "Playfair Display", Georgia, serif);
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+  color: #FAF8F5;
+}
+
+.qr-popup-subtitle {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.65);
+  display: block;
+}
+
+.qr-popup-close-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #FAF8F5;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.qr-popup-close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+/* Tabs */
+.qr-popup-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  padding: 10px 16px;
+  background: rgba(0, 0, 0, 0.25);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.qr-tab-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 4px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.qr-tab-btn:hover {
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.qr-tab-btn.is-active {
+  background: rgba(233, 188, 99, 0.14);
+  border-color: rgba(233, 188, 99, 0.4);
+  color: var(--figma-gold, #D4AF37);
+}
+
+/* Modal Body */
+.qr-popup-body {
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Camera Viewport */
+.camera-view-container {
+  position: relative;
+  width: 100%;
+  height: 240px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #08110E;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8), 0 6px 20px rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(233, 188, 99, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.camera-video-feed {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.camera-error-notice {
+  position: absolute;
+  inset: 0;
+  background: rgba(14, 26, 21, 0.92);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 8px;
+  z-index: 5;
+}
+
+.camera-error-notice p {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.75);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.btn-retry-camera {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(233, 188, 99, 0.15);
+  border: 1px solid rgba(233, 188, 99, 0.4);
+  color: var(--figma-gold, #D4AF37);
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 4px;
+  transition: all 0.2s ease;
+}
+
+.btn-retry-camera:hover {
+  background: rgba(233, 188, 99, 0.25);
+  color: #FFF;
+}
+
+/* Central Reticle / Focus Frame */
+.camera-focus-frame {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 160px;
+  height: 160px;
+  pointer-events: none;
+  z-index: 4;
+}
+
+/* Focus Corner Brackets */
+.camera-corner {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-color: var(--figma-gold, #D4AF37);
+  border-style: solid;
+  transition: all 0.3s ease;
+}
+
+.camera-corner.top-left {
+  top: 0;
+  left: 0;
+  border-width: 3px 0 0 3px;
+  border-top-left-radius: 6px;
+}
+
+.camera-corner.top-right {
+  top: 0;
+  right: 0;
+  border-width: 3px 3px 0 0;
+  border-top-right-radius: 6px;
+}
+
+.camera-corner.bottom-left {
+  bottom: 0;
+  left: 0;
+  border-width: 0 0 3px 3px;
+  border-bottom-left-radius: 6px;
+}
+
+.camera-corner.bottom-right {
+  bottom: 0;
+  right: 0;
+  border-width: 0 3px 3px 0;
+  border-bottom-right-radius: 6px;
+}
+
+/* Laser sweep inside the focus frame */
+.camera-laser-scan {
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  height: 2.5px;
+  background: linear-gradient(90deg, transparent, #ff7043, #ffeb3b, #ff7043, transparent);
+  box-shadow: 0 0 14px 2px rgba(255, 235, 59, 0.85);
+  animation: laserScanMove 2s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite alternate;
+  z-index: 5;
+  border-radius: 2px;
+}
+
+@keyframes laserScanMove {
+  0% {
+    top: 8px;
+    opacity: 0.3;
+  }
+  100% {
+    top: 148px;
+    opacity: 1;
+  }
+}
+
+.camera-match-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 50, 36, 0.85);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  z-index: 10;
+  animation: matchFadeIn 0.3s ease;
+}
+
+@keyframes matchFadeIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.camera-match-badge {
+  background: #2e7d32;
+  color: #ffffff;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+}
+
+.camera-match-badge small {
+  font-size: 0.72rem;
+  font-weight: 400;
+  opacity: 0.9;
+}
+
+/* Camera Controls Row */
+.qr-camera-controls-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.qr-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #d1dfdb;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(233, 188, 99, 0.25);
+  padding: 6px 12px;
+  border-radius: 999px;
+  flex: 1;
+}
+
+.qr-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--figma-gold, #D4AF37);
+  box-shadow: 0 0 8px var(--figma-gold, #D4AF37);
+  animation: pulseDot 1.4s infinite;
+}
+
+.qr-status-pill.is-success .qr-status-dot {
+  background-color: #4caf50;
+  box-shadow: 0 0 8px #4caf50;
+}
+
+@keyframes pulseDot {
+  0% { transform: scale(0.9); opacity: 0.7; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(0.9); opacity: 0.7; }
+}
+
+.qr-flip-cam-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #FFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.qr-flip-cam-btn:hover {
+  background: rgba(233, 188, 99, 0.2);
+  border-color: var(--figma-gold, #D4AF37);
+  color: var(--figma-gold, #D4AF37);
+}
+
+/* Simulation Action Button */
+.qr-simulate-btn {
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #24483B 0%, #17352A 100%);
+  color: #FAF8F5;
+  border: 1px solid rgba(233, 188, 99, 0.35);
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  transition: all 0.2s ease;
+}
+
+.qr-simulate-btn:hover {
+  background: linear-gradient(135deg, #2D5A4A 0%, #1F4537 100%);
+  border-color: var(--figma-gold, #D4AF37);
+  transform: translateY(-1px);
+}
+
+/* Upload Dropzone */
+.qr-file-input-hidden {
+  display: none;
+}
+
+.qr-upload-dropzone {
+  width: 100%;
+  min-height: 240px;
+  border: 2px dashed rgba(233, 188, 99, 0.35);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.qr-upload-dropzone:hover {
+  border-color: var(--figma-gold, #D4AF37);
+  background: rgba(233, 188, 99, 0.06);
+}
+
+.upload-drop-icon {
+  color: var(--figma-gold, #D4AF37);
+  margin-bottom: 12px;
+}
+
+.upload-drop-title {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #FFFFFF;
+  margin: 0 0 6px;
+}
+
+.upload-drop-hint {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 16px;
+}
+
+.btn-select-file {
+  background: rgba(233, 188, 99, 0.15);
+  border: 1px solid rgba(233, 188, 99, 0.4);
+  color: var(--figma-gold, #D4AF37);
+  padding: 7px 18px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.qr-uploaded-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.qr-upload-img {
+  max-width: 140px;
+  max-height: 140px;
+  border-radius: 8px;
+  border: 1px solid var(--figma-gold, #D4AF37);
+}
+
+/* Preset Targets List */
+.qr-sample-label {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.65);
+  margin: 0 0 10px;
+}
+
+.qr-targets-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.qr-target-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+.qr-target-item:hover {
+  background: rgba(233, 188, 99, 0.1);
+  border-color: rgba(233, 188, 99, 0.35);
+  transform: translateX(3px);
+}
+
+.qr-target-icon-box {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(233, 188, 99, 0.12);
+  color: var(--figma-gold, #D4AF37);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.qr-target-info {
+  flex: 1;
+}
+
+.qr-target-type {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--figma-gold, #D4AF37);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: block;
+}
+
+.qr-target-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #FFFFFF;
+  margin: 2px 0 0;
+}
+
+.qr-target-arrow {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* Footer Notice */
+.qr-popup-footer-notice {
+  padding: 10px 16px;
+  background: rgba(0, 0, 0, 0.35);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  text-align: center;
+}
+
+.qr-popup-footer-notice span {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .qr-floating-wrapper {
+    bottom: 18px;
+    right: 18px;
+  }
+  .qr-floating-trigger {
+    width: 50px;
+    height: 50px;
+  }
+  .qr-trigger-tooltip {
+    display: none;
+  }
+  .qr-popup-card {
+    max-width: 94vw;
+  }
+  .camera-view-container {
+    height: 210px;
+  }
+  .camera-focus-frame {
+    width: 140px;
+    height: 140px;
+  }
+}
+

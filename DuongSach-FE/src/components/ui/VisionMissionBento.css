@@ -1,0 +1,390 @@
+.vision-bento {
+  color: #182924;
+}
+
+.vision-bento__intro {
+  display: grid;
+  grid-template-columns: 1.3fr 0.7fr;
+  align-items: flex-end;
+  gap: clamp(2rem, 4.5vw, 4.5rem);
+  margin-bottom: 2.75rem;
+  padding-bottom: 1.75rem;
+  border-bottom: 1px solid rgba(220, 228, 218, 0.85);
+}
+
+.vision-bento__heading-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.vision-bento__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.38rem 0.95rem;
+  background: rgba(233, 188, 99, 0.12);
+  border: 1px solid rgba(233, 188, 99, 0.45);
+  border-radius: 99px;
+  color: #9A6B1A;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 1.15rem;
+}
+
+.vision-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #D4AF37;
+  box-shadow: 0 0 8px rgba(212, 175, 55, 0.85);
+}
+
+.vision-bento__title-line {
+  display: block;
+  white-space: normal;
+}
+
+.vision-bento__main-title {
+  margin: 0;
+  color: #122820;
+  font-family: var(--font-display, 'Playfair Display', Georgia, serif);
+  font-size: clamp(2.2rem, 3.9vw, 3.7rem);
+  font-weight: 700;
+  line-height: 1.16;
+  letter-spacing: -0.015em;
+}
+
+.vision-title-accent {
+  color: #9A6B1A;
+  font-style: italic;
+}
+
+.vision-bento__desc-box {
+  padding-left: 1.5rem;
+  border-left: 3px solid #D4AF37;
+  margin-bottom: 0.4rem;
+}
+
+.vision-bento__desc-box p {
+  margin: 0;
+  color: #486255;
+  font-size: 1.05rem;
+  line-height: 1.82;
+  font-weight: 450;
+}
+
+/* --------------------------------------------------------------------------
+   Bento Grid Structure
+   -------------------------------------------------------------------------- */
+.vision-bento__grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-rows: minmax(500px, auto) minmax(250px, auto);
+  gap: 1.25rem;
+}
+
+.vision-bento__card {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #D6DFD3;
+  border-radius: 20px;
+  box-shadow: 0 12px 36px rgba(24, 41, 36, 0.06), 0 2px 8px rgba(0, 0, 0, 0.02);
+  transform: translateZ(0);
+  transition: transform 280ms var(--journey-ease-out), box-shadow 280ms var(--journey-ease-out), border-color 280ms var(--journey-ease-out);
+}
+
+.vision-bento__card:hover {
+  border-color: #D4AF37;
+  box-shadow: 0 18px 45px rgba(24, 41, 36, 0.12), 0 4px 14px rgba(212, 175, 55, 0.1);
+}
+
+/* --------------------------------------------------------------------------
+   Card 1: Tầm Nhìn (Hero Photo with Dark Scrim Overlay)
+   -------------------------------------------------------------------------- */
+.vision-bento__card--vision {
+  grid-column: span 4;
+  color: #FFFFFF;
+  background: #0D211A;
+  border-color: rgba(233, 188, 99, 0.3);
+}
+
+.vision-bento__card--vision > img,
+.vision-bento__shade {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.vision-bento__card--vision > img {
+  object-fit: cover;
+  object-position: center 30%;
+  transition: transform 600ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.vision-bento__card--vision:hover > img {
+  transform: scale(1.04);
+}
+
+.vision-bento__shade {
+  background: linear-gradient(
+    180deg,
+    rgba(10, 24, 19, 0.2) 0%,
+    rgba(10, 24, 19, 0.6) 40%,
+    rgba(6, 17, 13, 0.94) 85%,
+    rgba(4, 12, 9, 0.98) 100%
+  );
+  pointer-events: none;
+}
+
+.vision-bento__body {
+  position: relative;
+  z-index: 2;
+}
+
+.vision-bento__card--vision .vision-bento__body {
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: clamp(2.25rem, 4vw, 3.75rem);
+}
+
+.vision-bento__icon {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 1.25rem;
+  color: #F8D57E;
+  background: rgba(16, 38, 29, 0.85);
+  border: 1.5px solid rgba(233, 188, 99, 0.6);
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+  transition: transform 260ms ease, color 260ms ease;
+}
+
+.vision-bento__card:hover .vision-bento__icon {
+  transform: scale(1.08) rotate(-3deg);
+  color: #FFF2D1;
+}
+
+.vision-bento__card--vision .vision-bento__label {
+  color: #F8D57E;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+.vision-bento__card--vision h3 {
+  color: #FFFFFF !important;
+  margin: 0.65rem 0 0.95rem;
+  font-family: var(--font-display, 'Playfair Display', Georgia, serif);
+  font-size: clamp(1.65rem, 2.5vw, 2.6rem);
+  font-weight: 700;
+  line-height: 1.22;
+  letter-spacing: -0.01em;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.7);
+}
+
+.vision-bento__card--vision p {
+  max-width: 650px;
+  margin: 0;
+  color: #E2ECE6 !important;
+  font-size: 1rem;
+  line-height: 1.78;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
+}
+
+/* --------------------------------------------------------------------------
+   Card 2: Sứ Mệnh (Dark Emerald & Gold Highlight)
+   -------------------------------------------------------------------------- */
+.vision-bento__card--mission {
+  grid-column: span 2;
+  padding: clamp(2.25rem, 3.5vw, 3.5rem);
+  color: #FFFFFF;
+  background: linear-gradient(155deg, #102920 0%, #173B2E 100%);
+  border: 1px solid rgba(233, 188, 99, 0.35);
+  display: flex;
+  flex-direction: column;
+}
+
+.vision-bento__card--mission .vision-bento__icon {
+  margin-bottom: 2.2rem;
+}
+
+.vision-bento__card--mission .vision-bento__label {
+  color: #F8D57E;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.vision-bento__card--mission h3 {
+  color: #FFFFFF !important;
+  margin: 0.65rem 0 1rem;
+  font-family: var(--font-display, 'Playfair Display', Georgia, serif);
+  font-size: clamp(1.45rem, 2.1vw, 2.25rem);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.vision-bento__card--mission p {
+  margin: 0;
+  color: #D3E5DC !important;
+  font-size: 0.95rem;
+  line-height: 1.75;
+}
+
+.vision-bento__card--mission ul {
+  display: grid;
+  gap: 0.8rem;
+  margin: 1.75rem 0 0;
+  padding: 1.35rem 0 0;
+  list-style: none;
+  border-top: 1px solid rgba(233, 188, 99, 0.25);
+}
+
+.vision-bento__card--mission li {
+  position: relative;
+  padding-left: 1.25rem;
+  color: #FFFFFF !important;
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.vision-bento__card--mission li::before {
+  content: '';
+  position: absolute;
+  top: 0.5rem;
+  left: 0;
+  width: 6px;
+  height: 6px;
+  background: #E9BC63;
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(233, 188, 99, 0.6);
+}
+
+/* --------------------------------------------------------------------------
+   Card 3, 4, 5: Support Bento Pillars (Light & Elegant)
+   -------------------------------------------------------------------------- */
+.vision-bento__card--support {
+  grid-column: span 2;
+  padding: 2.25rem 2rem;
+  background: #FFFFFF;
+  border: 1px solid #DCE5D8;
+  display: flex;
+  flex-direction: column;
+}
+
+.vision-bento__card--support > svg,
+.vision-bento__support-icons {
+  margin-bottom: 1.5rem;
+  color: #A6751C;
+}
+
+.vision-bento__support-icons {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.vision-bento__card--support h3 {
+  font-family: var(--font-display, Georgia, serif);
+  font-size: clamp(1.22rem, 1.6vw, 1.55rem);
+  font-weight: 700;
+  color: #182924 !important;
+  margin: 0.5rem 0 0.75rem;
+  line-height: 1.3;
+}
+
+.vision-bento__card--support p {
+  margin: 0;
+  color: #4C6558 !important;
+  font-size: 0.9rem;
+  line-height: 1.72;
+}
+
+.vision-bento__card--network {
+  background: linear-gradient(180deg, #F6F9F3 0%, #FFFFFF 100%);
+}
+
+.vision-bento__card--future {
+  background: linear-gradient(180deg, #FAF6EE 0%, #FFFFFF 100%);
+  border-color: rgba(233, 188, 99, 0.4);
+}
+
+/* --------------------------------------------------------------------------
+   Responsive Breakpoints
+   -------------------------------------------------------------------------- */
+@media (max-width: 960px) {
+  .vision-bento__intro {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .vision-bento__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: auto;
+  }
+
+  .vision-bento__card--vision,
+  .vision-bento__card--mission {
+    grid-column: span 2;
+    min-height: 460px;
+  }
+
+  .vision-bento__card--mission {
+    min-height: auto;
+  }
+
+  .vision-bento__card--support {
+    grid-column: span 1;
+  }
+
+  .vision-bento__card--future {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 600px) {
+  .vision-bento__intro h2 {
+    font-size: 2.2rem;
+  }
+
+  .vision-bento__grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .vision-bento__card--vision,
+  .vision-bento__card--mission,
+  .vision-bento__card--support,
+  .vision-bento__card--future {
+    grid-column: 1;
+  }
+
+  .vision-bento__card--vision {
+    min-height: 460px;
+  }
+
+  .vision-bento__card--vision .vision-bento__body,
+  .vision-bento__card--mission,
+  .vision-bento__card--support {
+    padding: 1.75rem 1.4rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vision-bento__card--vision > img {
+    transition: none;
+  }
+}

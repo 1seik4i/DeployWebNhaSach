@@ -1,0 +1,131 @@
+.notification-modal {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  box-sizing: border-box;
+  width: min(30rem, calc(100vw - 2rem));
+  max-height: calc(100dvh - 2rem);
+  padding: 1.5rem;
+  border: 1px solid #dce5df;
+  border-radius: 1rem;
+  color: #17382e;
+  background: #fff;
+  box-shadow: 0 1.25rem 3.5rem rgba(20, 45, 36, 0.25);
+  overflow-y: auto;
+}
+
+.notification-modal::backdrop {
+  background: rgba(20, 45, 36, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.notification-modal[open] {
+  animation: notificationModalIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes notificationModalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.notification-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.notification-modal-header h2 {
+  flex: 1;
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.notification-modal-icon {
+  color: #36745a;
+  display: flex;
+}
+
+.notification-modal-close {
+  display: flex;
+  padding: 0.5rem;
+  background: transparent;
+  border: 0;
+  border-radius: 0.5rem;
+  color: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.notification-modal-close:hover {
+  background: #f0f4f1;
+}
+
+.notification-modal p {
+  margin: 1.25rem 0;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.notification-modal textarea {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  padding: 0.75rem;
+  border: 1px solid #b7c9be;
+  border-radius: 0.5rem;
+  font: inherit;
+  color: inherit;
+}
+
+.notification-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.notification-modal-actions button {
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.5rem;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.notification-modal-secondary {
+  border: 1px solid #b7c9be;
+  background: #fff;
+  color: #234b3a;
+}
+
+.notification-modal-secondary:hover {
+  background: #f4f7f5;
+}
+
+.notification-modal-primary {
+  border: 1px solid #234b3a;
+  background: #234b3a;
+  color: #fff;
+}
+
+.notification-modal-primary:hover {
+  background: #1a382c;
+}
+
+.notification-modal button:focus-visible,
+.notification-modal textarea:focus-visible {
+  outline: 3px solid #c09349;
+  outline-offset: 3px;
+}

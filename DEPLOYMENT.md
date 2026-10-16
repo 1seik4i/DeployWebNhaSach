@@ -1,5 +1,27 @@
 # Deploy Render + Vercel
 
+## Backend build đã kiểm tra
+
+Với Root Directory `DuongSach-BE`, cấu hình Render:
+
+```text
+Build Command: node scripts/renderBuild.js
+Start Command: npm start
+Health Check Path: /api/health
+```
+
+Script build in đường dẫn backend và trạng thái lockfile, cài dependencies
+production bằng `npm install --omit=dev --no-audit --no-fund`, rồi tạo Prisma Client.
+Không cần đổi runtime: dùng Node.
+Sau khi đổi Build Command trong service đã tạo thủ công, deploy commit mới nhất.
+Nếu Root Directory để trống, Build Command tương ứng là
+`node DuongSach-BE/scripts/renderBuild.js` và Start Command là `npm start`.
+
+Startup tạo schema bằng Prisma, nạp 18 file seed SQL trong một transaction nếu
+chưa có user, rồi áp dụng constraints. Database đã có user sẽ được giữ nguyên
+và không seed lại. Kiểm tra thêm `/api/public/events` và `/api/public/content`
+để xác nhận database hoạt động, ngoài `/api/health`.
+
 ## Deploy từ repo tổng có submodule
 
 Xem `SUBMODULES.md` để clone và cập nhật FE/BE từ repo nguồn. Nếu import repo

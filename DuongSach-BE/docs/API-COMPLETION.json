@@ -1,0 +1,734 @@
+{
+  "generatedFrom": "src/docs/completion.js router registrations",
+  "scope": "new completion routers, including aliases; excludes existing routes",
+  "total": 121,
+  "implemented": 120,
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/api/admin/activities",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/activities",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/admin/activities/{id}",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/activities/{id}/publish",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/activity-cancellation-requests",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/admin/activity-cancellation-requests/{id}/status",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/activity-change-requests",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/admin/activity-change-requests/{id}/status",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/activity-proposals",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/activity-proposals/{id}/approve",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/activity-proposals/{id}/create-activity",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/activity-proposals/{id}/reject",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/activity-proposals/{id}/request-supplement",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/audit-logs",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/book-categories",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/book-categories",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/admin/book-categories/{id}",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/admin/book-categories/{id}",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/book-labels",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/book-labels",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/admin/book-labels/{id}",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/admin/book-labels/{id}",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/book-sales",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/book-stalls",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/book-submissions",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/book-submissions/{id}/approve",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/book-submissions/{id}/reject",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/books",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/books",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/admin/books/{id}",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/admin/books/{id}",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/booth-cancellation-requests",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/admin/booth-cancellation-requests/{id}/status",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/booth-change-requests",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/admin/booth-change-requests/{id}/status",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/booth-requests/{id}/approve",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/booth-requests/{id}/reject",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/admin/booths/{id}/map-position",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/content",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/content",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/admin/content/{id}",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/dashboard",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/event-locations",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/event-suggestions",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/admin/event-suggestions/{id}",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/events/{id}/broadcast",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/events/{id}/cancel",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/events/{id}/duplicate",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/admin/events/{id}/locations",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/events/{id}/publish",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/events/{id}/unpublish",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/admin/map-config",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/notifications",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/admin/notifications/{id}/read",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/admin/notifications/read-all",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/partner-applications",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/partner-applications/{id}/approve",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/partner-applications/{id}/reject",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/profile/password",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/reports",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/settings",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/admin/settings",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/users",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/users",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/admin/users/{id}",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/users/{id}/reset-password",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/users/{id}/stall-assignment",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/admin/users/{id}/stall-assignment",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/admin/users/{id}/status",
+      "access": "admin",
+      "status": "implemented"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/change-password",
+      "access": "auth",
+      "status": "implemented"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/forgot-password",
+      "access": "public",
+      "status": "503: email provider not configured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/reset-password",
+      "access": "public",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/organizer/notifications",
+      "access": "organizer",
+      "status": "implemented"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/organizer/notifications/{id}/read",
+      "access": "organizer",
+      "status": "implemented"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/organizer/notifications/read-all",
+      "access": "organizer",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/partner/activity-proposals",
+      "access": "partner",
+      "status": "implemented"
+    },
+    {
+      "method": "POST",
+      "path": "/api/partner/activity-proposals",
+      "access": "partner",
+      "status": "implemented"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/partner/activity-proposals/{id}",
+      "access": "partner",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/partner/activity-proposals/{id}/participants",
+      "access": "partner",
+      "status": "implemented"
+    },
+    {
+      "method": "POST",
+      "path": "/api/partner/activity-proposals/{id}/requests",
+      "access": "partner",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/partner/assets",
+      "access": "partner",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/partner/assigned-stall",
+      "access": "partner",
+      "status": "implemented"
+    },
+    {
+      "method": "POST",
+      "path": "/api/partner/attendance/scan",
+      "access": "partner",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/partner/book-sales",
+      "access": "partner",
+      "status": "implemented"
+    },
+    {
+      "method": "POST",
+      "path": "/api/partner/book-sales",
+      "access": "partner",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/partner/book-submissions",
+      "access": "partner",
+      "status": "implemented"
+    },
+    {
+      "method": "POST",
+      "path": "/api/partner/book-submissions",
+      "access": "partner",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/partner/books",
+      "access": "partner",
+      "status": "implemented"
+    },
+    {
+      "method": "POST",
+      "path": "/api/partner/books",
+      "access": "partner",
+      "status": "implemented"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/partner/books/{id}",
+      "access": "partner",
+      "status": "implemented"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/partner/books/{id}/quantities",
+      "access": "partner",
+      "status": "implemented"
+    },
+    {
+      "method": "POST",
+      "path": "/api/partner/booth-requests",
+      "access": "partner",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/partner/booths",
+      "access": "partner",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/partner/booths/{id}/content",
+      "access": "partner",
+      "status": "implemented"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/partner/booths/{id}/content",
+      "access": "partner",
+      "status": "implemented"
+    },
+    {
+      "method": "POST",
+      "path": "/api/partner/booths/{id}/requests",
+      "access": "partner",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/partner/event-applications",
+      "access": "partner",
+      "status": "implemented"
+    },
+    {
+      "method": "POST",
+      "path": "/api/partner/event-applications",
+      "access": "partner",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/partner/event-locations",
+      "access": "partner",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/partner/notifications",
+      "access": "partner",
+      "status": "implemented"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/partner/notifications/{id}/read",
+      "access": "partner",
+      "status": "implemented"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/partner/notifications/read-all",
+      "access": "partner",
+      "status": "implemented"
+    },
+    {
+      "method": "POST",
+      "path": "/api/partner/password",
+      "access": "partner",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/partner/reports",
+      "access": "partner",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/partner/schedule",
+      "access": "partner",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/public/book-categories",
+      "access": "public",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/public/book-labels",
+      "access": "public",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/public/book-rankings",
+      "access": "public",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/public/book-stalls",
+      "access": "public",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/public/book-stalls/{id}",
+      "access": "public",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/public/books",
+      "access": "public",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/public/books/{id}",
+      "access": "public",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/public/books/{id}/stalls",
+      "access": "public",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/public/content",
+      "access": "public",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/public/content/{slug}",
+      "access": "public",
+      "status": "implemented"
+    },
+    {
+      "method": "POST",
+      "path": "/api/public/event-suggestions",
+      "access": "public",
+      "status": "implemented"
+    },
+    {
+      "method": "POST",
+      "path": "/api/public/feedbacks",
+      "access": "public",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/public/map-config",
+      "access": "public",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/public/site-config",
+      "access": "public",
+      "status": "implemented"
+    },
+    {
+      "method": "GET",
+      "path": "/api/public/visit-stats",
+      "access": "public",
+      "status": "implemented"
+    },
+    {
+      "method": "POST",
+      "path": "/api/public/visits",
+      "access": "public",
+      "status": "implemented"
+    }
+  ]
+}

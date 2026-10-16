@@ -1,0 +1,29 @@
+# Dependencies and test output
+node_modules/
+coverage/
+
+# Runtime output
+logs/
+*.log
+uploads/
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+!.env.production.example
+*.pem
+
+# Editor and operating system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local tooling
+.cache/
+database/snapshot/*.tmp
+
+scripts/applySeedSql.js
+scripts/verifySeed.js
+scripts/seedRealisticLibraryData.js

@@ -1,0 +1,677 @@
+﻿<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+@page { size: Letter portrait; margin: 0.75in 0.8in; }
+body { font-family: Aptos, Arial, sans-serif; font-size: 10.5pt; line-height: 1.28; color: #000; }
+h1.title { font-family: "Aptos Display", Arial, sans-serif; font-size: 25pt; line-height: 1.08; text-align: center; color: #000; margin: 1.2in 0 16pt; page-break-after: avoid; }
+h2 { font-family: "Aptos Display", Arial, sans-serif; font-size: 16pt; color: #000; margin: 15pt 0 7pt; page-break-after: avoid; }
+h3 { font-family: "Aptos Display", Arial, sans-serif; font-size: 12.5pt; color: #000; margin: 11pt 0 5pt; page-break-after: avoid; }
+h4 { font-family: "Aptos Display", Arial, sans-serif; font-size: 11pt; color: #000; margin: 9pt 0 4pt; page-break-after: avoid; }
+p { margin: 0 0 6pt; } .center { text-align: center; } .justify { text-align: justify; } .muted { color: #59635e; } .bold { font-weight: 700; }
+.bullet, .number { margin-left: 18pt; text-indent: -11pt; margin-bottom: 3pt; } .page-break { page-break-before: always; }
+table { width: 100%; border-collapse: collapse; margin: 6pt 0 11pt; font-size: 8.3pt; line-height: 1.18; }
+thead { display: table-header-group; } tr { page-break-inside: avoid; } th, td { border: 1px solid #d9d9d9; padding: 5pt; vertical-align: middle; }
+th { background: #17382e; color: #fff; font-weight: 700; text-align: left; } tbody tr:nth-child(even) td { background: #f1f6f3; }
+</style></head><body>
+<h1 class='title'>Y&#234;u cầu Backend cho Thư viện số</h1>
+<p class='center bold' style='font-size:14pt'>T&#224;i liệu b&#224;n giao triển khai API v&#224; dữ liệu</p>
+<p class='center muted' style='font-size:11pt'>Dự &#225;n Đường S&#225;ch Th&#224;nh phố Hồ Ch&#237; Minh</p>
+<p class=''></p>
+<p class='center bold'>Người nhận  Đội Backend</p>
+<p class='center muted'>Ng&#224;y cập nhật  03 th&#225;ng 10 năm 2026</p>
+<p class='center muted'>Phạm vi  Chỉ chức năng Thư viện số</p>
+<p class=''></p>
+<p class='justify'>Mục ti&#234;u của t&#224;i liệu l&#224; chốt phần backend c&#242;n thiếu để thay thế lớp mock frontend hiện tại. Backend cần hỗ trợ một s&#225;ch xuất hiện tại nhiều gian h&#224;ng, dữ liệu tồn kho v&#224; số lượng b&#225;n theo từng gian h&#224;ng, kiểm duyệt metadata, quản trị danh mục v&#224; nh&#227;n, c&#249;ng dữ liệu xếp hạng c&#243; thể cấu h&#236;nh.</p>
+<div class='page-break'></div>
+<h2>T&#243;m tắt b&#224;n giao</h2>
+<p class='justify'>Frontend đ&#227; ho&#224;n thiện luồng public, Partner v&#224; Admin bằng service abstraction c&#249;ng mock data. Backend chưa c&#243; đầy đủ entity v&#224; API cho Thư viện số. Đội backend cần x&#226;y c&#225;c capability trong t&#224;i liệu n&#224;y, sau đ&#243; frontend chỉ thay adapter dữ liệu m&#224; kh&#244;ng thay đổi giao diện hay luồng người d&#249;ng.</p>
+<p class='bullet'>&bull;&nbsp; Ưu ti&#234;n cao nhất l&#224; m&#244; h&#236;nh Book to&#224;n cục v&#224; quan hệ Book Stall nhiều nhiều.</p>
+<p class='bullet'>&bull;&nbsp; Mọi metadata do Partner tạo hoặc sửa phải qua kiểm duyệt trước khi c&#244;ng khai.</p>
+<p class='bullet'>&bull;&nbsp; Inventory v&#224; soldQuantity thuộc quan hệ Book Stall, kh&#244;ng thuộc Book to&#224;n cục.</p>
+<p class='bullet'>&bull;&nbsp; Partner chỉ được thao t&#225;c tr&#234;n gian h&#224;ng gắn với t&#224;i khoản đăng nhập.</p>
+<p class='bullet'>&bull;&nbsp; C&#244;ng thức v&#224; kỳ xếp hạng chưa được chốt, v&#236; vậy backend phải để cấu h&#236;nh.</p>
+<p class='bullet'>&bull;&nbsp; Kh&#244;ng triển khai ebook, PDF reader, giỏ h&#224;ng, checkout hoặc thanh to&#225;n.</p>
+<h2>1 Phạm vi triển khai</h2>
+<h3>1 1 Backend cần cung cấp</h3>
+<p class='bullet'>&bull;&nbsp; Public catalogue chỉ trả dữ liệu đ&#227; được duyệt v&#224; đang hoạt động.</p>
+<p class='bullet'>&bull;&nbsp; Tra cứu s&#225;ch theo t&#234;n, t&#225;c giả v&#224; ISBN; lọc danh mục; sắp xếp v&#224; ph&#226;n trang.</p>
+<p class='bullet'>&bull;&nbsp; Danh s&#225;ch c&#225;c gian h&#224;ng đang cung cấp một s&#225;ch c&#249;ng tồn kho hiện tại.</p>
+<p class='bullet'>&bull;&nbsp; Partner quản l&#253; s&#225;ch trong đ&#250;ng gian h&#224;ng được ph&#226;n c&#244;ng.</p>
+<p class='bullet'>&bull;&nbsp; Admin quản l&#253; s&#225;ch to&#224;n cục, quan hệ với gian h&#224;ng, kiểm duyệt, danh mục, nh&#227;n, tồn kho, số b&#225;n v&#224; xếp hạng.</p>
+<p class='bullet'>&bull;&nbsp; Lưu lịch sử kiểm duyệt đủ để hiển thị bản hiện tại, bản đề xuất v&#224; l&#253; do từ chối.</p>
+<h3>1 2 Ngo&#224;i phạm vi</h3>
+<p class='justify'>Kh&#244;ng x&#226;y chức năng đọc hoặc tải nội dung s&#225;ch, thương mại điện tử, thanh to&#225;n, QR management ri&#234;ng, tin tức, sự kiện, thiết bị, analytics website hoặc hạ tầng triển khai. QR nếu được đội kh&#225;c thực hiện phải trỏ tới cả bookId v&#224; stallId.</p>
+<h2>2 M&#244; h&#236;nh dữ liệu đề xuất</h2>
+<p class='justify'>Book l&#224; bản ghi to&#224;n cục. Một Book c&#243; thể được nhiều Stall cung cấp th&#244;ng qua BookStall. Metadata kiểm duyệt được lưu trong BookSubmission v&#224; kh&#244;ng ghi đ&#232; Book c&#244;ng khai khi c&#242;n Pending.</p>
+<table><colgroup>
+<col style='width:16%'>
+<col style='width:37%'>
+<col style='width:22%'>
+<col style='width:25%'>
+</colgroup><thead><tr>
+<th>Entity</th>
+<th>Trường ch&#237;nh</th>
+<th>Quan hệ</th>
+<th>Ghi ch&#250;</th>
+</tr></thead><tbody>
+<tr>
+<td>Book</td>
+<td>id, isbn, title, titleEn, author, publisher, publicationYear, coverUrl, description, categoryId, status, updatedAt</td>
+<td>N 1 với Category; N N với Label; N N với Stall</td>
+<td>ISBN cần unique hoặc c&#243; quy tắc x&#225;c định ấn bản.</td>
+</tr>
+<tr>
+<td>BookCategory</td>
+<td>id, name, nameEn, status</td>
+<td>1 N với Book</td>
+<td>Chỉ Admin tạo, đổi t&#234;n, lưu trữ v&#224; g&#225;n.</td>
+</tr>
+<tr>
+<td>BookLabel</td>
+<td>id, name, status</td>
+<td>N N với Book qua BookLabelAssignment</td>
+<td>D&#249;ng cho nh&#243;m tuyển chọn v&#224; tag; kh&#244;ng đồng nhất với ranking.</td>
+</tr>
+<tr>
+<td>BookStall</td>
+<td>id, bookId, stallId, inventoryQuantity, soldQuantity nullable, availabilityStatus, updatedAt</td>
+<td>N 1 với Book v&#224; Stall</td>
+<td>Unique theo bookId v&#224; stallId. Đ&#226;y l&#224; phạm vi tồn kho v&#224; số b&#225;n.</td>
+</tr>
+<tr>
+<td>BookSubmission</td>
+<td>id, bookId nullable, stallId, type, status, submittedBy, submittedAt, reviewedAt, reviewedBy, rejectionReason, currentApprovedData, proposedData</td>
+<td>Gắn Book khi UPDATE; c&#243; thể chưa c&#243; bookId khi CREATE</td>
+<td>Giữ snapshot để review v&#224; audit.</td>
+</tr>
+<tr>
+<td>BookRanking</td>
+<td>bookId, type, rank, source, periodStart, periodEnd, salesCount, updatedAt</td>
+<td>N 1 với Book</td>
+<td>source ph&#226;n biệt automatic v&#224; admin curated.</td>
+</tr>
+<tr>
+<td>RankingConfig</td>
+<td>type, formulaKey, period, resultCount, incompleteSalesPolicy, overridePolicy, version</td>
+<td>1 N với kết quả xếp hạng</td>
+<td>Chỉ k&#237;ch hoạt trường đ&#227; được Product chốt.</td>
+</tr>
+</tbody></table>
+<h3>2 1 Enum tối thiểu</h3>
+<p class='bullet'>&bull;&nbsp; Book status  active  draft  archived</p>
+<p class='bullet'>&bull;&nbsp; Submission type  CREATE  UPDATE</p>
+<p class='bullet'>&bull;&nbsp; Submission status  PENDING  APPROVED  REJECTED</p>
+<p class='bullet'>&bull;&nbsp; Availability status  available  low_stock  out_of_stock</p>
+<p class='bullet'>&bull;&nbsp; Ranking type  bestseller  weekly_hot</p>
+<p class='bullet'>&bull;&nbsp; Ranking source  auto  admin</p>
+<h2>3 Ma trận quyền</h2>
+<table><colgroup>
+<col style='width:18%'>
+<col style='width:44%'>
+<col style='width:38%'>
+</colgroup><thead><tr>
+<th>Vai tr&#242;</th>
+<th>Được ph&#233;p</th>
+<th>Kh&#244;ng được ph&#233;p hoặc r&#224;ng buộc</th>
+</tr></thead><tbody>
+<tr>
+<td>Public v&#224; Participant</td>
+<td>Đọc s&#225;ch đ&#227; duyệt, t&#236;m kiếm, lọc, xếp hạng, chi tiết v&#224; c&#225;c gian h&#224;ng cung cấp</td>
+<td>Kh&#244;ng xem pending, rejectionReason hoặc control quản trị</td>
+</tr>
+<tr>
+<td>Partner v&#224; Stall</td>
+<td>Quản l&#253; quan hệ s&#225;ch trong gian được ph&#226;n c&#244;ng; cập nhật tồn kho; nhập soldQuantity t&#249;y chọn; gửi metadata để duyệt</td>
+<td>Kh&#244;ng đổi stall, kh&#244;ng quản l&#253; category hoặc label, kh&#244;ng tự publish, kh&#244;ng duyệt, kh&#244;ng điều khiển ranking</td>
+</tr>
+<tr>
+<td>Admin</td>
+<td>Quản l&#253; mọi s&#225;ch v&#224; BookStall; duyệt hoặc từ chối; quản l&#253; category, label, inventory, sales v&#224; presentation config</td>
+<td>Mọi thao t&#225;c cần audit người thực hiện v&#224; thời điểm</td>
+</tr>
+</tbody></table>
+<h2>4 Quy ước API chung</h2>
+<p class='bullet'>&bull;&nbsp; Giữ response envelope hiện c&#243; gồm success, data, meta t&#249;y chọn v&#224; error t&#249;y chọn.</p>
+<p class='bullet'>&bull;&nbsp; Tất cả thời gian trả về ISO 8601 c&#243; timezone; lưu UTC trong database nếu ph&#249; hợp kiến tr&#250;c hiện tại.</p>
+<p class='bullet'>&bull;&nbsp; List endpoint hỗ trợ page, limit, search, sort v&#224; filter; meta gồm page, limit, total v&#224; totalPages.</p>
+<p class='bullet'>&bull;&nbsp; Backend phải lấy userId, role v&#224; assigned stall từ access token; kh&#244;ng tin stallId do Partner tự truyền.</p>
+<p class='bullet'>&bull;&nbsp; Mutation quan trọng cần transaction, audit log v&#224; optimistic concurrency hoặc expectedVersion khi duyệt.</p>
+<p class='bullet'>&bull;&nbsp; Ảnh b&#236;a d&#249;ng lại upload contract hiện c&#243;; Book chỉ lưu URL hoặc asset reference đ&#227; hợp lệ.</p>
+<p class='bullet'>&bull;&nbsp; Lỗi đề xuất gồm VALIDATION_ERROR, FORBIDDEN_STALL_SCOPE, DUPLICATE_ISBN, CONFLICT, NOT_FOUND v&#224; INVALID_STATUS_TRANSITION.</p>
+<p class='bold' style='font-size:9pt'>Response chuẩn  { success: boolean, data: T, meta?: { page, limit, total, totalPages }, error?: { code, message, details? } }</p>
+<div class='page-break'></div>
+<h2>5 API Public</h2>
+<table><colgroup>
+<col style='width:24%'>
+<col style='width:24%'>
+<col style='width:27%'>
+<col style='width:25%'>
+</colgroup><thead><tr>
+<th>API v&#224; quyền</th>
+<th>Request</th>
+<th>Response</th>
+<th>Mục đ&#237;ch</th>
+</tr></thead><tbody>
+<tr>
+<td>GET /api/library/books`nPublic</td>
+<td>Query search, categoryId, sort, page, limit</td>
+<td>Book[] v&#224; meta ph&#226;n trang</td>
+<td>Catalogue chỉ gồm s&#225;ch active v&#224; metadata đ&#227; duyệt.</td>
+</tr>
+<tr>
+<td>GET /api/library/books/:bookId`nPublic</td>
+<td>Path bookId</td>
+<td>Book</td>
+<td>Chi tiết s&#225;ch c&#244;ng khai.</td>
+</tr>
+<tr>
+<td>GET /api/library/books/:bookId/stalls`nPublic</td>
+<td>Path bookId</td>
+<td>BookStall[] gồm t&#234;n, m&#227; gian, tồn kho v&#224; availability</td>
+<td>Hiển thị C&#243; tại c&#225;c gian h&#224;ng.</td>
+</tr>
+<tr>
+<td>GET /api/library/categories`nPublic</td>
+<td>Kh&#244;ng</td>
+<td>BookCategory[] active</td>
+<td>Danh mục cho bộ lọc data driven.</td>
+</tr>
+<tr>
+<td>GET /api/library/labels`nPublic</td>
+<td>Kh&#244;ng</td>
+<td>BookLabel[] active</td>
+<td>Nh&#227;n c&#244;ng khai v&#224; nh&#243;m tuyển chọn.</td>
+</tr>
+<tr>
+<td>GET /api/library/rankings/:type`nPublic</td>
+<td>type bestseller hoặc weekly_hot; query limit t&#249;y chọn</td>
+<td>{ items: Book[], source, generatedAt, configurationVersion? }</td>
+<td>Top 100 v&#224; Hot tuần lấy từ service, kh&#244;ng t&#237;nh trong frontend.</td>
+</tr>
+</tbody></table>
+<h2>6 API Partner</h2>
+<table><colgroup>
+<col style='width:24%'>
+<col style='width:24%'>
+<col style='width:27%'>
+<col style='width:25%'>
+</colgroup><thead><tr>
+<th>API v&#224; quyền</th>
+<th>Request</th>
+<th>Response</th>
+<th>Mục đ&#237;ch</th>
+</tr></thead><tbody>
+<tr>
+<td>GET /api/partner/library/stall`nPartner</td>
+<td>Kh&#244;ng; x&#225;c định từ token</td>
+<td>{ id, code, name }</td>
+<td>Trả đ&#250;ng gian h&#224;ng Admin đ&#227; ph&#226;n c&#244;ng.</td>
+</tr>
+<tr>
+<td>GET /api/partner/library/books`nPartner</td>
+<td>Query search, status, page, limit</td>
+<td>StallBookRecord[]</td>
+<td>Danh s&#225;ch s&#225;ch thuộc gian h&#224;ng hiện tại c&#249;ng trạng th&#225;i nội dung.</td>
+</tr>
+<tr>
+<td>GET /api/partner/library/global-books/search`nPartner</td>
+<td>Query isbn hoặc title</td>
+<td>Book hoặc null</td>
+<td>T&#236;m s&#225;ch to&#224;n cục để tr&#225;nh tạo tr&#249;ng.</td>
+</tr>
+<tr>
+<td>POST /api/partner/library/books/:bookId`nPartner</td>
+<td>{ inventoryQuantity, soldQuantity? }</td>
+<td>BookStall</td>
+<td>Li&#234;n kết s&#225;ch c&#243; sẵn v&#224;o gian h&#224;ng được ph&#226;n c&#244;ng.</td>
+</tr>
+<tr>
+<td>POST /api/partner/library/book-submissions`nPartner</td>
+<td>{ type: CREATE, proposedData: BookInput, inventoryQuantity, soldQuantity? }</td>
+<td>BookSubmission</td>
+<td>Gửi s&#225;ch mới chờ Admin duyệt.</td>
+</tr>
+<tr>
+<td>POST /api/partner/library/books/:bookId/submissions`nPartner</td>
+<td>{ type: UPDATE, proposedData: Partial&lt;BookInput&gt;, expectedBookVersion? }</td>
+<td>BookSubmission</td>
+<td>Gửi chỉnh sửa metadata m&#224; kh&#244;ng ghi đ&#232; bản đang c&#244;ng khai.</td>
+</tr>
+<tr>
+<td>PATCH /api/partner/library/books/:bookId/inventory`nPartner</td>
+<td>{ inventoryQuantity }</td>
+<td>BookStall</td>
+<td>Cập nhật tồn kho trực tiếp cho đ&#250;ng gian h&#224;ng.</td>
+</tr>
+<tr>
+<td>PATCH /api/partner/library/books/:bookId/sold-quantity`nPartner</td>
+<td>{ soldQuantity?: number }</td>
+<td>BookStall</td>
+<td>Cập nhật số b&#225;n t&#249;y chọn; kh&#244;ng tự trừ tồn kho.</td>
+</tr>
+<tr>
+<td>DELETE /api/partner/library/books/:bookId`nPartner</td>
+<td>Kh&#244;ng hoặc reason t&#249;y policy</td>
+<td>{ relationshipId, state }</td>
+<td>Gỡ hoặc lưu trữ BookStall, kh&#244;ng x&#243;a Book to&#224;n cục.</td>
+</tr>
+<tr>
+<td>GET /api/partner/library/book-submissions`nPartner</td>
+<td>Query status, type, page, limit</td>
+<td>BookSubmission[] v&#224; meta</td>
+<td>Theo d&#245;i chờ duyệt, đ&#227; duyệt v&#224; bị từ chối.</td>
+</tr>
+</tbody></table>
+<h2>7 API Admin v&#224; kiểm duyệt</h2>
+<table><colgroup>
+<col style='width:24%'>
+<col style='width:24%'>
+<col style='width:27%'>
+<col style='width:25%'>
+</colgroup><thead><tr>
+<th>API v&#224; quyền</th>
+<th>Request</th>
+<th>Response</th>
+<th>Mục đ&#237;ch</th>
+</tr></thead><tbody>
+<tr>
+<td>GET /api/admin/library/books`nAdmin</td>
+<td>Query search, status, categoryId, labelId, page, limit</td>
+<td>Book[] v&#224; meta</td>
+<td>Quản l&#253; to&#224;n bộ catalogue.</td>
+</tr>
+<tr>
+<td>GET /api/admin/library/books/:bookId`nAdmin</td>
+<td>Path bookId</td>
+<td>{ book, stalls, labels, submissions }</td>
+<td>Chi tiết quản trị đầy đủ.</td>
+</tr>
+<tr>
+<td>POST /api/admin/library/books`nAdmin</td>
+<td>BookInput</td>
+<td>Book</td>
+<td>Admin tạo s&#225;ch trực tiếp theo quyền hiện c&#243;.</td>
+</tr>
+<tr>
+<td>PATCH /api/admin/library/books/:bookId`nAdmin</td>
+<td>Partial BookInput v&#224; expectedVersion?</td>
+<td>Book</td>
+<td>Admin sửa metadata to&#224;n cục.</td>
+</tr>
+<tr>
+<td>DELETE /api/admin/library/books/:bookId`nAdmin</td>
+<td>reason t&#249;y policy</td>
+<td>{ bookId, state: archived }</td>
+<td>Lưu trữ s&#225;ch an to&#224;n thay v&#236; hard delete mặc định.</td>
+</tr>
+<tr>
+<td>GET /api/admin/library/book-submissions`nAdmin</td>
+<td>Query status, type, stallId, search, date, page, limit</td>
+<td>BookSubmission[] v&#224; meta</td>
+<td>Danh s&#225;ch kiểm duyệt c&#243; t&#236;m kiếm v&#224; lọc.</td>
+</tr>
+<tr>
+<td>GET /api/admin/library/book-submissions/:id`nAdmin</td>
+<td>Path id</td>
+<td>BookSubmission gồm currentApprovedData v&#224; proposedData</td>
+<td>Review CREATE hoặc so s&#225;nh UPDATE.</td>
+</tr>
+<tr>
+<td>POST /api/admin/library/book-submissions/:id/approve`nAdmin</td>
+<td>{ expectedVersion? }</td>
+<td>{ submission, publishedBook, bookStall? }</td>
+<td>Duyệt atomically; CREATE sinh Book v&#224; BookStall, UPDATE cập nhật Book.</td>
+</tr>
+<tr>
+<td>POST /api/admin/library/book-submissions/:id/reject`nAdmin</td>
+<td>{ rejectionReason }</td>
+<td>BookSubmission</td>
+<td>Từ chối v&#224; lưu l&#253; do để Partner xem.</td>
+</tr>
+</tbody></table>
+<h2>8 API Danh mục v&#224; nh&#227;n</h2>
+<table><colgroup>
+<col style='width:24%'>
+<col style='width:24%'>
+<col style='width:27%'>
+<col style='width:25%'>
+</colgroup><thead><tr>
+<th>API v&#224; quyền</th>
+<th>Request</th>
+<th>Response</th>
+<th>Mục đ&#237;ch</th>
+</tr></thead><tbody>
+<tr>
+<td>GET /api/admin/library/categories`nAdmin</td>
+<td>Query includeArchived?</td>
+<td>BookCategory[]</td>
+<td>Danh s&#225;ch quản trị danh mục.</td>
+</tr>
+<tr>
+<td>POST /api/admin/library/categories`nAdmin</td>
+<td>{ name, nameEn? }</td>
+<td>BookCategory</td>
+<td>Tạo danh mục.</td>
+</tr>
+<tr>
+<td>PATCH /api/admin/library/categories/:id`nAdmin</td>
+<td>{ name?, nameEn?, status? }</td>
+<td>BookCategory</td>
+<td>Đổi t&#234;n hoặc trạng th&#225;i.</td>
+</tr>
+<tr>
+<td>DELETE /api/admin/library/categories/:id`nAdmin</td>
+<td>Kh&#244;ng</td>
+<td>{ id, state: archived }</td>
+<td>Lưu trữ danh mục v&#224; bảo to&#224;n tham chiếu.</td>
+</tr>
+<tr>
+<td>GET /api/admin/library/labels`nAdmin</td>
+<td>Query includeArchived?</td>
+<td>BookLabel[]</td>
+<td>Danh s&#225;ch quản trị nh&#227;n.</td>
+</tr>
+<tr>
+<td>POST /api/admin/library/labels`nAdmin</td>
+<td>{ name }</td>
+<td>BookLabel</td>
+<td>Tạo nh&#227;n.</td>
+</tr>
+<tr>
+<td>PATCH /api/admin/library/labels/:id`nAdmin</td>
+<td>{ name?, status? }</td>
+<td>BookLabel</td>
+<td>Đổi t&#234;n hoặc trạng th&#225;i nh&#227;n.</td>
+</tr>
+<tr>
+<td>DELETE /api/admin/library/labels/:id`nAdmin</td>
+<td>Kh&#244;ng</td>
+<td>{ id, state: archived }</td>
+<td>Lưu trữ nh&#227;n.</td>
+</tr>
+<tr>
+<td>PATCH /api/admin/library/books/:bookId/category`nAdmin</td>
+<td>{ categoryId: string hoặc null }</td>
+<td>Book</td>
+<td>Ph&#226;n loại s&#225;ch; Partner kh&#244;ng c&#243; quyền.</td>
+</tr>
+<tr>
+<td>PUT /api/admin/library/books/:bookId/labels`nAdmin</td>
+<td>{ labelIds: string[] }</td>
+<td>Book</td>
+<td>Thay thế tập nh&#227;n của s&#225;ch; validate label active.</td>
+</tr>
+</tbody></table>
+<h2>9 API Tồn kho v&#224; số lượng b&#225;n</h2>
+<table><colgroup>
+<col style='width:24%'>
+<col style='width:24%'>
+<col style='width:27%'>
+<col style='width:25%'>
+</colgroup><thead><tr>
+<th>API v&#224; quyền</th>
+<th>Request</th>
+<th>Response</th>
+<th>Mục đ&#237;ch</th>
+</tr></thead><tbody>
+<tr>
+<td>GET /api/admin/library/book-stalls`nAdmin</td>
+<td>Query stallId, bookId, availability, search, page, limit</td>
+<td>{ book, stall, latestSubmission? }[] v&#224; meta</td>
+<td>Gi&#225;m s&#225;t quan hệ S&#225;ch v&#224; Gian h&#224;ng.</td>
+</tr>
+<tr>
+<td>GET /api/admin/library/inventory-sales`nAdmin</td>
+<td>Query stallId, bookId, from, to, page, limit</td>
+<td>{ book, stall, inventoryQuantity, soldQuantity, updatedAt }[]</td>
+<td>Theo d&#245;i tồn kho v&#224; số b&#225;n.</td>
+</tr>
+<tr>
+<td>GET /api/admin/library/books/:bookId/stalls`nAdmin</td>
+<td>Path bookId</td>
+<td>BookStall[]</td>
+<td>Xem tất cả gian h&#224;ng của một s&#225;ch.</td>
+</tr>
+<tr>
+<td>POST /api/admin/library/stalls/:stallId/books/:bookId`nAdmin</td>
+<td>{ inventoryQuantity, soldQuantity? }</td>
+<td>BookStall</td>
+<td>Admin tạo quan hệ cho gian h&#224;ng.</td>
+</tr>
+<tr>
+<td>PATCH /api/admin/library/book-stalls/:relationshipId`nAdmin</td>
+<td>{ inventoryQuantity?, soldQuantity?, status? }</td>
+<td>BookStall</td>
+<td>Admin điều chỉnh quan hệ.</td>
+</tr>
+<tr>
+<td>DELETE /api/admin/library/book-stalls/:relationshipId`nAdmin</td>
+<td>reason t&#249;y policy</td>
+<td>{ relationshipId, state }</td>
+<td>Gỡ hoặc lưu trữ quan hệ m&#224; kh&#244;ng x&#243;a Book.</td>
+</tr>
+</tbody></table>
+<h2>10 API Xếp hạng</h2>
+<table><colgroup>
+<col style='width:24%'>
+<col style='width:24%'>
+<col style='width:27%'>
+<col style='width:25%'>
+</colgroup><thead><tr>
+<th>API v&#224; quyền</th>
+<th>Request</th>
+<th>Response</th>
+<th>Mục đ&#237;ch</th>
+</tr></thead><tbody>
+<tr>
+<td>GET /api/admin/library/rankings/:type`nAdmin</td>
+<td>type bestseller hoặc weekly_hot</td>
+<td>{ items, source, generatedAt, configuration }</td>
+<td>Xem kết quả v&#224; nguồn auto hoặc admin.</td>
+</tr>
+<tr>
+<td>GET /api/admin/library/ranking-config`nAdmin</td>
+<td>Kh&#244;ng</td>
+<td>{ formulaKey?, period?, resultCount?, incompleteSalesPolicy?, overridePolicy?, version }</td>
+<td>Đọc cấu h&#236;nh hiện h&#224;nh.</td>
+</tr>
+<tr>
+<td>PATCH /api/admin/library/ranking-config`nAdmin</td>
+<td>C&#225;c trường cấu h&#236;nh được Product cho ph&#233;p v&#224; expectedVersion</td>
+<td>RankingConfig</td>
+<td>Chỉ triển khai mutation sau khi quy tắc được chốt.</td>
+</tr>
+<tr>
+<td>PUT /api/admin/library/rankings/:type/curation`nAdmin</td>
+<td>{ bookIds, mode: curated hoặc override, reason? }</td>
+<td>{ items, source: admin }</td>
+<td>Nh&#243;m tuyển chọn hoặc can thiệp thủ c&#244;ng c&#243; audit.</td>
+</tr>
+<tr>
+<td>POST /api/admin/library/rankings/:type/recalculate`nAdmin hoặc System</td>
+<td>{ asOf? }</td>
+<td>{ jobId, status }</td>
+<td>T&#237;nh lại ở backend; kh&#244;ng t&#237;nh c&#244;ng thức trong frontend.</td>
+</tr>
+</tbody></table>
+<div class='page-break'></div>
+<h2>11 Luồng nghiệp vụ bắt buộc</h2>
+<h3>11 1 Th&#234;m s&#225;ch đ&#227; tồn tại</h3>
+<p class='number'>&rarr;&nbsp; Partner t&#236;m theo ISBN hoặc t&#234;n s&#225;ch.</p>
+<p class='number'>&rarr;&nbsp; Backend trả Book to&#224;n cục nếu c&#243;.</p>
+<p class='number'>&rarr;&nbsp; Partner chỉ gửi inventoryQuantity v&#224; soldQuantity t&#249;y chọn.</p>
+<p class='number'>&rarr;&nbsp; Backend tạo BookStall với unique bookId v&#224; assigned stallId.</p>
+<p class='number'>&rarr;&nbsp; Kh&#244;ng tạo th&#234;m Book tr&#249;ng.</p>
+<h3>11 2 Tạo s&#225;ch mới</h3>
+<p class='number'>&rarr;&nbsp; Partner gửi metadata c&#249;ng số lượng ban đầu.</p>
+<p class='number'>&rarr;&nbsp; Backend tạo BookSubmission trạng th&#225;i PENDING, chưa tạo bản public c&#243; thể đọc.</p>
+<p class='number'>&rarr;&nbsp; Admin xem proposedData v&#224; quyết định duyệt hoặc từ chối.</p>
+<p class='number'>&rarr;&nbsp; Khi duyệt, transaction tạo Book active, BookStall v&#224; cập nhật submission APPROVED.</p>
+<p class='number'>&rarr;&nbsp; Khi từ chối, lưu rejectionReason; public kh&#244;ng thấy dữ liệu đề xuất.</p>
+<h3>11 3 Chỉnh sửa s&#225;ch</h3>
+<p class='number'>&rarr;&nbsp; Partner gửi proposedData v&#224; backend chụp currentApprovedData.</p>
+<p class='number'>&rarr;&nbsp; Book đang c&#244;ng khai tiếp tục trả metadata đ&#227; duyệt.</p>
+<p class='number'>&rarr;&nbsp; Admin xem hai phi&#234;n bản song song.</p>
+<p class='number'>&rarr;&nbsp; Chỉ khi APPROVED backend mới cập nhật Book trong transaction.</p>
+<p class='number'>&rarr;&nbsp; REJECTED kh&#244;ng x&#243;a hoặc thay đổi bản đang c&#244;ng khai.</p>
+<h3>11 4 Cập nhật số lượng</h3>
+<p class='justify'>Inventory v&#224; soldQuantity được cập nhật tr&#234;n BookStall v&#224; kh&#244;ng cần moderation metadata. soldQuantity hiện l&#224; nullable. Backend kh&#244;ng được tự suy diễn soldQuantity l&#224; theo tuần, lũy kế hay tự động trừ inventory cho đến khi Product chốt.</p>
+<h2>12 Validation v&#224; to&#224;n vẹn dữ liệu</h2>
+<p class='bullet'>&bull;&nbsp; isbn, title v&#224; author l&#224; trường bắt buộc tối thiểu khi tạo mới; metadata kh&#225;c giữ optional cho đến khi chốt.</p>
+<p class='bullet'>&bull;&nbsp; inventoryQuantity v&#224; soldQuantity nếu c&#243; phải l&#224; số nguy&#234;n kh&#244;ng &#226;m.</p>
+<p class='bullet'>&bull;&nbsp; Unique constraint cho BookStall theo bookId v&#224; stallId.</p>
+<p class='bullet'>&bull;&nbsp; ISBN cần normalize khoảng trắng v&#224; dấu gạch trước khi kiểm tra tr&#249;ng; quy tắc nhiều edition cần Product x&#225;c nhận.</p>
+<p class='bullet'>&bull;&nbsp; Partner mutation phải verify t&#224;i khoản c&#243; assigned stall v&#224; quan hệ thuộc stall đ&#243;.</p>
+<p class='bullet'>&bull;&nbsp; Kh&#244;ng cho duyệt submission kh&#244;ng c&#242;n trạng th&#225;i PENDING.</p>
+<p class='bullet'>&bull;&nbsp; Approve UPDATE cần kiểm tra version để tr&#225;nh ghi đ&#232; thay đổi mới hơn.</p>
+<p class='bullet'>&bull;&nbsp; Archive Category hoặc Label kh&#244;ng được l&#224;m mất lịch sử; cần x&#225;c định h&#224;nh vi với Book đang tham chiếu.</p>
+<p class='bullet'>&bull;&nbsp; Public query lu&#244;n lọc trạng th&#225;i active v&#224; chỉ d&#249;ng phi&#234;n bản đ&#227; duyệt.</p>
+<p class='bullet'>&bull;&nbsp; Mọi action duyệt, từ chối, archive v&#224; manual ranking phải lưu actor, timestamp v&#224; reason khi c&#243;.</p>
+<h2>13 Y&#234;u cầu bảo mật v&#224; ph&#226;n quyền</h2>
+<p class='bullet'>&bull;&nbsp; &#193;p dụng RBAC tại controller hoặc service backend, kh&#244;ng dựa v&#224;o việc frontend ẩn n&#250;t.</p>
+<p class='bullet'>&bull;&nbsp; Partner endpoint kh&#244;ng nhận stallId l&#224;m nguồn sự thật; stall phải lấy từ quan hệ t&#224;i khoản hiện c&#243;.</p>
+<p class='bullet'>&bull;&nbsp; Admin endpoint y&#234;u cầu role Admin theo hệ thống authentication hiện tại.</p>
+<p class='bullet'>&bull;&nbsp; Kh&#244;ng trả proposedData, rejectionReason, submittedBy hoặc moderation status qua public API.</p>
+<p class='bullet'>&bull;&nbsp; Validate URL ảnh hoặc asset ownership; kh&#244;ng cho lưu URL nguy hiểm nếu hệ thống proxy ảnh.</p>
+<p class='bullet'>&bull;&nbsp; Giới hạn page size v&#224; rate limit cho search để tr&#225;nh query tốn t&#224;i nguy&#234;n.</p>
+<p class='bullet'>&bull;&nbsp; Audit log kh&#244;ng chứa access token hoặc dữ liệu nhạy cảm ngo&#224;i nhu cầu nghiệp vụ.</p>
+<h2>14 C&#225;c quyết định Product c&#242;n chờ chốt</h2>
+<table><colgroup>
+<col style='width:22%'>
+<col style='width:43%'>
+<col style='width:35%'>
+</colgroup><thead><tr>
+<th>Chủ đề</th>
+<th>Cần quyết định</th>
+<th>Thiết kế an to&#224;n hiện tại</th>
+</tr></thead><tbody>
+<tr>
+<td>Metadata s&#225;ch cuối c&#249;ng</td>
+<td>Trường bắt buộc, đa ng&#244;n ngữ, edition, ng&#244;n ngữ, gi&#225; v&#224; định dạng ảnh</td>
+<td>Giữ schema mở v&#224; optional; kh&#244;ng block triển khai l&#245;i.</td>
+</tr>
+<tr>
+<td>Version đang c&#244;ng khai</td>
+<td>C&#243; cần version table đầy đủ hay chỉ snapshot trong submission</td>
+<td>&#205;t nhất giữ currentApprovedData v&#224; proposedData.</td>
+</tr>
+<tr>
+<td>Quy tr&#236;nh x&#243;a</td>
+<td>Archive trực tiếp hay phải qua moderation</td>
+<td>Mặc định đề xuất soft delete; kh&#244;ng hard delete.</td>
+</tr>
+<tr>
+<td>Từ chối v&#224; gửi lại</td>
+<td>Tạo submission mới hay reopen submission cũ</td>
+<td>Kh&#244;ng tự x&#243;a rejected submission.</td>
+</tr>
+<tr>
+<td>Sold quantity</td>
+<td>C&#243; bắt buộc kh&#244;ng; lũy kế hay theo kỳ; tần suất cập nhật</td>
+<td>Nullable v&#224; kh&#244;ng c&#243; cảnh b&#225;o bắt buộc.</td>
+</tr>
+<tr>
+<td>Tồn kho</td>
+<td>Số b&#225;n c&#243; tự động trừ tồn kho hay kh&#244;ng</td>
+<td>Kh&#244;ng tự động trừ khi chưa chốt.</td>
+</tr>
+<tr>
+<td>Ranking</td>
+<td>C&#244;ng thức, time window, result count v&#224; xử l&#253; dữ liệu thiếu</td>
+<td>Cấu h&#236;nh backend; frontend chỉ hiển thị kết quả.</td>
+</tr>
+<tr>
+<td>Admin override</td>
+<td>Override ranking tự động ở mức n&#224;o v&#224; c&#243; thời hạn kh&#244;ng</td>
+<td>Lưu source v&#224; audit cho mọi can thiệp.</td>
+</tr>
+<tr>
+<td>ISBN v&#224; edition</td>
+<td>Một ISBN c&#243; lu&#244;n tương ứng một Book hay cần edition entity</td>
+<td>Chốt trước khi migrate dữ liệu thật.</td>
+</tr>
+<tr>
+<td>C&#244;ng khai tồn kho</td>
+<td>Hiển thị số ch&#237;nh x&#225;c hay chỉ availability</td>
+<td>API n&#234;n hỗ trợ cả quantity v&#224; status; policy quyết định field public.</td>
+</tr>
+</tbody></table>
+<h2>15 Thứ tự triển khai đề xuất</h2>
+<p class='number'>&rarr;&nbsp; Tạo schema Book, BookCategory, BookLabel, BookLabelAssignment, BookStall v&#224; BookSubmission c&#249;ng migration.</p>
+<p class='number'>&rarr;&nbsp; Thiết lập constraint, index ISBN, title search, stallId, bookId, submission status v&#224; submittedAt.</p>
+<p class='number'>&rarr;&nbsp; Triển khai public read APIs để frontend thay mock catalogue v&#224; modal gian h&#224;ng.</p>
+<p class='number'>&rarr;&nbsp; Triển khai Partner assigned stall, BookStall CRUD v&#224; quantity update.</p>
+<p class='number'>&rarr;&nbsp; Triển khai submission CREATE v&#224; UPDATE c&#249;ng Admin review approve reject.</p>
+<p class='number'>&rarr;&nbsp; Triển khai category v&#224; label management.</p>
+<p class='number'>&rarr;&nbsp; Triển khai Admin inventory sales oversight.</p>
+<p class='number'>&rarr;&nbsp; Chỉ sau khi Product chốt mới ho&#224;n thiện ranking calculation v&#224; config mutation.</p>
+<p class='number'>&rarr;&nbsp; Chạy integration test theo role v&#224; chuyển frontend adapter khỏi localStorage.</p>
+<h2>16 Checklist nghiệm thu Backend</h2>
+<p class='bullet'>&bull;&nbsp; ☐ Một Book được li&#234;n kết với nhiều Stall m&#224; kh&#244;ng tạo bản Book tr&#249;ng.</p>
+<p class='bullet'>&bull;&nbsp; ☐ C&#249;ng một s&#225;ch c&#243; inventoryQuantity v&#224; soldQuantity kh&#225;c nhau theo từng Stall.</p>
+<p class='bullet'>&bull;&nbsp; ☐ Partner kh&#244;ng thể đọc hoặc sửa dữ liệu quản trị của stall kh&#225;c.</p>
+<p class='bullet'>&bull;&nbsp; ☐ soldQuantity c&#243; thể bỏ trống v&#224; kh&#244;ng l&#224;m request thất bại.</p>
+<p class='bullet'>&bull;&nbsp; ☐ Cập nhật số lượng kh&#244;ng tự tạo submission metadata.</p>
+<p class='bullet'>&bull;&nbsp; ☐ CREATE v&#224; UPDATE metadata đều tạo PENDING submission.</p>
+<p class='bullet'>&bull;&nbsp; ☐ Public kh&#244;ng thấy s&#225;ch CREATE pending hoặc metadata UPDATE pending.</p>
+<p class='bullet'>&bull;&nbsp; ☐ Approve CREATE tạo Book v&#224; BookStall atomically.</p>
+<p class='bullet'>&bull;&nbsp; ☐ Approve UPDATE chỉ thay metadata sau khi duyệt.</p>
+<p class='bullet'>&bull;&nbsp; ☐ Reject bắt buộc reason v&#224; Partner đọc được reason qua endpoint của m&#236;nh.</p>
+<p class='bullet'>&bull;&nbsp; ☐ Category v&#224; Label mutation chỉ Admin được ph&#233;p.</p>
+<p class='bullet'>&bull;&nbsp; ☐ X&#243;a ở Partner chỉ gỡ hoặc archive BookStall.</p>
+<p class='bullet'>&bull;&nbsp; ☐ Admin xem được to&#224;n bộ Book Stall, tồn kho, số b&#225;n v&#224; trạng th&#225;i content.</p>
+<p class='bullet'>&bull;&nbsp; ☐ Ranking response ph&#226;n biệt auto v&#224; admin; frontend kh&#244;ng t&#237;nh c&#244;ng thức.</p>
+<p class='bullet'>&bull;&nbsp; ☐ API c&#243; pagination, validation, error code ổn định v&#224; audit log.</p>
+<p class='bullet'>&bull;&nbsp; ☐ Integration tests bao phủ Public, Partner, Admin v&#224; c&#225;c t&#236;nh huống forbidden conflict.</p>
+<h2>Phụ lục &#193;nh xạ frontend service</h2>
+<table><colgroup>
+<col style='width:45%'>
+<col style='width:55%'>
+</colgroup><thead><tr>
+<th>Frontend method hiện tại</th>
+<th>Backend capability thay thế</th>
+</tr></thead><tbody>
+<tr>
+<td>getBooks, getBook, getBookStalls</td>
+<td>Public APIs</td>
+</tr>
+<tr>
+<td>getCategories, getLabels</td>
+<td>Public hoặc Admin taxonomy APIs theo context</td>
+</tr>
+<tr>
+<td>getBestsellers, getWeeklyHotBooks, getRankings</td>
+<td>Ranking APIs</td>
+</tr>
+<tr>
+<td>getMyAssignedStall, getMyStallBooks</td>
+<td>Partner stall APIs</td>
+</tr>
+<tr>
+<td>findGlobalBookByIsbn, addBookToMyStall</td>
+<td>Global search v&#224; Partner BookStall create</td>
+</tr>
+<tr>
+<td>submitNewBook, submitBookUpdate, getMyBookSubmissions</td>
+<td>Partner submission APIs</td>
+</tr>
+<tr>
+<td>updateInventory, updateSoldQuantity, removeBookFromMyStall</td>
+<td>Partner quantity v&#224; relationship APIs</td>
+</tr>
+<tr>
+<td>getAllBooks, createBook, updateBook, deleteBook</td>
+<td>Admin book catalogue APIs</td>
+</tr>
+<tr>
+<td>getAllBookSubmissions, approveBookSubmission, rejectBookSubmission</td>
+<td>Admin moderation APIs</td>
+</tr>
+<tr>
+<td>assignBookCategory, assignBookLabels</td>
+<td>Admin taxonomy assignment APIs</td>
+</tr>
+<tr>
+<td>getBooksByStall, getInventoryAndSales</td>
+<td>Admin oversight APIs</td>
+</tr>
+</tbody></table>
+</body></html>

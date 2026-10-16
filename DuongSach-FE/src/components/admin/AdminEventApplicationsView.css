@@ -1,0 +1,772 @@
+/* ==========================================================================
+   Admin Event Applications View - Modern Editorial Dashboard Styling
+   ========================================================================== */
+
+.adm-event-applications {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0.5rem 0 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* Header */
+.adm-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.adm-page-title {
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: #11281E;
+  margin: 0 0 0.35rem 0;
+  letter-spacing: -0.02em;
+}
+
+.adm-page-subtitle {
+  font-size: 0.85rem;
+  color: #5A6D64;
+  margin: 0;
+  max-width: 680px;
+  line-height: 1.5;
+}
+
+/* --------------------------------------------------------------------------
+   KPI Summary Metric Cards
+   -------------------------------------------------------------------------- */
+.adm-applications-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.adm-summary-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1.15rem;
+  padding: 1.15rem 1.35rem;
+  background: #FFFFFF;
+  border: 1px solid #E2E8E4;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(17, 40, 30, 0.04);
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  overflow: hidden;
+}
+
+.adm-summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(17, 40, 30, 0.08);
+}
+
+.adm-summary-iconbox {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.adm-summary-card:hover .adm-summary-iconbox {
+  transform: scale(1.08);
+}
+
+.adm-summary-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.adm-summary-count {
+  font-size: 1.85rem;
+  font-weight: 850;
+  line-height: 1.1;
+  font-family: inherit;
+  letter-spacing: -0.02em;
+}
+
+.adm-summary-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #556D62;
+  margin-top: 0.2rem;
+}
+
+/* Card Themes */
+.adm-summary-card.is-pending .adm-summary-iconbox {
+  background: #FFF7ED;
+  color: #D97706;
+}
+.adm-summary-card.is-pending .adm-summary-count {
+  color: #D97706;
+}
+.adm-summary-card.is-pending.is-selected {
+  border-color: #D97706;
+  background: #FFFAF5;
+}
+
+.adm-summary-card.is-approved .adm-summary-iconbox {
+  background: #ECFDF5;
+  color: #059669;
+}
+.adm-summary-card.is-approved .adm-summary-count {
+  color: #059669;
+}
+.adm-summary-card.is-approved.is-selected {
+  border-color: #059669;
+  background: #F4FDF8;
+}
+
+.adm-summary-card.is-rejected .adm-summary-iconbox {
+  background: #FEF2F2;
+  color: #DC2626;
+}
+.adm-summary-card.is-rejected .adm-summary-count {
+  color: #DC2626;
+}
+.adm-summary-card.is-rejected.is-selected {
+  border-color: #DC2626;
+  background: #FFF8F8;
+}
+
+.adm-summary-active-indicator {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+}
+.adm-summary-card.is-pending .adm-summary-active-indicator { background: #D97706; }
+.adm-summary-card.is-approved .adm-summary-active-indicator { background: #059669; }
+.adm-summary-card.is-rejected .adm-summary-active-indicator { background: #DC2626; }
+
+/* --------------------------------------------------------------------------
+   Filter Toolbar
+   -------------------------------------------------------------------------- */
+.adm-applications-filters-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  background: #FFFFFF;
+  padding: 0.85rem 1rem;
+  border: 1px solid #E2E8E4;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(17, 40, 30, 0.03);
+  flex-wrap: wrap;
+}
+
+.adm-filter-search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1 1 320px;
+  height: 40px;
+  background: #F8FAF9;
+  border: 1px solid #D8E2DC;
+  border-radius: 8px;
+  padding: 0 0.75rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.adm-filter-search-box:focus-within {
+  background: #FFFFFF;
+  border-color: #17382E;
+  box-shadow: 0 0 0 2px rgba(23, 56, 46, 0.1);
+}
+
+.adm-filter-search-icon {
+  color: #748980;
+  flex-shrink: 0;
+}
+
+.adm-filter-search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 0.83rem;
+  color: #11281E;
+  margin-left: 0.55rem;
+}
+
+.adm-filter-search-input::placeholder {
+  color: #8A9E95;
+}
+
+.adm-filter-clear-btn {
+  background: transparent;
+  border: none;
+  color: #8A9E95;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  padding: 4px;
+  border-radius: 4px;
+}
+.adm-filter-clear-btn:hover { color: #11281E; }
+
+.adm-filter-select-group {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.adm-filter-select-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.adm-select-icon {
+  position: absolute;
+  left: 0.75rem;
+  color: #697F75;
+  pointer-events: none;
+}
+
+.adm-filter-select {
+  height: 40px;
+  background: #F8FAF9;
+  border: 1px solid #D8E2DC;
+  border-radius: 8px;
+  padding: 0 1rem;
+  font-size: 0.82rem;
+  font-weight: 550;
+  color: #243D34;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.adm-filter-select-wrapper:has(.adm-select-icon) .adm-filter-select {
+  padding-left: 2.1rem;
+}
+
+.adm-filter-select:focus,
+.adm-filter-select:hover {
+  background: #FFFFFF;
+  border-color: #17382E;
+}
+
+/* --------------------------------------------------------------------------
+   Application Cards List
+   -------------------------------------------------------------------------- */
+.adm-applications-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.adm-applications-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.adm-application-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8E4;
+  border-radius: 14px;
+  padding: 1.35rem 1.5rem;
+  box-shadow: 0 2px 8px rgba(17, 40, 30, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.adm-application-card:hover {
+  border-color: #CBD7D0;
+  box-shadow: 0 6px 16px rgba(17, 40, 30, 0.06);
+}
+
+.adm-application-card.is-pending-card {
+  border-left: 4px solid #D97706;
+}
+
+.adm-app-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  border-bottom: 1px solid #F1F5F3;
+  padding-bottom: 0.9rem;
+}
+
+.adm-app-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.adm-app-org-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: #11281E;
+}
+
+.adm-app-org-badge h2 {
+  font-size: 1.15rem;
+  font-weight: 750;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.adm-app-event-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #185240;
+  font-size: 0.83rem;
+  font-weight: 650;
+  background: #F0F7F4;
+  padding: 0.2rem 0.65rem;
+  border-radius: 6px;
+  width: fit-content;
+}
+
+/* Status Badges */
+.adm-status-badge-refined {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.32rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.adm-badge-pending {
+  background: #FEF3C7;
+  color: #92400E;
+  border: 1px solid #FDE68A;
+}
+
+.adm-badge-approved {
+  background: #DEF7EC;
+  color: #03543F;
+  border: 1px solid #BCF0DA;
+}
+
+.adm-badge-rejected {
+  background: #FDE8E8;
+  color: #9B1C1C;
+  border: 1px solid #F8B4B4;
+}
+
+/* Meta Data Grid */
+.adm-app-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.85rem 1.25rem;
+  background: #F9FBFA;
+  padding: 0.85rem 1.15rem;
+  border-radius: 10px;
+  border: 1px solid #EAF0ED;
+}
+
+.adm-app-meta-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+}
+
+.adm-app-meta-item.adm-meta-item-wide {
+  grid-column: span 1;
+}
+
+.adm-meta-icon {
+  color: #6A8277;
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+
+.adm-meta-label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6C8178;
+}
+
+.adm-meta-val {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #172B23;
+  margin-top: 1px;
+}
+
+.adm-meta-val.is-link {
+  color: #0E6549;
+  text-decoration: none;
+}
+.adm-meta-val.is-link:hover {
+  text-decoration: underline;
+}
+
+/* Description plan box */
+.adm-app-desc-box {
+  background: #FFFFFF;
+  border: 1px dashed #D3E0D9;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+}
+
+.adm-app-desc-head {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #4C655A;
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+}
+
+.adm-app-desc-box p {
+  font-size: 0.83rem;
+  color: #2D443B;
+  line-height: 1.55;
+  margin: 0;
+}
+
+/* Review Note Banner */
+.adm-app-review-note {
+  background: #F4FBF7;
+  border: 1px solid #D0EDE0;
+  border-radius: 8px;
+  padding: 0.65rem 0.9rem;
+  font-size: 0.81rem;
+  color: #185E46;
+}
+.adm-app-review-note.is-rejection {
+  background: #FEF2F2;
+  border-color: #FECACA;
+  color: #991B1B;
+}
+
+/* Card Actions Footer */
+.adm-app-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid #F1F5F3;
+  flex-wrap: wrap;
+}
+
+.adm-app-footer-hint {
+  font-size: 0.78rem;
+  color: #798E84;
+}
+
+.adm-app-action-btns {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+/* Action Buttons */
+.adm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  height: 38px;
+  padding: 0 1rem;
+  border-radius: 8px;
+  font-size: 0.83rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+  border: 1px solid transparent;
+}
+
+.adm-btn-approve {
+  background: #17382E;
+  color: #FFFFFF;
+}
+.adm-btn-approve:hover:not(:disabled) {
+  background: #235445;
+  box-shadow: 0 3px 10px rgba(23, 56, 46, 0.2);
+}
+
+.adm-btn-reject {
+  background: #FFFFFF;
+  color: #DC2626;
+  border-color: #FCA5A5;
+}
+.adm-btn-reject:hover:not(:disabled) {
+  background: #FEF2F2;
+  border-color: #EF4444;
+}
+
+.adm-btn-secondary {
+  background: #FFFFFF;
+  color: #2D473C;
+  border-color: #D4DFD9;
+}
+.adm-btn-secondary:hover:not(:disabled) {
+  background: #F3F7F5;
+  border-color: #BAC9C1;
+}
+
+.adm-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Alerts */
+.adm-alert-notice,
+.adm-alert-error {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  font-size: 0.83rem;
+  font-weight: 600;
+}
+
+.adm-alert-notice {
+  background: #ECFDF5;
+  color: #065F46;
+  border: 1px solid #A7F3D0;
+}
+.adm-alert-notice button {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: #065F46;
+  cursor: pointer;
+}
+
+.adm-alert-error {
+  background: #FEF2F2;
+  color: #991B1B;
+  border: 1px solid #FECACA;
+}
+.adm-alert-error button {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: #991B1B;
+  cursor: pointer;
+}
+
+/* Empty & Loading States */
+.adm-state-box {
+  background: #FFFFFF;
+  border: 1px dashed #D6DFDA;
+  border-radius: 14px;
+  padding: 3.5rem 1.5rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  color: #6C8177;
+}
+
+.adm-state-box h3 {
+  font-size: 1.1rem;
+  font-weight: 750;
+  color: #172D24;
+  margin: 0.35rem 0 0;
+}
+
+.adm-state-box p {
+  font-size: 0.85rem;
+  margin: 0;
+  max-width: 440px;
+}
+
+/* Animation utilities */
+.adm-spin {
+  animation: admSpin 1s linear infinite;
+}
+@keyframes admSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* --------------------------------------------------------------------------
+   Review Modal Dialog
+   -------------------------------------------------------------------------- */
+.adm-application-dialog {
+  width: min(520px, 94vw);
+  border: none;
+  border-radius: 16px;
+  padding: 0;
+  background: #FFFFFF;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  position: relative;
+  z-index: 1001;
+  margin: auto;
+  animation: admModalScaleIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes admModalScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.adm-application-dialog::backdrop {
+  background: rgba(14, 30, 24, 0.55);
+  backdrop-filter: blur(4px);
+}
+
+.adm-dialog-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.adm-dialog-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  background: #FAFBFB;
+  border-bottom: 1px solid #EBEFEA;
+}
+
+.adm-dialog-iconbox {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.adm-dialog-iconbox[data-action="approve"] {
+  background: #ECFDF5;
+  color: #059669;
+}
+.adm-dialog-iconbox[data-action="reject"] {
+  background: #FEF2F2;
+  color: #DC2626;
+}
+
+.adm-dialog-header h2 {
+  font-size: 1.15rem;
+  font-weight: 750;
+  color: #11281E;
+  margin: 0;
+}
+
+.adm-dialog-subtext {
+  font-size: 0.8rem;
+  color: #556D62;
+  margin: 0.2rem 0 0;
+}
+
+.adm-dialog-body {
+  padding: 1.35rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.adm-dialog-message {
+  font-size: 0.87rem;
+  line-height: 1.6;
+  color: #374F44;
+  margin: 0;
+}
+
+.adm-dialog-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #2D473C;
+}
+
+.adm-form-textarea {
+  width: 100%;
+  border: 1px solid #D4DED9;
+  border-radius: 8px;
+  padding: 0.75rem;
+  font-size: 0.85rem;
+  font-family: inherit;
+  color: #172421;
+  outline: none;
+  resize: vertical;
+  line-height: 1.5;
+  box-sizing: border-box;
+}
+
+.adm-form-textarea:focus {
+  border-color: #17382E;
+  box-shadow: 0 0 0 2px rgba(23, 56, 46, 0.1);
+}
+
+.adm-dialog-error {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.8rem;
+  color: #B91C1C;
+  background: #FEF2F2;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+}
+
+.adm-dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  padding: 1rem 1.5rem;
+  background: #F8FAF9;
+  border-top: 1px solid #EBEFEA;
+}
+
+/* --------------------------------------------------------------------------
+   Responsive Layout
+   -------------------------------------------------------------------------- */
+@media (max-width: 860px) {
+  .adm-applications-summary {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  .adm-app-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .adm-app-card-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .adm-app-action-btns {
+    width: 100%;
+    justify-content: stretch;
+  }
+  .adm-app-action-btns .adm-btn {
+    flex: 1;
+  }
+}
+

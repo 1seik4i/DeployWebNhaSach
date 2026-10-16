@@ -1,0 +1,1457 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [pgcrypto, citext, unaccent, pg_trgm, btree_gist]
+}
+
+enum UserRole {
+  partner
+  admin
+
+  @@map("user_role")
+}
+
+enum AccountStatus {
+  active
+  locked
+  pending_verification
+
+  @@map("account_status")
+}
+
+enum EventStatus {
+  draft
+  published
+  ongoing
+  completed
+  cancelled
+
+  @@map("event_status")
+}
+
+enum EventPriority {
+  high
+  medium
+  regular
+
+  @@map("event_priority")
+}
+
+enum LocationKind {
+  booth
+  main_stage
+  workshop_area
+  reading_area
+  other
+
+  @@map("location_kind")
+}
+
+enum BoothOpStatus {
+  operational
+  unavailable
+
+  @@map("booth_op_status")
+}
+
+enum BoothReqStatus {
+  pending
+  approved
+  rejected
+  withdrawn
+  expired
+  cancelled
+
+  @@map("booth_req_status")
+}
+
+enum BoothReqKind {
+  new
+  change
+  cancellation
+
+  @@map("booth_req_kind")
+}
+
+enum AssignmentStatus {
+  active
+  released
+
+  @@map("assignment_status")
+}
+
+enum PartnerAppStatus {
+  draft
+  submitted
+  approved
+  rejected
+  need_changes
+  withdrawn
+
+  @@map("partner_app_status")
+}
+
+enum ProposalStatus {
+  pending
+  approved
+  need_revision
+  rejected
+  withdrawn
+
+  @@map("proposal_status")
+}
+
+enum ActivityStatus {
+  draft
+  approved
+  published
+  ongoing
+  completed
+  cancelled
+
+  @@map("activity_status")
+}
+
+enum ActivityKind {
+  talkshow
+  workshop
+  launch
+  exhibition
+  minigame
+  signing
+
+  @@map("activity_kind")
+}
+
+enum RegistrationStatus {
+  registered
+  cancelled
+  attended
+  no_show
+
+  @@map("registration_status")
+}
+
+enum AttendanceState {
+  checked_in
+  checked_out
+  invalidated
+
+  @@map("attendance_state")
+}
+
+enum RequestStatus {
+  pending
+  approved
+  rejected
+  cancelled
+  withdrawn
+
+  @@map("request_status")
+}
+
+enum FeedbackStatus {
+  new
+  in_progress
+  responded
+  closed
+
+  @@map("feedback_status")
+}
+
+enum FeedbackScope {
+  entire
+  heritage
+  booth
+  facility
+
+  @@map("feedback_scope")
+}
+
+enum FeedbackSource {
+  qr_general
+  qr_heritage
+  web_landing
+
+  @@map("feedback_source")
+}
+
+enum HeritageStatus {
+  published
+  draft
+  hidden
+
+  @@map("heritage_status")
+}
+
+enum QrStatus {
+  active
+  generating
+  inactive
+
+  @@map("qr_status")
+}
+
+enum NotificationKind {
+  event
+  activity
+  booth
+  system
+  reminder
+  security
+  account
+  role
+
+  @@map("notification_kind")
+}
+
+// -------------------------------------------------------------
+// A. Identity & Access
+// -------------------------------------------------------------
+
+model User {
+  bookSubmissions    BookSubmission[]     @relation("BookSubmittedBy")
+  bookReviews        BookSubmission[]     @relation("BookReviewedBy")
+  stallAssignment    UserStallAssignment?
+  passwordChangedAt  DateTime?            @map("password_changed_at") @db.Timestamptz(6)
+  id                 String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code               String?              @unique @db.VarChar(20)
+  fullName           String               @map("full_name") @db.VarChar(160)
+  email              String               @unique @db.Citext
+  phone              String?              @db.VarChar(20)
+  passwordHash       String               @map("password_hash")
+  primaryRole        UserRole             @default(partner) @map("primary_role")
+  status             AccountStatus        @default(pending_verification)
+  lockReason         String?              @map("lock_reason")
+  avatarUrl          String?              @map("avatar_url")
+  totalPoints        Int                  @default(0) @map("total_points")
+  emailNotifications Boolean              @default(true) @map("email_notifications")
+  lastActiveAt       DateTime?            @map("last_active_at") @db.Timestamptz(6)
+  createdAt          DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime             @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  isDeleted          Boolean              @default(false) @map("is_deleted")
+  deletedAt          DateTime?            @map("deleted_at") @db.Timestamptz(6)
+  deletedBy          String?              @map("deleted_by") @db.Uuid
+
+  deleterUser  User?  @relation("UserDeletions", fields: [deletedBy], references: [id])
+  deletedUsers User[] @relation("UserDeletions")
+
+  userRoles                      UserRoleAssignment[]
+  refreshTokens                  RefreshToken[]
+  passwordResets                 PasswordReset[]
+  orgMembers                     OrganizationMember[]
+  createdEvents                  Event[]                       @relation("EventCreatedBy")
+  reviewedPartnerApps            PartnerApplication[]          @relation("PartnerAppReviewedBy")
+  requestedPartnerWithdrawals    PartnerWithdrawal[]           @relation("PartnerWithdrawalRequestedBy")
+  reviewedPartnerWithdrawals     PartnerWithdrawal[]           @relation("PartnerWithdrawalReviewedBy")
+  reviewedBoothReqs              BoothRequest[]                @relation("BoothReqReviewedBy")
+  assignedBooths                 BoothAssignment[]             @relation("BoothAssignedBy")
+  requestedBoothChanges          BoothChangeRequest[]          @relation("BoothChangeRequestedBy")
+  reviewedBoothChanges           BoothChangeRequest[]          @relation("BoothChangeReviewedBy")
+  requestedBoothCancellations    BoothCancellationRequest[]    @relation("BoothCancellationRequestedBy")
+  reviewedBoothCancellations     BoothCancellationRequest[]    @relation("BoothCancellationReviewedBy")
+  requestedActivityChanges       ActivityChangeRequest[]       @relation("ActivityChangeRequestedBy")
+  reviewedActivityChanges        ActivityChangeRequest[]       @relation("ActivityChangeReviewedBy")
+  requestedActivityCancellations ActivityCancellationRequest[] @relation("ActivityCancellationRequestedBy")
+  reviewedActivityCancellations  ActivityCancellationRequest[] @relation("ActivityCancellationReviewedBy")
+  activityReviews                ActivityReview[]              @relation("ActivityReviewBy")
+  createdActivities              Activity[]                    @relation("ActivityCreatedBy")
+  eventRegistrations             EventRegistration[]
+  activityRegistrations          ActivityRegistration[]
+  attendanceSessions             AttendanceSession[]           @relation("ParticipantAttendance")
+  scannedAttendances             AttendanceSession[]           @relation("ScannerAttendance")
+  overrideAttendances            AttendanceSession[]           @relation("OverrideAttendance")
+  attendances                    Attendance[]                  @relation("AttendanceParticipant")
+  overriddenAttendances          Attendance[]                  @relation("AttendanceOverriddenBy")
+  boothVisits                    BoothVisit[]
+  activityRatings                ActivityRating[]
+  pointTransactions              PointTransaction[]
+  userBadges                     UserBadge[]
+  issuedCertificates             Certificate[]                 @relation("CertIssuedTo")
+  assignedFeedbacks              Feedback[]                    @relation("FeedbackAssignedTo")
+  notifications                  Notification[]
+  auditLogs                      AuditLog[]                    @relation("AuditActor")
+
+  @@map("users")
+}
+
+model Role {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code        String   @unique @db.VarChar(50)
+  name        String   @db.VarChar(100)
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  rolePerms RolePermission[]
+  userRoles UserRoleAssignment[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code        String   @unique @db.VarChar(80)
+  name        String   @db.VarChar(120)
+  module      String   @db.VarChar(50)
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  rolePerms RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String   @map("role_id") @db.Uuid
+  permissionId String   @map("permission_id") @db.Uuid
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model UserRoleAssignment {
+  userId    String   @map("user_id") @db.Uuid
+  roleId    String   @map("role_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
+model RefreshToken {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz(6)
+  revokedAt DateTime? @map("revoked_at") @db.Timestamptz(6)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+model PasswordReset {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz(6)
+  usedAt    DateTime? @map("used_at") @db.Timestamptz(6)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_resets")
+}
+
+// -------------------------------------------------------------
+// B. Tổ chức & Đối tác
+// -------------------------------------------------------------
+
+model Organization {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name               String   @db.VarChar(200)
+  shortDesc          String?  @map("short_desc")
+  logoUrl            String?  @map("logo_url")
+  representativeName String   @map("representative_name") @db.VarChar(160)
+  email              String   @db.Citext
+  phone              String   @db.VarChar(20)
+  address            String?
+  website            String?
+  categories         String[] @default([])
+  isVerified         Boolean  @default(false) @map("is_verified")
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  isDeleted          Boolean  @default(false) @map("is_deleted")
+
+  members           OrganizationMember[]
+  applications      PartnerApplication[]
+  withdrawals       PartnerWithdrawal[]
+  boothRequests     BoothRequest[]
+  boothAssignments  BoothAssignment[]
+  activityProposals ActivityProposal[]
+  activities        Activity[]
+
+  @@map("organizations")
+}
+
+model OrganizationMember {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  roleInOrg      String   @default("member") @map("role_in_org") @db.VarChar(50)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@map("organization_members")
+}
+
+// -------------------------------------------------------------
+// C. Không gian vật lý
+// -------------------------------------------------------------
+
+model Venue {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String    @db.VarChar(160)
+  facility  String    @db.VarChar(160)
+  capacity  Int
+  address   String?
+  isActive  Boolean   @default(true) @map("is_active")
+  isDeleted Boolean   @default(false) @map("is_deleted")
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  deletedBy String?   @map("deleted_by") @db.Uuid
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  locations Location[]
+  events    Event[]
+
+  @@unique([name, facility])
+  @@map("venues")
+}
+
+model Location {
+  id        String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  venueId   String       @map("venue_id") @db.Uuid
+  code      String       @db.VarChar(20)
+  name      String       @db.VarChar(160)
+  nameEn    String?      @map("name_en") @db.VarChar(160)
+  kind      LocationKind
+  capacity  Int          @default(0) // BR-32
+  zone      String?      @db.VarChar(40)
+  mapX      Decimal?     @map("map_x") @db.Decimal(6, 2)
+  mapY      Decimal?     @map("map_y") @db.Decimal(6, 2)
+  isDeleted Boolean      @default(false) @map("is_deleted")
+  createdAt DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  venue                 Venue                   @relation(fields: [venueId], references: [id], onDelete: Restrict)
+  booth                 Booth?
+  activities            Activity[]
+  proposals             ActivityProposal[]
+  activityChangeTargets ActivityChangeRequest[] @relation("ActivityChangeTargetLocation")
+  eventLocations        EventLocation[]
+
+  @@unique([venueId, code])
+  @@map("locations")
+}
+
+model Booth {
+  bookSales       BookSale[]
+  content         Json                  @default("{}")
+  libraryUsers    UserStallAssignment[]
+  bookStalls      BookStall[]
+  bookSubmissions BookSubmission[]
+  id              String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  locationId      String                @unique @map("location_id") @db.Uuid
+  code            String                @unique @db.VarChar(20)
+  name            String                @db.VarChar(160)
+  nameEn          String?               @map("name_en") @db.VarChar(160)
+  publisher       String?               @db.VarChar(160)
+  category        String?               @db.VarChar(40)
+  areaName        String?               @map("area_name") @db.VarChar(80)
+  dimensions      String?               @db.VarChar(40)
+  openHours       String?               @map("open_hours") @db.VarChar(60)
+  description     String?
+  descriptionEn   String?               @map("description_en")
+  imageUrl        String?               @map("image_url")
+  imageAlt        String?               @map("image_alt")
+  imageSource     String?               @map("image_source")
+  imageLicense    String?               @map("image_license")
+  opStatus        BoothOpStatus         @default(operational) @map("op_status") // BR-19
+  isDeleted       Boolean               @default(false) @map("is_deleted")
+  deletedAt       DateTime?             @map("deleted_at") @db.Timestamptz(6)
+  deletedBy       String?               @map("deleted_by") @db.Uuid
+  createdAt       DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime              @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  location      Location             @relation(fields: [locationId], references: [id], onDelete: Restrict)
+  holds         BoothHold[]
+  requests      BoothRequest[]
+  assignments   BoothAssignment[]
+  changeTargets BoothChangeRequest[] @relation("BoothChangeTarget")
+  feedbacks     Feedback[]
+
+  @@map("booths")
+}
+
+model MapHotspot {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code        String   @unique @db.VarChar(20)
+  title       String   @db.VarChar(160)
+  titleEn     String?  @map("title_en") @db.VarChar(160)
+  category    String   @db.VarChar(40)
+  x           Decimal  @db.Decimal(6, 2)
+  y           Decimal  @db.Decimal(6, 2)
+  shortDesc   String?  @map("short_desc")
+  shortDescEn String?  @map("short_desc_en")
+  boothId     String?  @map("booth_id") @db.Uuid
+  iconType    String?  @map("icon_type") @db.VarChar(40)
+  area        String?  @db.VarChar(80)
+  dimensions  String?  @db.VarChar(40)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("map_hotspots")
+}
+
+model Asset {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name          String    @db.VarChar(120)
+  totalQuantity Int       @default(0) @map("total_quantity")
+  description   String?
+  isDeleted     Boolean   @default(false) @map("is_deleted")
+  deletedAt     DateTime? @map("deleted_at") @db.Timestamptz(6)
+  deletedBy     String?   @map("deleted_by") @db.Uuid
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  proposalDevices ProposalDevice[]
+
+  @@map("assets")
+}
+
+// -------------------------------------------------------------
+// D. Sự kiện
+// -------------------------------------------------------------
+
+model Event {
+  visibility    String        @default("public") @db.VarChar(20)
+  publicUntil   DateTime?     @map("public_until") @db.Timestamptz(6)
+  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title         String        @db.VarChar(200)
+  titleEn       String?       @map("title_en") @db.VarChar(200)
+  slug          String        @unique @db.VarChar(200)
+  theme         String?       @db.VarChar(200)
+  venueId       String?       @map("venue_id") @db.Uuid
+  startAt       DateTime      @map("start_at") @db.Timestamptz(6)
+  endAt         DateTime      @map("end_at") @db.Timestamptz(6)
+  status        EventStatus   @default(draft) // BR-06
+  priorityLevel EventPriority @default(regular) @map("priority_level")
+  description   String?
+  summary       String?
+  summaryEn     String?       @map("summary_en")
+  coverImageUrl String?       @map("cover_image_url")
+  publishedAt   DateTime?     @map("published_at") @db.Timestamptz(6)
+  cancelledAt   DateTime?     @map("cancelled_at") @db.Timestamptz(6)
+  cancelReason  String?       @map("cancel_reason")
+  createdBy     String?       @map("created_by") @db.Uuid
+  isDeleted     Boolean       @default(false) @map("is_deleted")
+  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  venue            Venue?               @relation(fields: [venueId], references: [id])
+  creator          User?                @relation("EventCreatedBy", fields: [createdBy], references: [id])
+  settings         EventSettings?
+  eventLocations   EventLocation[]
+  applications     PartnerApplication[]
+  withdrawals      PartnerWithdrawal[]
+  boothHolds       BoothHold[]
+  boothRequests    BoothRequest[]
+  boothAssignments BoothAssignment[]
+  proposals        ActivityProposal[]
+  activities       Activity[]
+  registrations    EventRegistration[]
+  publicRegistrations PublicEventRegistration[]
+  feedbacks        Feedback[]
+
+  @@map("events")
+}
+
+model EventSettings {
+  eventId                 String    @id @map("event_id") @db.Uuid
+  partnerApplyDeadline    DateTime? @map("partner_apply_deadline") @db.Timestamptz(6)
+  boothRequestDeadline    DateTime? @map("booth_request_deadline") @db.Timestamptz(6)
+  boothCancelCutoff       DateTime? @map("booth_cancel_cutoff") @db.Timestamptz(6)
+  proposalDeadline        DateTime? @map("proposal_deadline") @db.Timestamptz(6)
+  participantRegDeadline  DateTime? @map("participant_reg_deadline") @db.Timestamptz(6)
+  activityCancelCutoff    DateTime? @map("activity_cancel_cutoff") @db.Timestamptz(6)
+  maxBoothsPerPartner     Int       @default(1) @map("max_booths_per_partner")
+  maxActivitiesPerPartner Int       @default(3) @map("max_activities_per_partner")
+  boothHoldMinutes        Int       @default(60) @map("booth_hold_minutes")
+  minAttendanceMinutes    Int       @default(20) @map("min_attendance_minutes") // BR-48
+  pointsPerAttendance     Int       @default(10) @map("points_per_attendance")
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@map("event_settings")
+}
+
+model EventLocation {
+  eventId    String   @map("event_id") @db.Uuid
+  locationId String   @map("location_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  event    Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  location Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@id([eventId, locationId])
+  @@map("event_locations")
+}
+
+// -------------------------------------------------------------
+// E. Đối tác tham gia Sự kiện
+// -------------------------------------------------------------
+
+model PartnerApplication {
+  id             String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventId        String           @map("event_id") @db.Uuid
+  organizationId String           @map("organization_id") @db.Uuid
+  status         PartnerAppStatus @default(draft)
+  step           Int              @default(1)
+  submittedAt    DateTime?        @map("submitted_at") @db.Timestamptz(6)
+  reviewedAt     DateTime?        @map("reviewed_at") @db.Timestamptz(6)
+  reviewedBy     String?          @map("reviewed_by") @db.Uuid
+  reviewNote     String?          @map("review_note")
+  createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  event              Event               @relation(fields: [eventId], references: [id])
+  organization       Organization        @relation(fields: [organizationId], references: [id])
+  reviewer           User?               @relation("PartnerAppReviewedBy", fields: [reviewedBy], references: [id])
+  withdrawalRequests PartnerWithdrawal[]
+
+  @@unique([eventId, organizationId])
+  @@map("partner_applications")
+}
+
+model PartnerWithdrawal {
+  id             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventId        String        @map("event_id") @db.Uuid
+  organizationId String        @map("organization_id") @db.Uuid
+  applicationId  String?       @map("application_id") @db.Uuid
+  requestedBy    String?       @map("requested_by") @db.Uuid
+  reviewedBy     String?       @map("reviewed_by") @db.Uuid
+  reason         String
+  status         RequestStatus @default(pending)
+  reviewedAt     DateTime?     @map("reviewed_at") @db.Timestamptz(6)
+  reviewNote     String?       @map("review_note")
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  event        Event               @relation(fields: [eventId], references: [id])
+  organization Organization        @relation(fields: [organizationId], references: [id])
+  application  PartnerApplication? @relation(fields: [applicationId], references: [id])
+  requester    User?               @relation("PartnerWithdrawalRequestedBy", fields: [requestedBy], references: [id])
+  reviewer     User?               @relation("PartnerWithdrawalReviewedBy", fields: [reviewedBy], references: [id])
+
+  @@map("partner_withdrawals")
+}
+
+// -------------------------------------------------------------
+// F. Phân bổ Gian hàng
+// -------------------------------------------------------------
+
+model BoothHold {
+  id         String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  boothId    String                    @map("booth_id") @db.Uuid
+  eventId    String                    @map("event_id") @db.Uuid
+  requestId  String?                   @map("request_id") @db.Uuid
+  status     BoothReqStatus            @default(pending)
+  period     Unsupported("tstzrange")?
+  expiresAt  DateTime                  @map("expires_at") @db.Timestamptz(6)
+  releasedAt DateTime?                 @map("released_at") @db.Timestamptz(6)
+  createdAt  DateTime                  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  booth            Booth               @relation(fields: [boothId], references: [id])
+  event            Event               @relation(fields: [eventId], references: [id])
+  requests         BoothRequest[]
+  changeRequest    BoothChangeRequest? @relation("BoothChangeReplacementHold")
+  sourceAssignment BoothAssignment?    @relation("AssignmentSourceHold")
+
+  @@map("booth_holds")
+}
+
+model BoothRequest {
+  id                   String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventId              String         @map("event_id") @db.Uuid
+  organizationId       String         @map("organization_id") @db.Uuid
+  boothId              String         @map("booth_id") @db.Uuid
+  kind                 BoothReqKind   @default(new)
+  replacesAssignmentId String?        @map("replaces_assignment_id") @db.Uuid
+  status               BoothReqStatus @default(pending)
+  holdId               String?        @map("hold_id") @db.Uuid
+  note                 String?
+  isLate               Boolean        @default(false) @map("is_late") // BR-24
+  submittedAt          DateTime       @default(now()) @map("submitted_at") @db.Timestamptz(6)
+  reviewedAt           DateTime?      @map("reviewed_at") @db.Timestamptz(6)
+  reviewedBy           String?        @map("reviewed_by") @db.Uuid
+  reviewNote           String?        @map("review_note")
+  createdAt            DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  event        Event        @relation(fields: [eventId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+  booth        Booth        @relation(fields: [boothId], references: [id])
+  hold         BoothHold?   @relation(fields: [holdId], references: [id])
+  reviewer     User?        @relation("BoothReqReviewedBy", fields: [reviewedBy], references: [id])
+
+  @@map("booth_requests")
+}
+
+model BoothAssignment {
+  id             String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  boothId        String                    @map("booth_id") @db.Uuid
+  eventId        String                    @map("event_id") @db.Uuid
+  organizationId String                    @map("organization_id") @db.Uuid
+  status         AssignmentStatus          @default(active)
+  assignedAt     DateTime                  @default(now()) @map("assigned_at") @db.Timestamptz(6)
+  assignedBy     String?                   @map("assigned_by") @db.Uuid
+  releasedAt     DateTime?                 @map("released_at") @db.Timestamptz(6)
+  releaseReason  String?                   @map("release_reason")
+  sourceHoldId   String?                   @unique @map("source_hold_id") @db.Uuid
+  qrToken        String?                   @unique @default(dbgenerated("gen_random_uuid()")) @map("qr_token") @db.Uuid
+  qrRevokedAt    DateTime?                 @map("qr_revoked_at") @db.Timestamptz(6)
+  period         Unsupported("tstzrange")?
+
+  booth                Booth                      @relation(fields: [boothId], references: [id])
+  event                Event                      @relation(fields: [eventId], references: [id])
+  organization         Organization               @relation(fields: [organizationId], references: [id])
+  assigner             User?                      @relation("BoothAssignedBy", fields: [assignedBy], references: [id])
+  sourceHold           BoothHold?                 @relation("AssignmentSourceHold", fields: [sourceHoldId], references: [id])
+  sourceChangeRequest  BoothChangeRequest?        @relation("BoothChangeResultAssignment")
+  changeRequests       BoothChangeRequest[]       @relation("BoothChangeCurrentAssignment")
+  cancellationRequests BoothCancellationRequest[]
+  visits               BoothVisit[]
+
+  @@map("booth_assignments")
+}
+
+// Change/cancellation are separate aggregates.  A legacy BoothRequest.kind is
+// retained temporarily for backward compatibility, but new workflows use these tables.
+model BoothChangeRequest {
+  id                  String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  currentAssignmentId String         @map("current_assignment_id") @db.Uuid
+  targetBoothId       String         @map("target_booth_id") @db.Uuid
+  replacementHoldId   String?        @unique @map("replacement_hold_id") @db.Uuid
+  resultAssignmentId  String?        @unique @map("result_assignment_id") @db.Uuid
+  requestedBy         String         @map("requested_by") @db.Uuid
+  reviewedBy          String?        @map("reviewed_by") @db.Uuid
+  reason              String
+  status              BoothReqStatus @default(pending)
+  submittedAt         DateTime       @default(now()) @map("submitted_at") @db.Timestamptz(6)
+  reviewedAt          DateTime?      @map("reviewed_at") @db.Timestamptz(6)
+  reviewNote          String?        @map("review_note")
+  createdAt           DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  currentAssignment BoothAssignment  @relation("BoothChangeCurrentAssignment", fields: [currentAssignmentId], references: [id])
+  targetBooth       Booth            @relation("BoothChangeTarget", fields: [targetBoothId], references: [id])
+  replacementHold   BoothHold?       @relation("BoothChangeReplacementHold", fields: [replacementHoldId], references: [id])
+  resultAssignment  BoothAssignment? @relation("BoothChangeResultAssignment", fields: [resultAssignmentId], references: [id])
+  requester         User             @relation("BoothChangeRequestedBy", fields: [requestedBy], references: [id])
+  reviewer          User?            @relation("BoothChangeReviewedBy", fields: [reviewedBy], references: [id])
+
+  @@map("booth_change_requests")
+}
+
+model BoothCancellationRequest {
+  id           String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  assignmentId String        @map("assignment_id") @db.Uuid
+  requestedBy  String        @map("requested_by") @db.Uuid
+  reviewedBy   String?       @map("reviewed_by") @db.Uuid
+  reason       String
+  isLate       Boolean       @default(false) @map("is_late")
+  status       RequestStatus @default(pending)
+  submittedAt  DateTime      @default(now()) @map("submitted_at") @db.Timestamptz(6)
+  reviewedAt   DateTime?     @map("reviewed_at") @db.Timestamptz(6)
+  reviewNote   String?       @map("review_note")
+  createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  assignment BoothAssignment @relation(fields: [assignmentId], references: [id])
+  requester  User            @relation("BoothCancellationRequestedBy", fields: [requestedBy], references: [id])
+  reviewer   User?           @relation("BoothCancellationReviewedBy", fields: [reviewedBy], references: [id])
+
+  @@map("booth_cancellation_requests")
+}
+
+// -------------------------------------------------------------
+// G. Hoạt động & Đề xuất
+// -------------------------------------------------------------
+
+model ActivityProposal {
+  id                  String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventId             String         @map("event_id") @db.Uuid
+  organizationId      String         @map("organization_id") @db.Uuid
+  title               String         @db.VarChar(200)
+  titleEn             String?        @map("title_en") @db.VarChar(200)
+  kind                ActivityKind
+  locationId          String         @map("location_id") @db.Uuid
+  startAt             DateTime       @map("start_at") @db.Timestamptz(6)
+  endAt               DateTime       @map("end_at") @db.Timestamptz(6)
+  capacity            Int
+  priorityLevel       EventPriority  @default(regular) @map("priority_level")
+  targetAudience      String?        @map("target_audience")
+  description         String?
+  speaker             String?        @db.VarChar(160)
+  contactPerson       String?        @map("contact_person") @db.VarChar(160)
+  contactPhone        String?        @map("contact_phone") @db.VarChar(20)
+  status              ProposalStatus @default(pending)
+  managementNotes     String?        @map("management_notes")
+  publishedActivityId String?        @map("published_activity_id") @db.Uuid
+  submittedAt         DateTime       @default(now()) @map("submitted_at") @db.Timestamptz(6)
+  createdAt           DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  event        Event            @relation(fields: [eventId], references: [id])
+  organization Organization     @relation(fields: [organizationId], references: [id])
+  location     Location         @relation(fields: [locationId], references: [id])
+  devices      ProposalDevice[]
+  reviews      ActivityReview[]
+  activities   Activity[]
+
+  @@map("activity_proposals")
+}
+
+model ProposalDevice {
+  id         String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  proposalId String  @map("proposal_id") @db.Uuid
+  assetId    String? @map("asset_id") @db.Uuid
+  name       String  @db.VarChar(120)
+  quantity   Int
+
+  proposal ActivityProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  asset    Asset?           @relation(fields: [assetId], references: [id])
+
+  @@map("proposal_devices")
+}
+
+model Activity {
+  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventId         String         @map("event_id") @db.Uuid
+  proposalId      String?        @map("proposal_id") @db.Uuid
+  organizationId  String?        @map("organization_id") @db.Uuid
+  title           String         @db.VarChar(200)
+  titleEn         String?        @map("title_en") @db.VarChar(200)
+  kind            ActivityKind
+  locationId      String         @map("location_id") @db.Uuid
+  startAt         DateTime       @map("start_at") @db.Timestamptz(6)
+  endAt           DateTime       @map("end_at") @db.Timestamptz(6)
+  capacity        Int
+  registeredCount Int            @default(0) @map("registered_count")
+  status          ActivityStatus @default(approved)
+  hasCertificate  Boolean        @default(false) @map("has_certificate") // BR-51
+  publishedAt     DateTime?      @map("published_at") @db.Timestamptz(6)
+  cancelledAt     DateTime?      @map("cancelled_at") @db.Timestamptz(6)
+  cancelReason    String?        @map("cancel_reason")
+  description     String?
+  speaker         String?        @db.VarChar(160)
+  imageUrl        String?        @map("image_url")
+  qrToken         String?        @unique @default(dbgenerated("gen_random_uuid()")) @map("qr_token") @db.Uuid
+  qrRevokedAt     DateTime?      @map("qr_revoked_at") @db.Timestamptz(6)
+  createdBy       String?        @map("created_by") @db.Uuid
+  createdAt       DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  event                Event                         @relation(fields: [eventId], references: [id])
+  proposal             ActivityProposal?             @relation(fields: [proposalId], references: [id])
+  organization         Organization?                 @relation(fields: [organizationId], references: [id])
+  location             Location                      @relation(fields: [locationId], references: [id])
+  creator              User?                         @relation("ActivityCreatedBy", fields: [createdBy], references: [id])
+  registrations        ActivityRegistration[]
+  attendanceSessions   AttendanceSession[]
+  attendances          Attendance[]
+  ratings              ActivityRating[]
+  changeRequests       ActivityChangeRequest[]
+  cancellationRequests ActivityCancellationRequest[]
+
+  @@map("activities")
+}
+
+model ActivityChangeRequest {
+  id               String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  activityId       String        @map("activity_id") @db.Uuid
+  targetLocationId String?       @map("target_location_id") @db.Uuid
+  newStartAt       DateTime?     @map("new_start_at") @db.Timestamptz(6)
+  newEndAt         DateTime?     @map("new_end_at") @db.Timestamptz(6)
+  reason           String
+  status           RequestStatus @default(pending)
+  reviewNote       String?       @map("review_note")
+  requestedBy      String?       @map("requested_by") @db.Uuid
+  reviewedBy       String?       @map("reviewed_by") @db.Uuid
+  reviewedAt       DateTime?     @map("reviewed_at") @db.Timestamptz(6)
+  createdAt        DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  activity               Activity  @relation(fields: [activityId], references: [id])
+  targetLocationRelation Location? @relation("ActivityChangeTargetLocation", fields: [targetLocationId], references: [id])
+  requester              User?     @relation("ActivityChangeRequestedBy", fields: [requestedBy], references: [id])
+  reviewer               User?     @relation("ActivityChangeReviewedBy", fields: [reviewedBy], references: [id])
+
+  @@map("activity_change_requests")
+}
+
+model ActivityCancellationRequest {
+  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  activityId  String        @map("activity_id") @db.Uuid
+  reason      String
+  isLate      Boolean       @default(false) @map("is_late")
+  status      RequestStatus @default(pending)
+  reviewNote  String?       @map("review_note")
+  requestedBy String?       @map("requested_by") @db.Uuid
+  reviewedBy  String?       @map("reviewed_by") @db.Uuid
+  reviewedAt  DateTime?     @map("reviewed_at") @db.Timestamptz(6)
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  activity  Activity @relation(fields: [activityId], references: [id])
+  requester User?    @relation("ActivityCancellationRequestedBy", fields: [requestedBy], references: [id])
+  reviewer  User?    @relation("ActivityCancellationReviewedBy", fields: [reviewedBy], references: [id])
+
+  @@map("activity_cancellation_requests")
+}
+
+model ActivityReview {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  proposalId String   @map("proposal_id") @db.Uuid
+  reviewerId String   @map("reviewer_id") @db.Uuid
+  action     String   @db.VarChar(50)
+  note       String?
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  proposal ActivityProposal @relation(fields: [proposalId], references: [id])
+  reviewer User             @relation("ActivityReviewBy", fields: [reviewerId], references: [id])
+
+  @@map("activity_reviews")
+}
+
+// -------------------------------------------------------------
+// H. Người tham gia (Participant)
+// -------------------------------------------------------------
+
+model PublicEventRegistration {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventId String @map("event_id") @db.Uuid
+  fullName String @map("full_name")
+  email String
+  phone String
+  attendeesCount Int @default(1) @map("attendees_count")
+  registrationCode String @unique @map("registration_code")
+  notes String?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  event Event @relation(fields: [eventId], references: [id])
+  @@unique([eventId, email])
+  @@map("public_event_registrations")
+}
+
+model EventRegistration {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventId     String    @map("event_id") @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  joinedAt    DateTime  @default(now()) @map("joined_at") @db.Timestamptz(6)
+  leftAt      DateTime? @map("left_at") @db.Timestamptz(6)
+  autoCreated Boolean   @default(false) @map("auto_created") // BR-12
+
+  event                 Event                  @relation(fields: [eventId], references: [id])
+  user                  User                   @relation(fields: [userId], references: [id])
+  activityRegistrations ActivityRegistration[]
+  boothVisits           BoothVisit[]
+
+  @@unique([eventId, userId])
+  @@map("event_registrations")
+}
+
+model ActivityRegistration {
+  id                  String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  activityId          String             @map("activity_id") @db.Uuid
+  userId              String             @map("user_id") @db.Uuid
+  eventRegistrationId String?            @map("event_registration_id") @db.Uuid
+  status              RegistrationStatus @default(registered)
+  registrationCode    String             @unique @map("registration_code") @db.VarChar(24)
+  qrToken             String             @unique @default(dbgenerated("gen_random_uuid()")) @map("qr_token") @db.Uuid
+  qrRevokedAt         DateTime?          @map("qr_revoked_at") @db.Timestamptz(6)
+  registeredAt        DateTime           @default(now()) @map("registered_at") @db.Timestamptz(6)
+  cancelledAt         DateTime?          @map("cancelled_at") @db.Timestamptz(6)
+  cancelReason        String?            @map("cancel_reason")
+  isLate              Boolean            @default(false) @map("is_late")
+  pointsAwarded       Boolean            @default(false) @map("points_awarded") // BR-52
+  certificateIssued   Boolean            @default(false) @map("certificate_issued")
+
+  activity           Activity            @relation(fields: [activityId], references: [id])
+  user               User                @relation(fields: [userId], references: [id])
+  eventRegistration  EventRegistration?  @relation(fields: [eventRegistrationId], references: [id])
+  attendanceSessions AttendanceSession[]
+  attendance         Attendance?
+  rating             ActivityRating?
+  pointTransactions  PointTransaction[]
+  certificate        Certificate?
+
+  @@map("activity_registrations")
+}
+
+// MVP Attendance: QR belongs to Activity, and one active ActivityRegistration
+// creates at most one ATTENDED record. AttendanceSession remains legacy until API migration completes.
+model Attendance {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  registrationId String   @unique @map("registration_id") @db.Uuid
+  activityId     String   @map("activity_id") @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  attendedAt     DateTime @default(now()) @map("attended_at") @db.Timestamptz(6)
+  isOverride     Boolean  @default(false) @map("is_override")
+  overriddenBy   String?  @map("overridden_by") @db.Uuid
+  overrideReason String?  @map("override_reason")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  registration ActivityRegistration @relation(fields: [registrationId], references: [id])
+  activity     Activity             @relation(fields: [activityId], references: [id])
+  user         User                 @relation("AttendanceParticipant", fields: [userId], references: [id])
+  overrider    User?                @relation("AttendanceOverriddenBy", fields: [overriddenBy], references: [id])
+  certificate  Certificate?
+
+  @@map("attendances")
+}
+
+// QR of an ACTIVE BoothAssignment creates one reward-eligible visit for each
+// EventRegistration + BoothAssignment pair (BR-43, BR-44, BR-48).
+model BoothVisit {
+  id                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventRegistrationId String   @map("event_registration_id") @db.Uuid
+  boothAssignmentId   String   @map("booth_assignment_id") @db.Uuid
+  userId              String   @map("user_id") @db.Uuid
+  visitedAt           DateTime @default(now()) @map("visited_at") @db.Timestamptz(6)
+  scanTokenHash       String?  @map("scan_token_hash")
+
+  eventRegistration EventRegistration @relation(fields: [eventRegistrationId], references: [id])
+  boothAssignment   BoothAssignment   @relation(fields: [boothAssignmentId], references: [id])
+  user              User              @relation(fields: [userId], references: [id])
+  pointTransaction  PointTransaction?
+
+  @@unique([eventRegistrationId, boothAssignmentId])
+  @@map("booth_visits")
+}
+
+model AttendanceSession {
+  id              String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  registrationId  String          @map("registration_id") @db.Uuid
+  userId          String          @map("user_id") @db.Uuid
+  activityId      String          @map("activity_id") @db.Uuid
+  checkInAt       DateTime        @default(now()) @map("check_in_at") @db.Timestamptz(6)
+  checkOutAt      DateTime?       @map("check_out_at") @db.Timestamptz(6)
+  durationMinutes Int?            @map("duration_minutes")
+  state           AttendanceState @default(checked_in)
+  scannedBy       String?         @map("scanned_by") @db.Uuid
+  isOverride      Boolean         @default(false) @map("is_override")
+  overrideBy      String?         @map("override_by") @db.Uuid
+  overrideReason  String?         @map("override_reason")
+
+  registration ActivityRegistration @relation(fields: [registrationId], references: [id])
+  user         User                 @relation("ParticipantAttendance", fields: [userId], references: [id])
+  activity     Activity             @relation(fields: [activityId], references: [id])
+  scanner      User?                @relation("ScannerAttendance", fields: [scannedBy], references: [id])
+  overrider    User?                @relation("OverrideAttendance", fields: [overrideBy], references: [id])
+
+  @@map("attendance_sessions")
+}
+
+model ActivityRating {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  activityId     String   @map("activity_id") @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  registrationId String   @unique @map("registration_id") @db.Uuid
+  rating         Int      @db.SmallInt
+  comment        String?
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  activity     Activity             @relation(fields: [activityId], references: [id])
+  user         User                 @relation(fields: [userId], references: [id])
+  registration ActivityRegistration @relation(fields: [registrationId], references: [id])
+
+  @@map("activity_ratings")
+}
+
+// -------------------------------------------------------------
+// I. Khen thưởng (Rewards)
+// -------------------------------------------------------------
+
+model BadgeRule {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code        String   @unique @db.VarChar(50)
+  title       String   @db.VarChar(120)
+  description String?
+  iconName    String   @map("icon_name") @db.VarChar(50)
+  minPoints   Int      @map("min_points")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  userBadges UserBadge[]
+
+  @@map("badge_rules")
+}
+
+model UserBadge {
+  id       String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId   String   @map("user_id") @db.Uuid
+  ruleId   String   @map("rule_id") @db.Uuid
+  earnedAt DateTime @default(now()) @map("earned_at") @db.Timestamptz(6)
+
+  user User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rule BadgeRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, ruleId])
+  @@map("user_badges")
+}
+
+model PointTransaction {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  registrationId String?  @map("registration_id") @db.Uuid
+  boothVisitId   String?  @unique @map("booth_visit_id") @db.Uuid
+  points         Int
+  reason         String   @db.VarChar(120)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user         User                  @relation(fields: [userId], references: [id])
+  registration ActivityRegistration? @relation(fields: [registrationId], references: [id])
+  boothVisit   BoothVisit?           @relation(fields: [boothVisitId], references: [id])
+
+  @@unique([registrationId, reason])
+  @@map("point_transactions")
+}
+
+model Certificate {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  registrationId  String   @unique @map("registration_id") @db.Uuid
+  attendanceId    String?  @unique @map("attendance_id") @db.Uuid
+  userId          String   @map("user_id") @db.Uuid
+  certificateCode String   @unique @map("certificate_code") @db.VarChar(50)
+  title           String   @db.VarChar(200)
+  issuedAt        DateTime @default(now()) @map("issued_at") @db.Timestamptz(6)
+  previewUrl      String?  @map("preview_url")
+
+  registration ActivityRegistration @relation(fields: [registrationId], references: [id])
+  attendance   Attendance?          @relation(fields: [attendanceId], references: [id])
+  user         User                 @relation("CertIssuedTo", fields: [userId], references: [id])
+
+  @@map("certificates")
+}
+
+// -------------------------------------------------------------
+// J. Di sản & Phản hồi
+// -------------------------------------------------------------
+
+model Heritage {
+  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code            String?        @unique @db.VarChar(20)
+  slug            String         @unique @db.VarChar(200)
+  name            String         @db.VarChar(200)
+  nameEn          String?        @map("name_en") @db.VarChar(200)
+  province        String?        @db.VarChar(120)
+  provinceEn      String?        @map("province_en") @db.VarChar(120)
+  category        String?        @db.VarChar(120)
+  categoryEn      String?        @map("category_en") @db.VarChar(120)
+  period          String?        @db.VarChar(120)
+  periodEn        String?        @map("period_en") @db.VarChar(120)
+  address         String?
+  addressEn       String?        @map("address_en")
+  briefDesc       String?        @map("brief_desc")
+  briefDescEn     String?        @map("brief_desc_en")
+  story           String?
+  storyEn         String?        @map("story_en")
+  highlights      Json           @default("[]")
+  highlightsEn    Json           @default("[]") @map("highlights_en")
+  referenceSource String?        @map("reference_source")
+  status          HeritageStatus @default(draft)
+  qrStatus        QrStatus       @default(inactive) @map("qr_status")
+  viewCount       Int            @default(0) @map("view_count")
+  qrScanCount     Int            @default(0) @map("qr_scan_count")
+  imageUrl        String?        @map("image_url")
+  imageAlt        String?        @map("image_alt")
+  imageSource     String?        @map("image_source")
+  imageLicense    String?        @map("image_license")
+  mapX            Decimal?       @map("map_x") @db.Decimal(6, 2)
+  mapY            Decimal?       @map("map_y") @db.Decimal(6, 2)
+  mapAreaName     String?        @map("map_area_name") @db.VarChar(120)
+  isDeleted       Boolean        @default(false) @map("is_deleted")
+  deletedAt       DateTime?      @map("deleted_at") @db.Timestamptz(6)
+  deletedBy       String?        @map("deleted_by") @db.Uuid
+  createdAt       DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  feedbacks Feedback[]
+  qrCodes   HeritageQrCode[]
+
+  @@map("heritages")
+}
+
+model HeritageQrCode {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  heritageId String   @map("heritage_id") @db.Uuid
+  qrData     String   @map("qr_data")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  heritage Heritage @relation(fields: [heritageId], references: [id], onDelete: Cascade)
+
+  @@map("heritage_qr_codes")
+}
+
+model Feedback {
+  id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  targetScope  FeedbackScope  @default(entire) @map("target_scope")
+  heritageId   String?        @map("heritage_id") @db.Uuid
+  boothId      String?        @map("booth_id") @db.Uuid
+  eventId      String?        @map("event_id") @db.Uuid
+  targetName   String?        @map("target_name") @db.VarChar(200)
+  fullName     String?        @map("full_name") @db.VarChar(160)
+  rating       Int            @db.SmallInt
+  comments     String?
+  contactEmail String?        @map("contact_email") @db.Citext
+  source       FeedbackSource @default(web_landing)
+  status       FeedbackStatus @default(new)
+  assignedTo   String?        @map("assigned_to") @db.Uuid
+  internalNote String?        @map("internal_note")
+  createdAt    DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  heritage Heritage? @relation(fields: [heritageId], references: [id])
+  booth    Booth?    @relation(fields: [boothId], references: [id])
+  event    Event?    @relation(fields: [eventId], references: [id])
+  assignee User?     @relation("FeedbackAssignedTo", fields: [assignedTo], references: [id])
+
+  @@map("feedbacks")
+}
+
+// -------------------------------------------------------------
+// K. Hệ thống (System)
+// -------------------------------------------------------------
+
+model Notification {
+  id        String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String           @map("user_id") @db.Uuid
+  title     String           @db.VarChar(200)
+  message   String
+  kind      NotificationKind @default(system)
+  isRead    Boolean          @default(false) @map("is_read")
+  link      String?
+  createdAt DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model AuditLog {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  actorId     String?   @map("actor_id") @db.Uuid
+  actorRole   UserRole? @map("actor_role")
+  action      String    @db.VarChar(60)
+  targetType  String    @map("target_type") @db.VarChar(60)
+  targetId    String?   @map("target_id") @db.Uuid
+  targetTitle String?   @map("target_title")
+  beforeData  Json?     @map("before_data")
+  afterData   Json?     @map("after_data")
+  reason      String?
+  ipAddress   String?   @map("ip_address")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  actor User? @relation("AuditActor", fields: [actorId], references: [id])
+
+  @@map("audit_logs")
+}
+
+model Setting {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  key         String   @unique @db.VarChar(80)
+  value       Json
+  description String?
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("settings")
+}
+
+model UserStallAssignment {
+  userId  String @id @map("user_id") @db.Uuid
+  stallId String @unique @map("stall_id") @db.Uuid
+  version Int    @default(1)
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stall   Booth  @relation(fields: [stallId], references: [id])
+
+  @@map("user_stall_assignments")
+}
+
+model BookCategory {
+  id     String  @id @default(uuid()) @db.Uuid
+  name   String  @unique @db.VarChar(200)
+  nameEn String? @map("name_en")
+  status String  @default("active")
+  books  Book[]
+
+  @@map("book_categories")
+}
+
+model BookLabel {
+  id     String                @id @default(uuid()) @db.Uuid
+  name   String                @unique @db.VarChar(200)
+  status String                @default("active")
+  books  BookLabelAssignment[]
+
+  @@map("book_labels")
+}
+
+model Book {
+  id              String                @id @default(uuid()) @db.Uuid
+  isbn            String                @unique @db.VarChar(32)
+  title           String                @db.VarChar(200)
+  titleEn         String?               @map("title_en")
+  author          String                @db.VarChar(200)
+  publisher       String?
+  coverUrl        String                @map("cover_url")
+  description     String?
+  publicationYear Int?                  @map("publication_year")
+  categoryId      String?               @map("category_id") @db.Uuid
+  status          String                @default("active")
+  version         Int                   @default(1)
+  updatedAt       DateTime              @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  category        BookCategory?         @relation(fields: [categoryId], references: [id])
+  labels          BookLabelAssignment[]
+  stalls          BookStall[]
+  submissions     BookSubmission[]
+  sales           BookSale[]
+  rankings        BookRanking[]
+
+  @@map("books")
+}
+
+model BookRanking {
+  id          String   @id @default(uuid()) @db.Uuid
+  bookId      String   @map("book_id") @db.Uuid
+  rankingType String   @map("ranking_type") @db.VarChar(32)
+  rank        Int
+  updatedBy   String?  @map("updated_by") @db.Uuid
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  book        Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@unique([rankingType, rank])
+  @@unique([rankingType, bookId])
+  @@index([rankingType, rank])
+  @@map("book_rankings")
+}
+
+model BookLabelAssignment {
+  bookId  String    @map("book_id") @db.Uuid
+  labelId String    @map("label_id") @db.Uuid
+  book    Book      @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  label   BookLabel @relation(fields: [labelId], references: [id])
+
+  @@id([bookId, labelId])
+  @@map("book_label_assignments")
+}
+
+model BookStall {
+  id                String   @id @default(uuid()) @db.Uuid
+  bookId            String   @map("book_id") @db.Uuid
+  stallId           String   @map("stall_id") @db.Uuid
+  inventoryQuantity Int      @default(0) @map("inventory_quantity")
+  soldQuantity      Int?     @map("sold_quantity")
+  version           Int      @default(1)
+  updatedAt         DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  book              Book     @relation(fields: [bookId], references: [id])
+  stall             Booth    @relation(fields: [stallId], references: [id])
+
+  @@unique([bookId, stallId])
+  @@map("book_stalls")
+}
+
+model BookSubmission {
+  submitter           User      @relation("BookSubmittedBy", fields: [submittedBy], references: [id])
+  reviewer            User?     @relation("BookReviewedBy", fields: [reviewedBy], references: [id])
+  id                  String    @id @default(uuid()) @db.Uuid
+  bookId              String?   @map("book_id") @db.Uuid
+  stallId             String    @map("stall_id") @db.Uuid
+  type                String
+  status              String    @default("PENDING")
+  submittedBy         String    @map("submitted_by") @db.Uuid
+  submittedAt         DateTime  @default(now()) @map("submitted_at") @db.Timestamptz(6)
+  reviewedBy          String?   @map("reviewed_by") @db.Uuid
+  reviewedAt          DateTime? @map("reviewed_at") @db.Timestamptz(6)
+  rejectionReason     String?   @map("rejection_reason")
+  proposedData        Json      @map("proposed_data")
+  currentApprovedData Json?     @map("current_approved_data")
+  bookVersion         Int?      @map("book_version")
+  inventoryQuantity   Int       @default(0) @map("inventory_quantity")
+  soldQuantity        Int?      @map("sold_quantity")
+  book                Book?     @relation(fields: [bookId], references: [id])
+  stall               Booth     @relation(fields: [stallId], references: [id])
+
+  @@index([stallId, status])
+  @@map("book_submissions")
+}
+
+model BookSale {
+  booth     Booth    @relation(fields: [boothId], references: [id])
+  id        String   @id @default(uuid()) @db.Uuid
+  bookId    String   @map("book_id") @db.Uuid
+  boothId   String   @map("booth_id") @db.Uuid
+  quantity  Int
+  soldDate  DateTime @map("sold_date") @db.Date
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  book      Book     @relation(fields: [bookId], references: [id])
+
+  @@index([boothId, soldDate])
+  @@map("book_sales")
+}
+
+model ContentEntry {
+  id        String   @id @default(uuid()) @db.Uuid
+  slug      String   @unique
+  kind      String
+  title     String
+  data      Json
+  status    String   @default("draft")
+  version   Int      @default(1)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  articleReads NewsArticleRead[]
+
+  @@map("content_entries")
+}
+
+model NewsArticleRead {
+  id             String   @id @default(uuid()) @db.Uuid
+  contentEntryId String   @map("content_entry_id") @db.Uuid
+  articleId      String   @map("article_id") @db.VarChar(200)
+  sessionId      String   @map("session_id") @db.Uuid
+  day            DateTime @db.Date
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  contentEntry   ContentEntry @relation(fields: [contentEntryId], references: [id], onDelete: Cascade)
+
+  @@unique([contentEntryId, articleId, sessionId, day])
+  @@index([contentEntryId, articleId])
+  @@index([day])
+  @@map("news_article_reads")
+}
+
+model EventSuggestion {
+  id           String   @id @default(uuid()) @db.Uuid
+  fullName     String   @map("full_name")
+  phone        String
+  content      String
+  status       String   @default("new")
+  internalNote String?  @map("internal_note")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("event_suggestions")
+}
+
+model SiteVisit {
+  id         String   @id @default(uuid()) @db.Uuid
+  sessionId  String   @map("session_id") @db.Uuid
+  day        DateTime @db.Date
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  lastSeenAt DateTime @default(now()) @map("last_seen_at") @db.Timestamptz(6)
+
+  @@unique([sessionId, day])
+  @@index([day])
+  @@index([lastSeenAt])
+  @@map("site_visits")
+}

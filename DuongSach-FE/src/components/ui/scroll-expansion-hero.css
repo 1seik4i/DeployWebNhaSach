@@ -1,0 +1,19 @@
+.scroll-expand-hero { background: #17382e; overflow-x: clip; }
+.scroll-expand-track { height: 560dvh; position: relative; }
+.scroll-expand-stage { align-items: center; box-sizing: border-box; color: #fff; display: flex; height: 100dvh; justify-content: center; min-height: 620px; overflow: hidden; position: sticky; top: 0; }
+.scroll-expand-stage.is-clickable { cursor: pointer; }
+.scroll-expand-stage.is-clickable .scroll-expand-media { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease; }
+.scroll-expand-stage.is-clickable:hover .scroll-expand-media { transform: scale(1.015); box-shadow: 0 32px 90px rgba(0,0,0,0.65); }
+.scroll-expand-background { height: 100%; inset: 0; object-fit: cover; position: absolute; transform-origin: center; width: 100%; }
+.scroll-expand-shade { background: linear-gradient(180deg, rgba(5, 19, 15, .54), rgba(5, 22, 17, .76)); inset: 0; position: absolute; }
+.scroll-expand-media { background: #102820; border: 1px solid rgba(255,255,255,.24); box-shadow: 0 28px 80px rgba(0,0,0,.52); overflow: hidden; position: relative; z-index: 1; }
+.scroll-expand-title { left: 0; pointer-events: none; position: absolute; text-align: center; top: 50%; translate: 0 -50%; width: 100%; z-index: 3; }
+.scroll-expand-title h1 { color: #f2db9d; font-family: 'Newsreader', 'Lora', var(--font-serif, Georgia, serif); font-style: italic; font-weight: 500; font-size: clamp(3.2rem, 5.8vw, 5.8rem); line-height: 1.15; letter-spacing: -0.01em; margin: 0.2rem 0; text-shadow: 0 4px 28px rgba(0,0,0,0.85); will-change: transform; }
+.scroll-expand-prompt-outside { color: #f4e4bd; font-size: .95rem; font-weight: 650; left: 50%; letter-spacing: .06em; margin: 0; position: absolute; text-shadow: 0 2px 12px rgba(0,0,0,.7); transform: translateX(-50%); white-space: nowrap; z-index: 4; }
+.scroll-expand-prompt-outside::after { animation: scrollHint 1.8s ease-in-out infinite; border-bottom: 1.5px solid currentColor; border-right: 1.5px solid currentColor; content: ''; display: block; height: 9px; margin: .55rem auto 0; rotate: 45deg; width: 9px; }
+@keyframes scrollHint { 0%,100% { translate: 0 0; opacity: .55; } 50% { translate: 0 6px; opacity: 1; } }
+.scroll-expand-inner-page { left: 50%; overflow: hidden; position: absolute; top: 50%; transform-origin: center; transition: filter 80ms linear, opacity 80ms linear; width: 100vw; will-change: transform, filter, opacity; z-index: 1; }
+.scroll-expand-inner-page .figma-hero-section { height: 100%; min-height: 100%; }
+@media (max-width: 767px) { .scroll-expand-track { height: 440dvh; } .scroll-expand-stage { min-height: 560px; } .scroll-expand-title h1 { font-size: clamp(2.15rem, 11vw, 4rem); } }
+@media (prefers-reduced-motion: reduce) { .scroll-expand-track { height: 100dvh; } .scroll-expand-stage { position: relative; } .scroll-expand-media { border-radius: 0 !important; } .scroll-expand-title,.scroll-expand-prompt-outside { display: none; } }
+@media (prefers-reduced-motion: reduce) { .scroll-expand-prompt-outside::after { animation: none; } }

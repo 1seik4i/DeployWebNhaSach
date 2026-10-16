@@ -1,0 +1,271 @@
+/* ==========================================================================
+   SKELETON LOADING STYLES - ĐƯỜNG SÁCH TP.HCM
+   Preserves 100% exact layout, proportions, and aesthetic colors
+   ========================================================================== */
+
+/* Shimmer animation */
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-box,
+.skeleton-line,
+.skeleton-btn,
+.skeleton-badge-placeholder,
+.skeleton-tag-item,
+.skeleton-tag-label,
+.skeleton-meta-pill,
+.skeleton-rank-badge {
+  background: linear-gradient(
+    90deg,
+    rgba(24, 41, 36, 0.06) 25%,
+    rgba(24, 41, 36, 0.13) 37%,
+    rgba(24, 41, 36, 0.06) 63%
+  );
+  background-size: 400% 100%;
+  animation: skeleton-shimmer 1.6s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+/* Kiosk Booth Skeleton */
+.figma-kiosk-card.skeleton-kiosk-card {
+  pointer-events: none;
+  user-select: none;
+  border-color: rgba(24, 41, 36, 0.08);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.skeleton-kiosk-card .skeleton-photo {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  display: flex;
+  align-items: flex-start;
+  padding: 0.85rem;
+}
+
+.skeleton-badge-placeholder {
+  width: 78px;
+  height: 22px;
+  border-radius: 9999px;
+  display: inline-block;
+  background: linear-gradient(
+    90deg,
+    rgba(233, 188, 99, 0.2) 25%,
+    rgba(233, 188, 99, 0.45) 37%,
+    rgba(233, 188, 99, 0.2) 63%
+  );
+  background-size: 400% 100%;
+  animation: skeleton-shimmer 1.6s ease-in-out infinite;
+}
+
+.skeleton-kiosk-card .skeleton-title {
+  height: 1.35rem;
+  width: 78%;
+  margin-bottom: 0.65rem;
+  border-radius: 5px;
+}
+
+.skeleton-kiosk-card .skeleton-desc {
+  height: 0.9rem;
+  width: 95%;
+  margin-bottom: 0.45rem;
+  border-radius: 4px;
+}
+
+.skeleton-kiosk-card .skeleton-desc.short {
+  width: 60%;
+  margin-bottom: 1.15rem;
+}
+
+.skeleton-kiosk-card .skeleton-tag-label {
+  width: 110px;
+  height: 0.85rem;
+  margin-bottom: 0.55rem;
+}
+
+.skeleton-kiosk-card .skeleton-tag-item {
+  width: 82px;
+  height: 22px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.skeleton-kiosk-card .skeleton-btn {
+  height: 38px;
+  border-radius: 8px;
+}
+
+.skeleton-kiosk-card .skeleton-btn-primary {
+  flex: 1;
+}
+
+.skeleton-kiosk-card .skeleton-btn-secondary {
+  flex: 1;
+}
+
+/* Event Coverflow Skeleton */
+.skeleton-event-coverflow {
+  pointer-events: none;
+  user-select: none;
+}
+
+.skeleton-arrow {
+  background: rgba(24, 41, 36, 0.05);
+  border: 1px solid rgba(24, 41, 36, 0.1);
+}
+
+.skeleton-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.skeleton-slide {
+  position: absolute;
+  top: 3%;
+  left: 50%;
+  width: clamp(210px, 27vw, 340px);
+  height: 94%;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.65);
+}
+
+.skeleton-slide.is-side-left {
+  transform: translateX(calc(-50% - 76%)) translateZ(-105px) rotateY(43deg);
+  opacity: 0.78;
+  z-index: 9;
+}
+
+.skeleton-slide.is-selected {
+  transform: translateX(-50%) translateZ(0) rotateY(0deg);
+  opacity: 1;
+  z-index: 10;
+  box-shadow: 0 22px 46px rgba(20, 40, 33, 0.18);
+}
+
+.skeleton-slide.is-side-right {
+  transform: translateX(calc(-50% + 76%)) translateZ(-105px) rotateY(-43deg);
+  opacity: 0.78;
+  z-index: 9;
+}
+
+.skeleton-slide-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(23, 56, 46, 0.3) 25%,
+    rgba(23, 56, 46, 0.5) 37%,
+    rgba(23, 56, 46, 0.3) 63%
+  );
+  background-size: 400% 100%;
+  animation: skeleton-shimmer 1.6s ease-in-out infinite;
+}
+
+.skeleton-kicker {
+  width: 130px;
+  height: 0.85rem;
+  margin-bottom: 0.65rem;
+}
+
+.skeleton-event-title {
+  width: 82%;
+  height: 1.8rem;
+  margin: 0.35rem 0 0.65rem;
+  border-radius: 6px;
+}
+
+.skeleton-event-desc {
+  width: 96%;
+  height: 1rem;
+  margin-bottom: 0.45rem;
+}
+
+.skeleton-event-desc.short {
+  width: 65%;
+  margin-bottom: 1rem;
+}
+
+.skeleton-meta-pill {
+  width: 135px;
+  height: 1.25rem;
+  display: inline-block;
+  border-radius: 4px;
+}
+
+.skeleton-btn-event-detail {
+  width: 120px;
+  height: 42px;
+  border-radius: 5px;
+}
+
+.skeleton-btn-event-reg {
+  width: 145px;
+  height: 42px;
+  border-radius: 5px;
+  background: linear-gradient(
+    90deg,
+    rgba(226, 173, 82, 0.3) 25%,
+    rgba(226, 173, 82, 0.6) 37%,
+    rgba(226, 173, 82, 0.3) 63%
+  );
+  background-size: 400% 100%;
+  animation: skeleton-shimmer 1.6s ease-in-out infinite;
+}
+
+/* Library Book Skeleton */
+.skeleton-ranking-item {
+  pointer-events: none;
+  user-select: none;
+}
+
+.skeleton-number {
+  color: rgba(24, 41, 36, 0.12) !important;
+  text-shadow: none !important;
+  font-weight: 900;
+}
+
+.skeleton-book-cover {
+  width: 168px;
+  height: 252px;
+  border-radius: 4px 10px 10px 4px;
+  position: absolute;
+  top: 18px;
+  left: 56px;
+  background: linear-gradient(
+    90deg,
+    rgba(24, 41, 36, 0.08) 25%,
+    rgba(24, 41, 36, 0.16) 37%,
+    rgba(24, 41, 36, 0.08) 63%
+  );
+  background-size: 400% 100%;
+  animation: skeleton-shimmer 1.6s ease-in-out infinite;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+}
+
+.skeleton-book-spine {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 12px;
+  background: rgba(0, 0, 0, 0.07);
+}
+
+.skeleton-rank-badge {
+  position: absolute;
+  left: 56px;
+  bottom: 12px;
+  width: 76px;
+  height: 20px;
+  border-radius: 9999px;
+  z-index: 4;
+}

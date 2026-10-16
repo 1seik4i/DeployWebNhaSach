@@ -1,0 +1,53 @@
+html.modal-scroll-locked,
+html.modal-scroll-locked body,
+html.modal-scroll-locked .admin-main-viewport,
+html.modal-scroll-locked .partner-main-content,
+html.modal-scroll-locked .partner-main-viewport,
+html.modal-scroll-locked .organizer-main,
+html.modal-scroll-locked .organizer-main-viewport,
+html.modal-scroll-locked .heritage-sheet.is-open,
+html.modal-scroll-locked .journey-sheet.is-open {
+  overflow: hidden !important;
+  overscroll-behavior: none;
+}
+
+/* Hide modal scrollbars without clipping long forms, tables, or textareas.
+   The lock also covers legacy modals built entirely with inline styles. */
+:is(
+  dialog,
+  [role="dialog"],
+  [aria-modal="true"],
+  [class*="modal"],
+  [class*="dialog"]
+),
+:is(
+  dialog,
+  [role="dialog"],
+  [aria-modal="true"],
+  [class*="modal"],
+  [class*="dialog"]
+) *,
+html.modal-scroll-locked * {
+  scrollbar-width: none !important;
+  scrollbar-gutter: auto !important;
+}
+
+:is(
+  dialog,
+  [role="dialog"],
+  [aria-modal="true"],
+  [class*="modal"],
+  [class*="dialog"]
+)::-webkit-scrollbar,
+:is(
+  dialog,
+  [role="dialog"],
+  [aria-modal="true"],
+  [class*="modal"],
+  [class*="dialog"]
+) *::-webkit-scrollbar,
+html.modal-scroll-locked *::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}

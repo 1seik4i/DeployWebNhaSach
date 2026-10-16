@@ -1,0 +1,9 @@
+-- 050_organizations.sql
+-- Nạp các tổ chức nhà xuất bản / đối tác tham gia
+
+INSERT INTO organizations (id, name, short_desc, logo_url, representative_name, email, phone, address, website, is_verified) VALUES
+  ('099484c0-25dc-40ab-a189-91d8ab2005bd', 'Nhà Sách Bình Minh', 'Nhà Sách Bình Minh mang đến những cuốn sách chất lượng, lan tỏa tri thức và văn hóa đọc cho mọi người.', 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=200&q=80', 'Nguyễn Văn B', 'binhminh@books.com', '0909 123 456', '123 Nguyễn Văn Cừ, Quận 1, TP.HCM', 'https://binhminhbooks.vn', true),
+  ('f4b638e5-2712-46b6-a6eb-ae50077cb0e3', 'Nhà Xuất Bản Trẻ', 'Nhà Xuất Bản Trẻ - Đồng hành cùng độc giả trẻ tuổi và văn học đương đại Việt Nam suốt hơn 30 năm.', 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=200&q=80', 'Trần Văn C', 'nxbtre@partner.duongsach.vn', '0903 456 789', '161B Lý Chính Thắng, Quận 3, TP.HCM', 'https://nxbtre.com.vn', true),
+  ('b85174ff-d92a-4e43-af7a-abd64e0ac3d6', 'Nhà Xuất Bản Kim Đồng', 'Nhà xuất bản chuyên dòng sách tranh, truyện thiếu nhi và văn học tuổi thơ hàng đầu Việt Nam.', 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=200&q=80', 'Lê Thị D', 'kimdong@partner.duongsach.vn', '0908 765 432', '248 Cống Quỳnh, Quận 1, TP.HCM', 'https://nxbkimdong.com.vn', true),
+  ('a0d31fd8-f849-4040-a088-fa919189f072', 'Công ty Cổ phần Văn hóa & Truyền thông Nhã Nam', 'Nhã Nam - Đưa tinh hoa văn học thế giới đến độc giả Việt Nam với thiết kế bìa tinh tế và bản dịch chất lượng.', 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=200&q=80', 'Phạm Hoàng E', 'nhanam@partner.duongsach.vn', '0912 345 678', '59 Đỗ Quang, Cầu Giấy, Hà Nội', 'https://nhanam.com.vn', true)
+ON CONFLICT (id) DO NOTHING;

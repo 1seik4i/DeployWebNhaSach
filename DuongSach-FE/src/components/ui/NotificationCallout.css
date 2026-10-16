@@ -1,0 +1,109 @@
+.notification-callout {
+  --notice-bg: #eff6ff;
+  --notice-border: #93c5fd;
+  --notice-text: #002b7f;
+  --notice-icon: #111827;
+
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  width: 100%;
+  padding: 0.85rem 1.25rem;
+  border: 1px solid var(--notice-border);
+  border-radius: 10px;
+  background: var(--notice-bg);
+  color: var(--notice-text);
+  font-family: var(--font-sans, 'Nunito', 'Mulish', 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+  line-height: 1.45;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.notification-callout-icon {
+  flex: 0 0 auto;
+  margin-top: 0.15rem;
+  color: var(--notice-icon);
+}
+
+.notification-callout-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-family: inherit;
+}
+
+.notification-callout-copy strong {
+  color: var(--notice-text);
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-family: inherit;
+  letter-spacing: -0.01em;
+}
+
+.notification-callout-copy span {
+  color: var(--notice-text);
+  font-size: 0.91rem;
+  font-weight: 400;
+  font-family: inherit;
+  line-height: 1.45;
+}
+
+.notification-callout-info {
+  --notice-bg: #eaf3ff;
+  --notice-border: #9ec5ff;
+  --notice-text: #002b7f;
+}
+
+.notification-callout-success {
+  --notice-bg: #e4f8f0;
+  --notice-border: #94e7cb;
+  --notice-text: #003d35;
+}
+
+.notification-callout-warning {
+  --notice-bg: #fff4df;
+  --notice-border: #ffc970;
+  --notice-text: #7a2e00;
+}
+
+.notification-callout-error {
+  --notice-bg: #ffe4e8;
+  --notice-border: #ff7b86;
+  --notice-text: #ff0000;
+}
+
+.notification-callout-floating {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 9999;
+  max-width: min(560px, calc(100vw - 32px));
+  animation: notificationCalloutIn 220ms ease-out;
+}
+
+@keyframes notificationCalloutIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 640px) {
+  .notification-callout {
+    padding: 0.75rem 0.95rem;
+    gap: 0.75rem;
+  }
+
+  .notification-callout-floating {
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    max-width: none;
+  }
+}
