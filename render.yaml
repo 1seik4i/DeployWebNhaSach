@@ -1,0 +1,48 @@
+services:
+  - type: web
+    name: duongsach-backend
+    runtime: node
+    rootDir: DuongSach-BE
+    region: singapore
+    plan: free
+    buildCommand: npm ci && npm run generate
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: duongsach-postgres
+          property: connectionString
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: JWT_ACCESS_EXPIRES
+        value: 15m
+      - key: JWT_REFRESH_EXPIRES
+        value: 7d
+      - key: CORS_ORIGINS
+        sync: false
+      - key: PUBLIC_SITE_URL
+        sync: false
+      - key: PUBLIC_WEB_URL
+        sync: false
+      - key: UPLOAD_DIR
+        value: ./uploads
+      - key: MAX_UPLOAD_MB
+        value: "5"
+      - key: LOG_LEVEL
+        value: info
+      - key: TZ
+        value: Asia/Ho_Chi_Minh
+
+databases:
+  - name: duongsach-postgres
+    region: singapore
+    plan: free
+    databaseName: duongsach
+    user: duongsach
+    postgresMajorVersion: "16"
