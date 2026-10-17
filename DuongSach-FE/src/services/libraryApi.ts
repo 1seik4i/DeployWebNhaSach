@@ -162,9 +162,14 @@ export const libraryApi = {
     };
     return changed(await apiClient.patch<Book>(`/admin/books/${encodeURIComponent(id)}`, payload));
   },
-  async deleteBook(id: string): Promise<void> {
-    await apiClient.delete(`/admin/books/${encodeURIComponent(id)}`);
+  async deleteBook(id: string, permanent: boolean = false): Promise<void> {
+    await apiClient.delete(`/admin/books/${encodeURIComponent(id)}${permanent ? '?permanent=true' : ''}`);
     changed(undefined);
+  },
+  async restoreBook(id: string): Promise<Book> {
+    const res = await apiClient.post<Book>(`/admin/books/${encodeURIComponent(id)}/restore`, {});
+    changed(undefined);
+    return res;
   },
   assignBookCategory: (bookId: string, categoryId?: string) => libraryApi.updateBook(bookId, { categoryId }),
   assignBookLabels: (bookId: string, labelIds: string[]) => libraryApi.updateBook(bookId, { labelIds }),

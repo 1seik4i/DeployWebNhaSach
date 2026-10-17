@@ -222,6 +222,15 @@ export const EventApplicationPage: React.FC<EventApplicationPageProps> = ({
       // Check events on this date
       const evts = scheduledEvents.filter(evt => {
         if (!evt.startDate || !evt.endDate) return false;
+        if (filterCategory === 'happening') {
+          if (!(todayKey >= evt.startDate && todayKey <= evt.endDate) && evt.status !== 'happening') {
+            return false;
+          }
+        } else if (filterCategory === 'upcoming') {
+          if (evt.startDate <= todayKey && evt.status !== 'upcoming') {
+            return false;
+          }
+        }
         return dateStr >= evt.startDate && dateStr <= evt.endDate;
       });
 
@@ -248,7 +257,7 @@ export const EventApplicationPage: React.FC<EventApplicationPageProps> = ({
     }
 
     return days;
-  }, [currentYear, currentMonth, scheduledEvents]);
+  }, [currentYear, currentMonth, scheduledEvents, filterCategory, todayKey]);
 
   const handlePrevMonth = () => {
     if (currentMonth === 0) {
@@ -315,6 +324,17 @@ export const EventApplicationPage: React.FC<EventApplicationPageProps> = ({
     if (!activeApplication || activeApplication.status !== 'approved') {
       void notifyModal(language === 'vi' ? 'Tổ chức cần có hồ sơ tham gia sự kiện đã được duyệt trước khi gửi đề xuất hoạt động.' : 'An approved event application is required first.');
       return;
+    }
+    const linkedEvent = scheduledEvents.find(e => e.id === activeApplication.eventId) || null;
+    if (linkedEvent && linkedEvent.startDate && linkedEvent.endDate) {
+      if (targetDate < linkedEvent.startDate || targetEndDate > linkedEvent.endDate) {
+        void notifyModal(
+          language === 'vi'
+            ? `Thời gian hoạt động (${targetDate} đến ${targetEndDate}) phải nằm trong thời gian của sự kiện "${linkedEvent.title}" (từ ${linkedEvent.startDate} đến ${linkedEvent.endDate}).`
+            : `Activity dates must be within event dates (${linkedEvent.startDate} to ${linkedEvent.endDate}).`
+        );
+        return;
+      }
     }
     if (!locationId) {
       void notifyModal(language === 'vi' ? 'Vui lòng chọn địa điểm thuộc sự kiện.' : 'Please select an event location.');
@@ -408,12 +428,19 @@ export const EventApplicationPage: React.FC<EventApplicationPageProps> = ({
             type="button"
             className="btn-part-secondary"
             onClick={() => {
-              const todayKey = vietnamDateKey();
-              const today = new Date(`${todayKey}T00:00:00+07:00`);
+              const currentTodayKey = vietnamDateKey();
+              const today = new Date(`${currentTodayKey}T00:00:00+07:00`);
               setCurrentYear(today.getFullYear());
               setCurrentMonth(today.getMonth());
-              setSelectedDateStr(todayKey);
-              setSelectedEvent(scheduledEvents.find(item => item.startDate <= todayKey && item.endDate >= todayKey) || null);
+              setSelectedDateStr(currentTodayKey);
+              setFilterCategory('all');
+              const todayEvents = scheduledEvents.filter(item => item.startDate <= currentTodayKey && item.endDate >= currentTodayKey);
+              setSelectedEvent(todayEvents[0] || null);
+              if (todayEvents.length > 0) {
+                setDayOverviewModal({ dateStr: currentTodayKey, day: today.getDate(), events: todayEvents });
+              } else {
+                void notifyModal(language === 'vi' ? 'Hôm nay không có sự kiện nào trong lịch.' : 'No events scheduled for today.');
+              }
             }}
           >
             <Clock size={15} />
@@ -1253,6 +1280,30 @@ export const EventApplicationPage: React.FC<EventApplicationPageProps> = ({
                   <span>{language === 'vi' ? '1. Thông tin Sự kiện đề xuất tổ chức' : '1. Event Details & Scheduling'}</span>
                 </h4>
 
+                {/* Banner sự kiện liên kết */}
+                {(() => {
+                  const linkedEvt = scheduledEvents.find(e => e.id === activeApplication?.eventId);
+                  return (
+                    <div style={{
+                      background: '#F0FDF4',
+                      border: '1px solid #BBF7D0',
+                      borderRadius: '10px',
+                      padding: '0.75rem 1rem',
+                      marginBottom: '1.15rem',
+                      fontSize: '0.84rem',
+                      color: '#166534'
+                    }}>
+                      📌 {language === 'vi' ? 'Đề xuất hoạt động gắn với sự kiện:' : 'Proposing activity under event:'}{' '}
+                      <strong>{activeApplication?.eventTitle || linkedEvt?.title || 'Sự kiện Đường Sách'}</strong>
+                      {linkedEvt && (
+                        <div style={{ fontSize: '0.78rem', marginTop: '4px', color: '#15803D' }}>
+                          ⏱ Thời gian diễn ra sự kiện: <strong>{linkedEvt.startDate}</strong> đến <strong>{linkedEvt.endDate}</strong>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+
                 <div className="form-field-group">
                   <label>{language === 'vi' ? 'Tên sự kiện / Tiêu đề chương trình *' : 'Event Title *'}</label>
                   <input 
@@ -1280,25 +1331,42 @@ export const EventApplicationPage: React.FC<EventApplicationPageProps> = ({
                       <option value="Lễ hội sách">Hoạt động tương tác / Minigame cộng đồng</option>
                     </select>
                   </div>
-
                 </div>
 
                 <div className="form-row-2col">
-                  <div className="form-field-group">
-                    <label htmlFor="proposal-start-date">{language === 'vi' ? 'Ngày bắt đầu *' : 'Start Date *'}</label>
-                    <input 
-                      id="proposal-start-date"
-                      type="date"
-                      required
-                      min={todayKey}
-                      value={targetDate}
-                      onChange={(e) => { setTargetDate(e.target.value); if (targetEndDate < e.target.value) setTargetEndDate(e.target.value); }}
-                    />
-                  </div>
-                  <div className="form-field-group">
-                    <label htmlFor="proposal-end-date">{language === 'vi' ? 'Ngày kết thúc *' : 'End Date *'}</label>
-                    <input id="proposal-end-date" type="date" required min={targetDate || todayKey} value={targetEndDate} onChange={event => setTargetEndDate(event.target.value)} />
-                  </div>
+                  {(() => {
+                    const linkedEvt = scheduledEvents.find(e => e.id === activeApplication?.eventId);
+                    const calcMin = linkedEvt?.startDate && linkedEvt.startDate > todayKey ? linkedEvt.startDate : todayKey;
+                    const calcMax = linkedEvt?.endDate || undefined;
+                    return (
+                      <>
+                        <div className="form-field-group">
+                          <label htmlFor="proposal-start-date">{language === 'vi' ? 'Ngày bắt đầu *' : 'Start Date *'}</label>
+                          <input 
+                            id="proposal-start-date"
+                            type="date"
+                            required
+                            min={calcMin}
+                            max={calcMax}
+                            value={targetDate}
+                            onChange={(e) => { setTargetDate(e.target.value); if (targetEndDate < e.target.value) setTargetEndDate(e.target.value); }}
+                          />
+                        </div>
+                        <div className="form-field-group">
+                          <label htmlFor="proposal-end-date">{language === 'vi' ? 'Ngày kết thúc *' : 'End Date *'}</label>
+                          <input 
+                            id="proposal-end-date" 
+                            type="date" 
+                            required 
+                            min={targetDate || calcMin} 
+                            max={calcMax}
+                            value={targetEndDate} 
+                            onChange={event => setTargetEndDate(event.target.value)} 
+                          />
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
 
                 <div className="form-row-2col">

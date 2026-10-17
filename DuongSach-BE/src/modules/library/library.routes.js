@@ -86,9 +86,15 @@ router.patch(
 router.delete(
   "/admin/books/:id",
   ...admin,
-  run((r) =>
-    service.save(parse(uuid, r.params.id), { status: "archived" }, r.user),
-  ),
+  run((r) => {
+    const force = r.query.force === "true" || r.query.permanent === "true";
+    return service.deleteBook(r.params.id, force, r.user);
+  }),
+);
+router.post(
+  "/admin/books/:id/restore",
+  ...admin,
+  run((r) => service.restoreBook(r.params.id, r.user)),
 );
 router.get(
   "/admin/book-stalls",

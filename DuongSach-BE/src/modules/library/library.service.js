@@ -261,6 +261,46 @@ export const LibraryService = {
       return b;
     });
   },
+  async deleteBook(id, force = false, user) {
+    return transaction(async (tx) => {
+      const bookId = parse(uuid, id);
+      const existing = await tx.book.findUnique({ where: { id: bookId } });
+      if (!existing) throw ApiError.notFound("Không tìm thấy sách");
+
+      if (force || existing.status === "archived") {
+        await tx.bookRanking.deleteMany({ where: { bookId } });
+        await tx.bookLabelAssignment.deleteMany({ where: { bookId } });
+        await tx.bookStall.deleteMany({ where: { bookId } });
+        await tx.bookSubmission.deleteMany({ where: { bookId } });
+        await tx.bookSale.deleteMany({ where: { bookId } });
+        await tx.book.delete({ where: { id: bookId } });
+        await audit(tx, user, "delete_permanent", "Book", bookId, { title: existing.title });
+        return { success: true, permanent: true };
+      }
+
+      const b = await tx.book.update({
+        where: { id: bookId },
+        data: { status: "archived" },
+        include: includeBook,
+      });
+      await audit(tx, user, "archive", "Book", bookId);
+      return mapBook(b);
+    });
+  },
+  async restoreBook(id, user) {
+    return transaction(async (tx) => {
+      const bookId = parse(uuid, id);
+      const existing = await tx.book.findUnique({ where: { id: bookId } });
+      if (!existing) throw ApiError.notFound("Không tìm thấy sách");
+      const b = await tx.book.update({
+        where: { id: bookId },
+        data: { status: "active" },
+        include: includeBook,
+      });
+      await audit(tx, user, "restore", "Book", bookId);
+      return mapBook(b);
+    });
+  },
   async stalls(bookId, publicOnly = true) {
     return (
       await prisma.bookStall.findMany({

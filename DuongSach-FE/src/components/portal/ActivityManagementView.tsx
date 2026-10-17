@@ -1342,8 +1342,7 @@ export const ActivityManagementView: React.FC<ActivityManagementViewProps> = ({
                   border: 'none',
                   cursor: 'pointer'
                 }}
-              >
-                <X size={14} />
+              >                
                 <span>{vi ? 'Xác nhận không duyệt' : 'Confirm Reject'}</span>
               </button>
             </div>

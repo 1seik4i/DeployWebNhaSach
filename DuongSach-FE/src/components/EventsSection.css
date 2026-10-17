@@ -993,9 +993,10 @@
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
-    gap: 1.15rem;
-    padding: 0.5rem 1.25rem 1.5rem;
-    margin: 0 -1.25rem;
+    touch-action: pan-x pan-y;
+    gap: 1rem;
+    padding: 0.5rem 0.5rem 1.5rem;
+    margin: 0;
     scrollbar-width: none; /* Hide scrollbar for clean UI */
   }
 
@@ -1005,40 +1006,81 @@
 
   .figma-event-card {
     flex: 0 0 84vw;
-    max-width: 330px;
+    max-width: 320px;
     scroll-snap-align: center;
     scroll-snap-stop: always;
+    border-radius: 14px;
   }
 
   .figma-event-banner-photo {
-    height: 180px;
+    height: 170px;
   }
 
   .figma-event-body {
-    padding: 1.5rem 1.15rem 1.15rem;
+    padding: 1.25rem 1rem 1rem;
   }
 
   .figma-event-title {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     min-height: auto;
   }
 
   .figma-event-summary {
     min-height: auto;
-    margin-bottom: 1rem;
+    margin-bottom: 0.85rem;
+    font-size: 0.84rem;
   }
 
   .figma-event-card-actions {
-    flex-wrap: wrap;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
     gap: 0.5rem;
+    padding-top: 0.85rem;
   }
 
-  .btn-event-detail,
-  .btn-event-reg {
+  .btn-event-detail {
+    flex: 1;
     min-height: 40px;
+    padding: 0.45rem 0.65rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: 8px;
+    border: 1px solid rgba(24, 41, 36, 0.18);
+    background: #FFFFFF;
+    color: #1A2823;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    white-space: nowrap;
+    transition: all 160ms ease;
+  }
+
+  .btn-event-detail:active {
+    transform: scale(0.96);
+    background-color: #F4EFEB;
+  }
+
+  .btn-event-reg {
+    flex: 1.2;
+    min-height: 40px;
+    padding: 0.45rem 0.65rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #E2AD52 0%, #D49D42 100%);
+    color: #1C2E26;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(212, 163, 89, 0.28);
+    transition: all 160ms ease;
+  }
+
+  .btn-event-reg:active {
+    transform: scale(0.96);
   }
 
   .modal-register-content {
@@ -1068,15 +1110,9 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .figma-event-card-actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .btn-event-detail,
-  .btn-event-reg {
-    width: 100%;
-    text-align: center;
+  .figma-event-card {
+    flex: 0 0 88vw;
+    max-width: 300px;
   }
 }
 

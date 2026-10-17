@@ -164,8 +164,8 @@ export const Hero: React.FC<HeroProps> = ({
               onFocus={() => setIsDropdownOpen(true)}
               placeholder={
                 language === 'vi' 
-                  ? 'Tìm gian hàng, sự kiện, nhà xuất bản...' 
-                  : 'Search pavilions, book titles, authors, events...'
+                  ? 'Tìm gian hàng, sự kiện...' 
+                  : 'Search booths, events...'
               }
               aria-label="Tìm kiếm gian hàng và sách"
             />
@@ -188,9 +188,9 @@ export const Hero: React.FC<HeroProps> = ({
               </button>
             )}
 
-            <button type="submit" className="hero-search-submit-btn">
-              <span>{language === 'vi' ? 'Tìm kiếm' : 'Search'}</span>
-              <ArrowRight size={16} />
+            <button type="submit" className="hero-search-submit-btn" aria-label={language === 'vi' ? 'Tìm kiếm' : 'Search'}>
+              <span className="hero-search-btn-text">{language === 'vi' ? 'Tìm kiếm' : 'Search'}</span>
+              <ArrowRight size={15} className="hero-search-btn-arrow" />
             </button>
           </form>
 

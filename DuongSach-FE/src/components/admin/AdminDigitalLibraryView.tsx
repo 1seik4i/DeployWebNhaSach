@@ -87,7 +87,7 @@ export function AdminDigitalLibraryView({ language }: {
     const [query, setQuery] = useState('');
     const [selectedCategoryId, setSelectedCategoryId] = useState('all');
     const [selectedStallId, setSelectedStallId] = useState('all');
-    const [selectedStatus, setSelectedStatus] = useState('all');
+    const [selectedStatus, setSelectedStatus] = useState('active');
 
     // Modals state
     const [editing, setEditing] = useState<Book | null | undefined>(undefined);
@@ -103,7 +103,10 @@ export function AdminDigitalLibraryView({ language }: {
             soldQuantity?: number;
         }>;
     } | null>(null);
-    const [deletingBook, setDeletingBook] = useState<Book | null>(null);
+    const [deletingBook, setDeletingBook] = useState<{
+        book: Book;
+        permanent: boolean;
+    } | null>(null);
     const [modalNotice, setModalNotice] = useState<ModalNotice | null>(null);
 
     // QR Code modal state
@@ -375,19 +378,41 @@ export function AdminDigitalLibraryView({ language }: {
     const handleConfirmDelete = async () => {
         if (!deletingBook) return;
         try {
-            await libraryApi.deleteBook(deletingBook.id);
+            await libraryApi.deleteBook(deletingBook.book.id, deletingBook.permanent);
             setModalNotice({
                 type: 'success',
-                title: language === 'vi' ? 'Lưu trữ thành công' : 'Archived Successfully',
-                message: language === 'vi' ? `Sách "${deletingBook.title}" đã được chuyển sang trạng thái lưu trữ.` : `Book "${deletingBook.title}" was archived successfully.`
+                title: deletingBook.permanent
+                    ? (language === 'vi' ? 'Xóa vĩnh viễn thành công' : 'Permanently Deleted')
+                    : (language === 'vi' ? 'Lưu trữ thành công' : 'Archived Successfully'),
+                message: deletingBook.permanent
+                    ? (language === 'vi' ? `Sách "${deletingBook.book.title}" đã được xóa hoàn toàn khỏi cơ sở dữ liệu.` : `Book "${deletingBook.book.title}" was permanently deleted.`)
+                    : (language === 'vi' ? `Sách "${deletingBook.book.title}" đã được chuyển sang trạng thái lưu trữ.` : `Book "${deletingBook.book.title}" was archived successfully.`)
             });
             setDeletingBook(null);
             await refresh();
         } catch (error: any) {
             setModalNotice({
                 type: 'error',
-                title: language === 'vi' ? 'Lỗi khi lưu trữ' : 'Error Archiving Book',
-                message: error.message || (language === 'vi' ? 'Không thể lưu trữ sách này. Vui lòng thử lại.' : 'Could not archive this book.')
+                title: language === 'vi' ? 'Lỗi thao tác' : 'Error',
+                message: error.message || (language === 'vi' ? 'Không thể thực hiện thao tác sách. Vui lòng thử lại.' : 'Could not perform operation.')
+            });
+        }
+    };
+
+    const handleRestoreBook = async (book: Book) => {
+        try {
+            await libraryApi.restoreBook(book.id);
+            setModalNotice({
+                type: 'success',
+                title: language === 'vi' ? 'Khôi phục thành công' : 'Restored Successfully',
+                message: language === 'vi' ? `Sách "${book.title}" đã được khôi phục về trạng thái đang hiển thị.` : `Book "${book.title}" has been restored to active status.`
+            });
+            await refresh();
+        } catch (error: any) {
+            setModalNotice({
+                type: 'error',
+                title: language === 'vi' ? 'Lỗi khôi phục' : 'Restore Error',
+                message: error.message || (language === 'vi' ? 'Không thể khôi phục sách này. Vui lòng thử lại.' : 'Could not restore book.')
             });
         }
     };
@@ -922,9 +947,9 @@ export function AdminDigitalLibraryView({ language }: {
                         value={selectedStatus}
                         onChange={e => setSelectedStatus(e.target.value)}
                     >
-                        <option value="all">{language === 'vi' ? 'Tất cả trạng thái' : 'All statuses'}</option>
                         <option value="active">{language === 'vi' ? 'Đang hiển thị' : 'Active'}</option>
                         <option value="archived">{language === 'vi' ? 'Đã lưu trữ' : 'Archived'}</option>
+                        <option value="all">{language === 'vi' ? 'Tất cả trạng thái' : 'All statuses'}</option>
                     </select>
                 </div>
 
@@ -961,7 +986,14 @@ export function AdminDigitalLibraryView({ language }: {
                                             onClick={() => openView(book)}
                                             title={language === 'vi' ? 'Nhấn để xem chi tiết sách' : 'Click to view book details'}
                                         >
-                                            <strong className="admin-book-title-clean">{book.title}</strong>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                                                <strong className="admin-book-title-clean">{book.title}</strong>
+                                                {book.status === 'archived' && (
+                                                    <span style={{ fontSize: '0.72rem', padding: '1px 6px', borderRadius: '4px', background: '#fee2e2', color: '#991b1b', fontWeight: 600 }}>
+                                                        {language === 'vi' ? 'Đã lưu trữ' : 'Archived'}
+                                                    </span>
+                                                )}
+                                            </div>
                                             <span className="admin-book-publisher-clean">{book.publisher || (language === 'vi' ? 'Chưa có NXB' : 'No publisher')}</span>
                                         </td>
                                         <td style={{ textAlign: 'left' }}>
@@ -1031,15 +1063,43 @@ export function AdminDigitalLibraryView({ language }: {
                                         </td>
                                         <td style={{ textAlign: 'center' }}>
                                             <div className="admin-row-actions">
-                                                <button type="button" onClick={() => setQrModalBook({ book, selectedStallId: 'all' })} title={language === 'vi' ? 'Mã QR & In tem' : 'QR Code & Print Tag'}>
-                                                    <QrCode size={15}/>
-                                                </button>
-                                                <button type="button" onClick={() => openEdit(book)} title={language === 'vi' ? 'Chỉnh sửa' : 'Edit'}>
-                                                    <Edit3 size={15}/>
-                                                </button>
-                                                <button type="button" className="is-delete" onClick={() => setDeletingBook(book)} title={language === 'vi' ? 'Lưu trữ / Xóa' : 'Archive'}>
-                                                    <Trash2 size={15}/>
-                                                </button>
+                                                {book.status === 'archived' ? (
+                                                    <>
+                                                        <button 
+                                                            type="button" 
+                                                            onClick={() => handleRestoreBook(book)} 
+                                                            title={language === 'vi' ? 'Khôi phục sách về đang hiển thị' : 'Restore book to active'}
+                                                            style={{ color: '#059669' }}
+                                                        >
+                                                            <RotateCcw size={15}/>
+                                                        </button>
+                                                        <button 
+                                                            type="button" 
+                                                            className="is-delete" 
+                                                            onClick={() => setDeletingBook({ book, permanent: true })} 
+                                                            title={language === 'vi' ? 'Xóa vĩnh viễn khỏi cơ sở dữ liệu' : 'Delete permanently'}
+                                                        >
+                                                            <Trash2 size={15}/>
+                                                        </button>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <button type="button" onClick={() => setQrModalBook({ book, selectedStallId: 'all' })} title={language === 'vi' ? 'Mã QR & In tem' : 'QR Code & Print Tag'}>
+                                                            <QrCode size={15}/>
+                                                        </button>
+                                                        <button type="button" onClick={() => openEdit(book)} title={language === 'vi' ? 'Chỉnh sửa' : 'Edit'}>
+                                                            <Edit3 size={15}/>
+                                                        </button>
+                                                        <button 
+                                                            type="button" 
+                                                            className="is-delete" 
+                                                            onClick={() => setDeletingBook({ book, permanent: false })} 
+                                                            title={language === 'vi' ? 'Lưu trữ sách' : 'Archive'}
+                                                        >
+                                                            <Trash2 size={15}/>
+                                                        </button>
+                                                    </>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>
@@ -1792,27 +1852,39 @@ export function AdminDigitalLibraryView({ language }: {
             >
                 <div className="admin-confirm-modal-box" onClick={e => e.stopPropagation()}>
                     <div className="admin-confirm-head">
-                        <div className="admin-confirm-head-icon">
+                        <div className="admin-confirm-head-icon" style={deletingBook.permanent ? { background: '#fee2e2', color: '#dc2626' } : undefined}>
                             <AlertTriangle size={24} />
                         </div>
                         <div>
-                            <h3>{language === 'vi' ? 'Xác nhận lưu trữ sách' : 'Confirm Archive Book'}</h3>
-                            <span style={{ fontSize: '0.78rem', color: '#6b7280' }}>{language === 'vi' ? 'Hành động này sẽ ẩn sách khỏi Thư viện số' : 'This will hide the book from the digital library'}</span>
+                            <h3>
+                                {deletingBook.permanent 
+                                    ? (language === 'vi' ? 'Xác nhận xóa vĩnh viễn sách' : 'Confirm Permanent Delete')
+                                    : (language === 'vi' ? 'Xác nhận lưu trữ sách' : 'Confirm Archive Book')}
+                            </h3>
+                            <span style={{ fontSize: '0.78rem', color: '#6b7280' }}>
+                                {deletingBook.permanent
+                                    ? (language === 'vi' ? 'Dữ liệu sách sẽ bị xóa hoàn toàn khỏi cơ sở dữ liệu' : 'This will permanently remove the book from the database')
+                                    : (language === 'vi' ? 'Hành động này sẽ ẩn sách khỏi Thư viện số' : 'This will hide the book from the digital library')}
+                            </span>
                         </div>
                     </div>
 
                     <div className="admin-confirm-target-card">
-                        <img src={deletingBook.coverUrl} alt="" />
+                        <img src={deletingBook.book.coverUrl} alt="" />
                         <div className="admin-confirm-target-info">
-                            <strong>{deletingBook.title}</strong>
-                            <small>{deletingBook.author} • ISBN: {deletingBook.isbn}</small>
+                            <strong>{deletingBook.book.title}</strong>
+                            <small>{deletingBook.book.author} • ISBN: {deletingBook.book.isbn}</small>
                         </div>
                     </div>
 
                     <p className="admin-confirm-warning">
-                        {language === 'vi' 
-                            ? 'Bạn có chắc chắn muốn chuyển cuốn sách này sang trạng thái lưu trữ? Sách sẽ không còn xuất hiện trong kết quả tìm kiếm và các gian hàng sẽ không thể bán cuốn sách này.'
-                            : 'Are you sure you want to archive this book? It will no longer be visible to public users or searchable in the library.'}
+                        {deletingBook.permanent
+                            ? (language === 'vi'
+                                ? `Bạn có chắc chắn muốn xóa vĩnh viễn cuốn sách "${deletingBook.book.title}"? Mọi thông tin sách, bảng xếp hạng và tồn kho sẽ bị xóa vĩnh viễn và không thể khôi phục!`
+                                : `Are you sure you want to permanently delete "${deletingBook.book.title}"? This cannot be undone.`)
+                            : (language === 'vi' 
+                                ? 'Bạn có chắc chắn muốn chuyển cuốn sách này sang trạng thái lưu trữ? Sách sẽ không còn xuất hiện trong danh sách hiển thị và các gian hàng sẽ không thể bán cuốn sách này.'
+                                : 'Are you sure you want to archive this book? It will no longer be visible to public users or searchable in the library.')}
                     </p>
 
                     <div className="admin-confirm-actions">
@@ -1820,7 +1892,9 @@ export function AdminDigitalLibraryView({ language }: {
                             {language === 'vi' ? 'Hủy bỏ' : 'Cancel'}
                         </button>
                         <button className="admin-confirm-btn-danger" onClick={handleConfirmDelete}>
-                            {language === 'vi' ? 'Xác nhận lưu trữ' : 'Confirm Archive'}
+                            {deletingBook.permanent
+                                ? (language === 'vi' ? 'Xác nhận xóa vĩnh viễn' : 'Permanently Delete')
+                                : (language === 'vi' ? 'Xác nhận lưu trữ' : 'Confirm Archive')}
                         </button>
                     </div>
                 </div>

@@ -48,6 +48,45 @@ export const BoothsSection: React.FC<BoothsSectionProps> = ({
   );
   const stallsTrackRef = React.useRef<HTMLDivElement | null>(null);
   const searchInputRef = React.useRef<HTMLInputElement | null>(null);
+  const isPointerDragging = React.useRef(false);
+  const pointerStartX = React.useRef(0);
+  const pointerStartScroll = React.useRef(0);
+
+  const handleTrackPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement | null;
+    if (target?.closest('button, a, input, select, textarea')) {
+      return;
+    }
+    if (e.pointerType === 'mouse' && e.button === 0) {
+      isPointerDragging.current = true;
+      pointerStartX.current = e.clientX;
+      pointerStartScroll.current = stallsTrackRef.current?.scrollLeft || 0;
+      try {
+        e.currentTarget.setPointerCapture(e.pointerId);
+      } catch {
+        // ignore
+      }
+    }
+  };
+
+  const handleTrackPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isPointerDragging.current || !stallsTrackRef.current) return;
+    const diff = e.clientX - pointerStartX.current;
+    if (Math.abs(diff) > 2) {
+      stallsTrackRef.current.scrollLeft = pointerStartScroll.current - diff;
+    }
+  };
+
+  const handleTrackPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (isPointerDragging.current) {
+      isPointerDragging.current = false;
+      try {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      } catch {
+        // ignore
+      }
+    }
+  };
 
   const clearSearch = () => {
     if (!searchQuery) return;
@@ -199,8 +238,8 @@ export const BoothsSection: React.FC<BoothsSectionProps> = ({
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={
                 language === 'vi'
-                  ? 'Tìm kiếm ki-ốt, nhà xuất bản, tên sách...'
-                  : 'Search stalls, publishers, titles...'
+                  ? 'Tìm gian hàng, nhà xuất bản...'
+                  : 'Search stalls, publishers...'
               }
               className="figma-search-input"
             />
@@ -263,6 +302,10 @@ export const BoothsSection: React.FC<BoothsSectionProps> = ({
         <div 
           className="figma-stalls-slider-track"
           ref={stallsTrackRef}
+          onPointerDown={handleTrackPointerDown}
+          onPointerMove={handleTrackPointerMove}
+          onPointerUp={handleTrackPointerUp}
+          onPointerCancel={handleTrackPointerUp}
           tabIndex={0}
           role="region"
           aria-label="Danh sách gian hàng lướt ngang"

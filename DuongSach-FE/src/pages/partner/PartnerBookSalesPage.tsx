@@ -178,7 +178,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
   const openRecord = (mode: ModalMode, row: StallBookRecord) => {
     setCurrent(row);
     setCurrentSubmission(null);
-    setMatch(row.book);
+    setMatch(null);
     setForm(toForm(row));
     setCoverFileName('');
     setCoverError('');

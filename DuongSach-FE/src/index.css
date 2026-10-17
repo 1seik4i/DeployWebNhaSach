@@ -85,6 +85,12 @@ html {
   font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11', 'ss01', 'kern';
 }
 
+@media (max-width: 768px) {
+  html {
+    scrollbar-gutter: auto;
+  }
+}
+
 section[id], header[id], main[id] {
   scroll-margin-top: 90px;
 }
