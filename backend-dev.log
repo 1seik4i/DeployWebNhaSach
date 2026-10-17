@@ -1,0 +1,5 @@
+
+> duongsach-backend@1.0.0 dev
+> node scripts/run-dev.js
+
+Failed running 'src/server.js'. Waiting for file changes before restarting...

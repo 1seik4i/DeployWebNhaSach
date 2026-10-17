@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { BookOpen, ChevronLeft, ChevronRight, Search, Trophy } from 'lucide-react';
+import { BookOpen, ChevronLeft, ChevronRight, Search, Trophy, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import type { Book, Language } from '../../types';
 import { libraryApi } from '../../services/libraryApi';
@@ -161,7 +161,16 @@ export function DigitalLibrarySection({ language }: { language: Language }) {
             aria-label={language === 'vi' ? 'Tìm sách' : 'Search books'}
             placeholder={language === 'vi' ? 'Tìm tên sách, tác giả hoặc ISBN...' : 'Search title, author or ISBN...'}
           />
-          <button type="submit">{language === 'vi' ? 'Tìm kiếm' : 'Search'}</button>
+          <button
+            type="button"
+            className="library-search-clear"
+            onMouseDown={event => event.preventDefault()}
+            onClick={() => setQuery('')}
+            disabled={!query}
+            aria-label={language === 'vi' ? 'Xóa tìm kiếm' : 'Clear search'}
+          >
+            <X size={18} aria-hidden="true" />
+          </button>
         </form>
 
         <div className="library-ranking-shell">

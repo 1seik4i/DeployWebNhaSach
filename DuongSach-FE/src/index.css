@@ -95,6 +95,14 @@ section[id], header[id], main[id] {
   scroll-margin-top: 90px;
 }
 
+/* These landing sections already provide generous top padding for their
+   headings. Keeping the global header offset here leaves a strip of the
+   preceding section visible after a CTA/hash jump. */
+#gian-hang,
+#ban-do {
+  scroll-margin-top: 0;
+}
+
 /* Vạch vàng mảnh nhẹ ngăn cách sang trọng trên tất cả các mép nối section */
 main > section {
   position: relative;
