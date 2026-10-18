@@ -126,7 +126,7 @@ export const EventsSection: React.FC<EventsSectionProps> = ({
             {language === 'vi' ? (
               <>Sự kiện sắp diễn ra tại <span className="serif-italic-accent">Đường Sách</span></>
             ) : (
-              'Upcoming Cultural Events'
+              <>Upcoming Events at <span className="serif-italic-accent">Book Street</span></>
             )}
           </h2>
           <p className="figma-section-subtitle">
@@ -150,7 +150,8 @@ export const EventsSection: React.FC<EventsSectionProps> = ({
             className="btn-section-see-more-borderless"
             aria-label="Xem thêm toàn bộ lịch hoạt động sự kiện"
           >
-            <span>{language === 'vi' ? 'Xem thêm toàn bộ lịch sự kiện & hoạt động tại Đường Sách' : 'View full events & activities schedule at Book Street'}</span>
+            <span className="see-more-text-full">{language === 'vi' ? 'Xem thêm toàn bộ lịch sự kiện & hoạt động tại Đường Sách' : 'View full events & activities schedule at Book Street'}</span>
+            <span className="see-more-text-mobile">{language === 'vi' ? 'Xem toàn bộ lịch sự kiện' : 'View all events'}</span>
             <ChevronRight size={17} className="see-more-arrow-icon" />
           </Link>
         </div>
@@ -207,25 +208,27 @@ export const EventsSection: React.FC<EventsSectionProps> = ({
             >
               <X size={20} />
             </button>
-            <div className="modal-event-photo-header">
-              <img src={activeEventDetail.image.url} alt={activeEventDetail.image.alt} className="modal-top-img" />
-              <div className="modal-img-caption">
-                <span className="event-cat-tag">
-                  {language === 'vi' ? activeEventDetail.typeLabelVi : activeEventDetail.typeLabelEn}
-                </span>
+            <div className="event-detail-scroll-body">
+              <div className="modal-event-photo-header">
+                <img src={activeEventDetail.image.url} alt={activeEventDetail.image.alt} className="modal-top-img" />
+                <div className="modal-img-caption">
+                  <span className="event-cat-tag">
+                    {language === 'vi' ? activeEventDetail.typeLabelVi : activeEventDetail.typeLabelEn}
+                  </span>
+                </div>
               </div>
+              <h3 className="modal-heading-title" id="event-detail-modal-title">
+                {language === 'vi' ? activeEventDetail.title : activeEventDetail.titleEn}
+              </h3>
+              <div className="modal-meta-box">
+                <p><strong>{language === 'vi' ? 'Thời gian:' : 'Time:'}</strong> {activeEventDetail.dateRange || activeEventDetail.dateStr} ({activeEventDetail.timeStr})</p>
+                <p><strong>{language === 'vi' ? 'Địa điểm:' : 'Location:'}</strong> {language === 'vi' ? activeEventDetail.location : activeEventDetail.locationEn}</p>
+                <p><strong>{language === 'vi' ? 'Diễn giả:' : 'Speaker:'}</strong> {activeEventDetail.speaker}</p>
+              </div>
+              <p className="modal-body-desc">
+                {language === 'vi' ? activeEventDetail.summary : activeEventDetail.summaryEn}
+              </p>
             </div>
-            <h3 className="modal-heading-title" id="event-detail-modal-title">
-              {language === 'vi' ? activeEventDetail.title : activeEventDetail.titleEn}
-            </h3>
-            <div className="modal-meta-box">
-              <p><strong>{language === 'vi' ? 'Thời gian:' : 'Time:'}</strong> {activeEventDetail.dateRange || activeEventDetail.dateStr} ({activeEventDetail.timeStr})</p>
-              <p><strong>{language === 'vi' ? 'Địa điểm:' : 'Location:'}</strong> {language === 'vi' ? activeEventDetail.location : activeEventDetail.locationEn}</p>
-              <p><strong>{language === 'vi' ? 'Diễn giả:' : 'Speaker:'}</strong> {activeEventDetail.speaker}</p>
-            </div>
-            <p className="modal-body-desc">
-              {language === 'vi' ? activeEventDetail.summary : activeEventDetail.summaryEn}
-            </p>
             <div className="modal-event-buttons-row">
               <button
                 type="button"
@@ -250,7 +253,7 @@ export const EventsSection: React.FC<EventsSectionProps> = ({
                 }}
               >
                 <Star size={18} className="star-icon-feedback" />
-                <span>{language === 'vi' ? 'Đánh giá sự kiện' : 'Đánh giá sự kiện'}</span>
+                <span>{language === 'vi' ? 'Đánh giá sự kiện' : 'Rate Event'}</span>
               </button>
             </div>
           </div>

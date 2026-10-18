@@ -193,7 +193,7 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
             {language === 'vi' ? (
               <>Góp ý cùng <span className="serif-italic-accent">Đường Sách</span></>
             ) : (
-              'Share your perspective'
+              <>Share your perspective with <span className="serif-italic-accent">Book Street</span></>
             )}
           </h2>
           <p className="figma-section-subtitle">

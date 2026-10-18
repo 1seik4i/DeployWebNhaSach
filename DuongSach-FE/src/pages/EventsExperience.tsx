@@ -287,31 +287,27 @@ export const EventsExperience: React.FC<EventsExperienceProps> = ({
               <button className="modal-close" onClick={() => setActiveModalEvent(null)} aria-label="Đóng">
                 <X size={20} />
               </button>
-              <div className="modal-booth-header-img">
-                <img src={activeModalEvent.image.url} alt={activeModalEvent.image.alt} className="modal-top-img" />
-                <div className="modal-img-caption">
-                  <span className="kiosk-number-badge">
-                    {activeModalEvent.isOngoingToday || activeModalEvent.status === 'happening' ? (vi ? '🔥 HÔM NAY' : '🔥 TODAY') : activeModalEvent.dayOfWeek}
-                  </span>
-                  <span className="photo-source-cite">{activeModalEvent.dateRange || activeModalEvent.dateStr}</span>
+              <div className="event-detail-scroll-body">
+                <div className="modal-booth-header-img">
+                  <img src={activeModalEvent.image.url} alt={activeModalEvent.image.alt} className="modal-top-img" />
                 </div>
+                <h3 className="modal-heading-title">
+                  {vi ? activeModalEvent.title : activeModalEvent.titleEn}
+                </h3>
+                <div className="modal-meta-box">
+                  <p>⏰ <strong>{vi ? 'Thời gian:' : 'Time:'}</strong> {activeModalEvent.timeStr} ({activeModalEvent.dayOfWeek}, {activeModalEvent.dateRange || activeModalEvent.dateStr})</p>
+                  <p>📍 <strong>{vi ? 'Địa điểm:' : 'Location:'}</strong> {vi ? activeModalEvent.location : activeModalEvent.locationEn}</p>
+                  {activeModalEvent.speaker && (
+                    <p>🎙️ <strong>{vi ? 'Diễn giả / Chủ trì:' : 'Speaker:'}</strong> {activeModalEvent.speaker}</p>
+                  )}
+                  {activeModalEvent.boothName && (
+                    <p>🏛️ <strong>{vi ? 'Đơn vị tổ chức:' : 'Organizer:'}</strong> {activeModalEvent.boothName}</p>
+                  )}
+                </div>
+                <p className="modal-body-desc">
+                  {vi ? activeModalEvent.summary : activeModalEvent.summaryEn}
+                </p>
               </div>
-              <h3 className="modal-heading-title">
-                {vi ? activeModalEvent.title : activeModalEvent.titleEn}
-              </h3>
-              <div className="modal-meta-box">
-                <p>⏰ <strong>{vi ? 'Thời gian:' : 'Time:'}</strong> {activeModalEvent.timeStr} ({activeModalEvent.dayOfWeek}, {activeModalEvent.dateRange || activeModalEvent.dateStr})</p>
-                <p>📍 <strong>{vi ? 'Địa điểm:' : 'Location:'}</strong> {vi ? activeModalEvent.location : activeModalEvent.locationEn}</p>
-                {activeModalEvent.speaker && (
-                  <p>🎙️ <strong>{vi ? 'Diễn giả / Chủ trì:' : 'Speaker:'}</strong> {activeModalEvent.speaker}</p>
-                )}
-                {activeModalEvent.boothName && (
-                  <p>🏛️ <strong>{vi ? 'Đơn vị tổ chức:' : 'Organizer:'}</strong> {activeModalEvent.boothName}</p>
-                )}
-              </div>
-              <p className="modal-body-desc">
-                {vi ? activeModalEvent.summary : activeModalEvent.summaryEn}
-              </p>
               <div className="modal-event-buttons-row">
                 <button
                   type="button"

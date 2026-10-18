@@ -91,6 +91,14 @@
   color: #C84C32;
 }
 
+.see-more-text-mobile {
+  display: none;
+}
+
+.see-more-text-full {
+  display: inline;
+}
+
 @media (max-width: 768px) {
   .section-bottom-see-more-row {
     margin-top: 1.25rem;
@@ -98,6 +106,21 @@
   .btn-section-see-more-borderless {
     font-size: 0.95rem;
     text-align: center;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+  .see-more-text-full {
+    display: none;
+  }
+  .see-more-text-mobile {
+    display: inline;
+  }
+}
+
+@media (max-width: 480px) {
+  .btn-section-see-more-borderless {
+    font-size: 0.9rem;
+    padding: 0.5rem 0.35rem;
   }
 }
 

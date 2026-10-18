@@ -40,10 +40,31 @@
    PREMIUM BOOTH CARD DESIGN (THẺ GIAN HÀNG HIỆN ĐẠI & SANG TRỌNG)
    ========================================================================== */
 
+.heritage-collection-grid .booth-card-enhanced .heritage-card-cat-badge {
+  display: block;
+  max-width: 100%;
+  padding: 0;
+  margin-bottom: 8px;
+  background: transparent;
+  color: #7c715d;
+  font-size: .65rem;
+  line-height: 1.4;
+  letter-spacing: .035em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.heritage-collection-grid .heritage-card-cat-badge svg { display: none; }
+.heritage-collection-grid .booth-card-enhanced { border-radius: 14px; }
+.heritage-collection-grid .booth-card-enhanced h3 { min-height: 2.7em; }
+.heritage-collection-grid .booth-card-enhanced p { min-height: 3.1em; }
+.heritage-collection-grid .booth-card-arrow-circle { flex-shrink: 0; }
+.heritage-collection-grid .booth-card-action-bar { padding-top: 10px; }
+
 /* Grid bố cục thẻ */
 .heritage-collection-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 28px 24px;
 }
 
@@ -55,9 +76,19 @@
 
 @media (max-width: 640px) {
   .heritage-collection-grid {
-    grid-template-columns: 1fr;
-    gap: 20px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
   }
+}
+
+@media (max-width: 640px) {
+  .heritage-collection-grid > * { min-width: 0; }
+  .heritage-collection-grid .booth-card-enhanced .heritage-card-image { height: 140px; }
+  .heritage-collection-grid .booth-card-enhanced .heritage-card-body { padding: 12px 10px; }
+  .heritage-collection-grid .booth-card-enhanced h3 { font-size: 1rem; }
+  .heritage-collection-grid .booth-card-enhanced p { font-size: .75rem; }
+  .heritage-collection-grid .booth-card-action-bar { gap: 6px; }
+  .heritage-collection-grid .heritage-card-arrow-text { font-size: .75rem; }
 }
 
 /* Thẻ gian hàng */
@@ -298,4 +329,45 @@
   .booths-detail-modal-content {
     animation: booths-modal-overlay-in 200ms ease both;
   }
+}
+
+.modal-booth-actions {
+  display: flex;
+  align-items: stretch;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.modal-booth-actions .btn-figma-primary {
+  flex: 1;
+  width: auto;
+  margin: 0;
+}
+
+.modal-booth-actions .modal-booth-qr-btn {
+  width: 48px;
+  min-height: 48px;
+  height: auto;
+  border-radius: var(--radius-sm, 6px);
+  background: #ffffff;
+  border: 1.5px solid rgba(24, 41, 36, 0.16);
+  color: #1c2e26;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.modal-booth-actions .modal-booth-qr-btn:hover {
+  background: #edf5f0;
+  border-color: #234b3a;
+  color: #1b4332;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(27, 67, 50, 0.15);
+}
+
+.modal-booth-actions .modal-booth-qr-btn:active {
+  transform: translateY(0);
 }

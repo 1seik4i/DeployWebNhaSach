@@ -260,7 +260,10 @@ export function App() {
 
   const handleSelectBoothOnMap = (boothId: string) => {
     setHighlightedBoothId(boothId);
-    scrollToSection('ban-do');
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      const map = document.querySelector<HTMLElement>('#ban-do .illustrated-map');
+      (map || document.getElementById('ban-do'))?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }));
   };
 
   const handleNavigateToBoothDetail = (boothId: string) => {

@@ -69,7 +69,9 @@
   color: var(--figma-text-muted, #71717A);
   cursor: pointer;
   z-index: 5;
-  opacity: 0.35;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
   transition: background-color 180ms ease, color 180ms ease, opacity 180ms ease;
 }
 
@@ -79,11 +81,24 @@
 
 .search-clear.is-active {
   opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 
 .search-clear:hover {
   background-color: rgba(24, 41, 36, 0.08);
   color: var(--figma-text-dark, #182924);
+}
+
+/* Center independently of the global button press transform. */
+.figma-search-bar .search-clear,
+.figma-search-bar .search-clear:hover,
+.figma-search-bar .search-clear:focus,
+.figma-search-bar .search-clear:active:not(:disabled) {
+  top: 0;
+  bottom: 0;
+  margin-block: auto;
+  transform: none;
 }
 
 .figma-category-row-with-slider-nav {
@@ -358,6 +373,34 @@
   z-index: 2;
 }
 
+@media (max-width: 768px) {
+  .kiosk-photo .kiosk-banner-tags,
+  .kiosk-banner-tags {
+    flex-wrap: nowrap;
+    gap: 6px;
+    left: 10px;
+    right: 10px;
+  }
+  .kiosk-banner-tags .kiosk-cat-label {
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: .65rem;
+    padding: 6px 9px;
+    line-height: 1.3;
+  }
+  .kiosk-banner-tags .kiosk-hours-badge {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    font-size: .65rem;
+    padding: 6px 9px;
+    line-height: 1.3;
+  }
+}
+
 .kiosk-number-badge {
   font-size: 0.76rem;
   font-weight: 800;
@@ -456,27 +499,29 @@
 .kiosk-bestseller-left {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.45rem;
   min-width: 0;
-  overflow: hidden;
+  flex: 1;
 }
 
 .kiosk-bestseller-badge {
-  font-size: 0.68rem;
-  font-weight: 800;
-  color: #B45309;
-  background: #FEF3C7;
-  padding: 0.15rem 0.45rem;
-  border-radius: 4px;
-  white-space: nowrap;
-  letter-spacing: 0.02em;
+  font-size: 0.85rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  padding: 0;
   flex-shrink: 0;
+  border: 0;
 }
 
 .kiosk-bestseller-name {
   font-size: 0.82rem;
   font-weight: 750;
   color: #1F2937;
+  line-height: 1.35;
+  min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -494,13 +539,21 @@
 }
 
 .kiosk-hl-label {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
   font-size: 0.72rem;
   font-weight: 800;
   color: var(--figma-text-faint);
   text-transform: uppercase;
   margin-bottom: 0.35rem;
   letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.kiosk-hl-label svg {
+  display: inline-block;
+  flex-shrink: 0;
 }
 
 .kiosk-books-row {
@@ -607,6 +660,78 @@
 
 .booth-detail-modal-content {
   margin: auto;
+  display: flex;
+  flex-direction: column;
+  max-height: min(90vh, 760px);
+  overflow: hidden !important;
+  padding: 1.75rem 1.75rem 1.25rem;
+}
+
+.booth-detail-scroll-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 4px;
+}
+
+.booth-detail-scroll-body::-webkit-scrollbar {
+  width: 5px;
+}
+.booth-detail-scroll-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+.booth-detail-scroll-body::-webkit-scrollbar-thumb {
+  background: rgba(24, 41, 36, 0.15);
+  border-radius: 999px;
+}
+.booth-detail-scroll-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(24, 41, 36, 0.3);
+}
+
+.modal-booth-actions {
+  display: flex;
+  align-items: stretch;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid rgba(24, 41, 36, 0.08);
+  flex-shrink: 0;
+  background: #ffffff;
+}
+
+.modal-booth-actions .btn-figma-primary {
+  flex: 1;
+  width: auto;
+  margin: 0;
+}
+
+.modal-booth-actions .modal-booth-qr-btn {
+  width: 48px;
+  min-height: 48px;
+  height: auto;
+  border-radius: var(--radius-sm, 6px);
+  background: #ffffff;
+  border: 1.5px solid rgba(24, 41, 36, 0.16);
+  color: #1c2e26;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.modal-booth-actions .modal-booth-qr-btn:hover {
+  background: #edf5f0;
+  border-color: #234b3a;
+  color: #1b4332;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(27, 67, 50, 0.15);
+}
+
+.modal-booth-actions .modal-booth-qr-btn:active {
+  transform: translateY(0);
 }
 
 .booth-sheet-handle {
@@ -624,12 +749,14 @@
     max-width: 100%;
     max-height: 88vh;
     border-radius: 22px 22px 0 0;
-    padding: 1.25rem 1.15rem calc(1.25rem + env(safe-area-inset-bottom, 0px));
+    padding: 1rem 1.15rem calc(1rem + env(safe-area-inset-bottom, 0px));
     margin: 0;
     box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.3);
     animation: mobileSheetSlideUp 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
     position: relative;
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden !important;
   }
 
   .booth-detail-modal-content.is-closing {

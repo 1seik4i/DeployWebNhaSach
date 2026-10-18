@@ -12,8 +12,7 @@ import {
   BookOpen, 
   X, 
   Sparkles,
-  Store,
-  QrCode
+  Store
 } from 'lucide-react';
 import { Booth, Language } from '../types';
 import './ExperienceShell.css';
@@ -239,6 +238,12 @@ export const BoothsExperience: React.FC<BoothsExperienceProps> = ({
                   key={booth.id}
                   className="heritage-collection-card booth-card-enhanced"
                   onClick={() => setActiveModalBooth(booth)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      setActiveModalBooth(booth);
+                    }
+                  }}
                   tabIndex={0}
                   role="button"
                   style={{ cursor: 'pointer' }}
@@ -269,19 +274,9 @@ export const BoothsExperience: React.FC<BoothsExperienceProps> = ({
                     <h3>{vi ? booth.name : booth.nameEn}</h3>
                     <p>{vi ? booth.tagline : booth.taglineEn}</p>
 
-                    {booth.featuredBooks && booth.featuredBooks.length > 0 && (
-                      <div className="booth-featured-books-row">
-                        {booth.featuredBooks.slice(0, 2).map((bk, i) => (
-                          <span key={i} className="booth-mini-book-tag">
-                            📖 {bk}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-
                     <div className="booth-card-action-bar">
                       <span className="heritage-card-arrow-text">
-                        {vi ? 'Xem chi tiết gian hàng' : 'Explore booth details'}
+                        {vi ? 'Xem thêm' : 'View more'}
                       </span>
                       <div className="booth-card-arrow-circle">
                         <ArrowRight size={15} />
@@ -309,11 +304,11 @@ export const BoothsExperience: React.FC<BoothsExperienceProps> = ({
               <button className="modal-close" onClick={() => setActiveModalBooth(null)} aria-label="Đóng">
                 <X size={20} />
               </button>
+              <div className="booth-detail-scroll-body">
               <div className="modal-booth-header-img">
                 <img src={activeModalBooth.image.url || '/duong_sach_logo.png'} onError={event => { event.currentTarget.onerror = null; event.currentTarget.src = '/duong_sach_logo.png'; }} alt={activeModalBooth.image.alt} className="modal-top-img" />
                 <div className="modal-img-caption">
                   <span className="kiosk-number-badge">{activeModalBooth.code}</span>
-                  <span className="photo-source-cite">Nguồn: {activeModalBooth.image.source}</span>
                 </div>
               </div>
               <h3 className="modal-heading-title">
@@ -327,19 +322,21 @@ export const BoothsExperience: React.FC<BoothsExperienceProps> = ({
                 <p>⏰ <strong>{vi ? 'Giờ mở cửa:' : 'Hours:'}</strong> {activeModalBooth.openHours}</p>
                 <p>📖 <strong>{vi ? 'Sách tuyển chọn:' : 'Featured:'}</strong> {activeModalBooth.featuredBooks.join(', ')}</p>
               </div>
-              <button
-                type="button"
-                className="btn-figma-primary"
-                style={{ width: '100%' }}
-                onClick={() => {
-                  const bId = activeModalBooth.id;
-                  setActiveModalBooth(null);
-                  handleLocateOnMap(bId);
-                }}
-              >
-                <MapPin size={16} />
-                <span>{vi ? 'Định vị trên bản đồ tương tác' : 'Locate on Interactive Map'}</span>
-              </button>
+              </div>
+              <div className="modal-booth-actions">
+                <button
+                  type="button"
+                  className="btn-figma-primary"
+                  onClick={() => {
+                    const bId = activeModalBooth.id;
+                    setActiveModalBooth(null);
+                    handleLocateOnMap(bId);
+                  }}
+                >
+                  <MapPin size={16} />
+                  <span>{vi ? 'Định vị' : 'Locate'}</span>
+                </button>
+              </div>
             </div>
           </div>,
           document.body

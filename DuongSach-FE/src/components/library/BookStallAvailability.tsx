@@ -16,15 +16,7 @@ export function BookStallAvailability({ stalls, language }: { stalls: BookStall[
               <div className="book-stall-text">
                 <div className="book-stall-title-row">
                   <strong className="book-stall-name">{stall.stallName}</strong>
-                  {(stall.stallCode || stall.stallId) && (
-                    <span className="book-stall-code-pill">{stall.stallCode || stall.stallId}</span>
-                  )}
                 </div>
-                {stall.soldQuantity !== undefined && stall.soldQuantity !== null && (
-                  <span className="book-stall-sold-line">
-                    {language === 'vi' ? 'Đã bán: ' : 'Sold: '}<strong>{stall.soldQuantity}</strong> {language === 'vi' ? 'cuốn' : 'copies'}
-                  </span>
-                )}
               </div>
             </div>
             <div className="book-stall-stock-wrap">

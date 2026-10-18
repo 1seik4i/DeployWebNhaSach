@@ -5,7 +5,8 @@
   align-items: center;
   justify-content: center;
   padding: 8.5rem 0 5.5rem 0; /* Cho phép ảnh nền và nội dung fill thoáng xuống phía dưới */
-  overflow: hidden;
+  overflow: visible;
+  z-index: 15;
   background-color: var(--figma-dark-primary);
   color: #FFFFFF;
 }
@@ -95,7 +96,8 @@
 }
 
 .figma-hero-h1 .hero-street-name,
-.figma-hero-h1 .hero-city-name {
+.figma-hero-h1 .hero-city-name,
+.figma-hero-h1 .serif-italic-accent {
   color: #E9BC63;
   font-weight: 600;
   font-family: var(--font-display);
@@ -103,7 +105,8 @@
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7), 0 0 20px rgba(233, 188, 99, 0.4);
 }
 
-.figma-hero-h1 .hero-street-name {
+.figma-hero-h1 .hero-street-name,
+.figma-hero-h1 .serif-italic-accent {
   font-style: italic;
 }
 
@@ -412,8 +415,8 @@
 
 .hero-suggestions-dropdown .dropdown-item-icon,
 .hero-search-dropdown .dropdown-item-icon {
-  width: 32px;
-  height: 32px;
+  width: 52px;
+  height: 52px;
   border-radius: 8px;
   background-color: #EBF3EF;
   color: #1E312B;
@@ -421,7 +424,10 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  overflow: hidden;
 }
+
+.dropdown-item-icon img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
 .hero-suggestions-dropdown .dropdown-item-info,
 .hero-search-dropdown .dropdown-item-info {
@@ -638,18 +644,25 @@
     width: 100%;
   }
 
-  /* Wrap naturally on mobile - eliminate unnecessary horizontal scroll */
+  /* Keep suggestions on one swipeable row on mobile. */
   .quick-tags-list {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 0.35rem 0.45rem;
     padding: 0.15rem 0.25rem;
-    overflow: visible;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
   }
 
+  .quick-tags-list::-webkit-scrollbar { display: none; }
+
   .quick-tags-label {
+    flex-shrink: 0;
     font-size: 0.75rem;
     margin-right: 0.15rem;
   }

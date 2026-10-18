@@ -1,6 +1,6 @@
 .event-coverflow { width: 100%; overflow: hidden; contain: paint layout; isolation: isolate; }
-.event-coverflow-stage-wrap { display: grid; grid-template-columns: 52px minmax(0, 1fr) 52px; align-items: center; gap: .5rem; overflow: hidden; }
-.event-coverflow-stage { position: relative; height: clamp(310px, 33vw, 430px); perspective: 950px; transform-style: preserve-3d; outline: none; touch-action: pan-y; user-select: none; }
+.event-coverflow-stage-wrap { position: relative; z-index: 1; display: grid; grid-template-columns: 52px minmax(0, 1fr) 52px; align-items: center; gap: .5rem; overflow: hidden; transform: translateZ(0); }
+.event-coverflow-stage { position: relative; height: clamp(310px, 33vw, 430px); overflow: hidden; perspective: 950px; transform-style: preserve-3d; outline: none; touch-action: pan-y; user-select: none; }
 .event-coverflow-stage:focus-visible { outline: 3px solid #b4863c; outline-offset: 3px; }
 .event-coverflow-slide { position: absolute; top: 3%; left: 50%; width: clamp(210px, 27vw, 340px); height: 94%; padding: 0; overflow: hidden; border: 1px solid rgba(255,255,255,.65); border-radius: 8px; background: #17382e; box-shadow: 0 16px 34px rgba(20,40,33,.23); color: #fff; cursor: pointer; text-align: left; transform-style: preserve-3d; backface-visibility: hidden; -webkit-backface-visibility: hidden; will-change: transform, opacity; transition: transform 520ms cubic-bezier(.22,1,.36,1), opacity 420ms ease, box-shadow 420ms ease; }
 .event-coverflow-slide.is-selected { box-shadow: 0 22px 46px rgba(20,40,33,.32); }
@@ -14,9 +14,10 @@
 .event-coverflow-kicker-row { display: flex; align-items: center; gap: .75rem; flex-wrap: nowrap; white-space: nowrap; margin-bottom: .25rem; height: 24px; min-height: 24px; max-height: 24px; overflow: hidden; }
 .event-coverflow-today-pill { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 9999px; background: #ffe4e6; color: #be123c; font-size: .72rem; font-weight: 700; border: 1px solid #fecdd3; flex-shrink: 0; }
 .event-coverflow-arrow { width: 46px; height: 46px; display: grid; place-items: center; padding: 0; border: 1px solid #a8bdb2; border-radius: 50%; background: rgba(255,255,255,.8); color: #193a2f; cursor: pointer; z-index: 20; }
-.event-coverflow-arrow:hover { background: #193a2f; color: #fff; }
+.event-coverflow-arrow { opacity: .55; transition: opacity 180ms ease, background 180ms ease, color 180ms ease; }
+.event-coverflow-arrow:hover, .event-coverflow-arrow:focus-visible { opacity: 1; background: #193a2f; color: #fff; }
 .event-coverflow-arrow:disabled { opacity: .35; cursor: default; }
-.event-coverflow-details { max-width: 920px; margin: 1rem auto 0; display: flex; align-items: flex-end; justify-content: space-between; gap: 1.5rem; color: #19342b; height: 156px; min-height: 156px; max-height: 156px; padding-bottom: 8px; overflow: hidden; box-sizing: border-box; }
+.event-coverflow-details { position: relative; z-index: 2; isolation: isolate; max-width: 920px; margin: 1.5rem auto 0; display: flex; align-items: flex-end; justify-content: space-between; gap: 1.5rem; color: #19342b; height: auto; min-height: 156px; padding: 8px 0; overflow: visible; box-sizing: border-box; }
 .event-coverflow-details-main { min-width: 0; flex: 1; animation: eventDetailsFade 220ms ease-out; }
 @keyframes eventDetailsFade {
   from { opacity: 0.45; }
@@ -84,16 +85,18 @@
   transform: translateX(2px);
 }
 .event-coverflow-register-btn { border: 1px solid #e2ad52; background: #e2ad52; color: #1b2b25; }
-.event-coverflow-pagination { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: .45rem; margin-top: 1.5rem; height: 16px; min-height: 16px; max-height: 16px; }
+.event-coverflow-pagination { position: relative; z-index: 2; display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: .45rem; margin-top: 1.5rem; height: 16px; min-height: 16px; max-height: 16px; }
 .event-coverflow-pagination button { width: 8px; height: 8px; padding: 0; border: 0; border-radius: 50%; background: #9eaea4; cursor: pointer; }
 .event-coverflow-pagination button.is-selected { width: 24px; border-radius: 10px; background: #193a2f; }
 .event-coverflow-empty { text-align: center; padding: 3rem 1rem; color: #52665c; }
 @media (max-width: 768px) {
-  .event-coverflow-stage-wrap { grid-template-columns: 32px minmax(0, 1fr) 32px; gap: 0; }
+  .event-coverflow-stage-wrap { grid-template-columns: 32px minmax(0, 1fr) 32px; gap: .5rem; }
   .event-coverflow-stage { height: 330px; perspective: 700px; }
-  .event-coverflow-slide { width: min(62vw, 260px); }
+  .event-coverflow-slide { width: min(48vw, 220px); }
   .event-coverflow-week-badge { top: .55rem; left: .55rem; min-width: 3.75rem; min-height: 1.9rem; font-size: .62rem; }
-  .event-coverflow-arrow { width: 32px; height: 40px; border-radius: 6px; }
+  .event-coverflow-arrow { width: 32px; height: 44px; border-radius: 8px; opacity: .65; background: rgba(255,255,255,.65); color: #193a2f; border-color: rgba(25,58,47,.3); }
+  .event-coverflow-arrow:hover { opacity: .8; background: rgba(255,255,255,.85); color: #193a2f; }
+  .event-coverflow-arrow:focus-visible { opacity: 1; outline: 2px solid #193a2f; outline-offset: 2px; }
   .event-coverflow-details {
     align-items: stretch;
     flex-direction: column;

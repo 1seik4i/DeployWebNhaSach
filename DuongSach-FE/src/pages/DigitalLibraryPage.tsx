@@ -1,7 +1,7 @@
 import { useModalBehavior } from '../hooks/useModalBehavior';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowLeft, ArrowRight, BookOpen, Building2, CalendarDays, ChevronLeft, ChevronRight, Hash, Search, Sparkles, Tag, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpen, Building2, CalendarDays, ChevronLeft, ChevronRight, Funnel, Hash, Search, Sparkles, Tag, X } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import type { Book, BookCategory, BookStall, Language } from '../types';
 import { libraryApi } from '../services/libraryApi';
@@ -204,6 +204,7 @@ export function DigitalLibraryPage({ language }: { language: Language }) {
   const [discoveryMode, setDiscoveryMode] = useState<DiscoveryMode>('shelves');
   const [query, setQuery] = useState(() => new URLSearchParams(location.search).get('search') || '');
   const [category, setCategory] = useState('all');
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [stall, setStall] = useState('all');
   const [sort, setSort] = useState('rank');
   const [limit, setLimit] = useState(10);
@@ -681,8 +682,10 @@ export function DigitalLibraryPage({ language }: { language: Language }) {
           </div>
           <span className="library-results-meta">{fullList ? fullList.books.length : contextBooks.length} {language === 'vi' ? 'tựa sách' : 'books'}</span>
         </div>
-        <div className="library-toolbar">
+        <div className="library-toolbar library-toolbar-collapsible">
           <div className="library-control library-search-control"><label htmlFor="library-search">{language === 'vi' ? 'Tìm kiếm' : 'Search'}</label><div className="library-input-shell"><Search size={17} /><input id="library-search" value={query} onChange={event => setQuery(event.target.value)} placeholder={language === 'vi' ? 'Tìm tên sách, tác giả hoặc ISBN...' : 'Search title, author or ISBN...'} /></div></div>
+          <button type="button" className="library-filter-toggle" aria-expanded={filtersOpen} aria-controls="library-extra-filters" onClick={() => setFiltersOpen(open => !open)}><Funnel size={17} aria-hidden="true" /><span>{language === 'vi' ? 'Bộ lọc' : 'Filters'}</span></button>
+          {filtersOpen && <div id="library-extra-filters" className="library-extra-filters">
           <div className="library-control">
             <label htmlFor="library-category">{language === 'vi' ? 'Chủ đề' : 'Category'}</label>
             <select 
@@ -701,6 +704,7 @@ export function DigitalLibraryPage({ language }: { language: Language }) {
           </div>
           <div className="library-control"><label htmlFor="library-stall">{language === 'vi' ? 'Gian hàng' : 'Bookstall'}</label><select id="library-stall" value={stall} onChange={event => setStall(event.target.value)}><option value="all">{language === 'vi' ? 'Tất cả gian hàng' : 'All bookstalls'}</option>{stalls.map(item => <option key={item.id} value={item.id}>{item.name}{item.code ? ` — ${item.code}` : ''}</option>)}</select></div>
           <div className="library-control"><label htmlFor="library-sort">{language === 'vi' ? 'Sắp xếp' : 'Sort'}</label><select id="library-sort" value={sort} onChange={event => setSort(event.target.value)}><option value="rank">{language === 'vi' ? 'Bán chạy nhất' : 'Bestselling'}</option><option value="weekly">{language === 'vi' ? 'Hot tuần này' : 'Hot this week'}</option><option value="az">{language === 'vi' ? 'Tên A–Z' : 'Title A–Z'}</option><option value="updated">{language === 'vi' ? 'Mới cập nhật' : 'Recently updated'}</option></select></div>
+          </div>}
         </div>
         {query.trim() ? <section className="library-search-results" aria-live="polite">
           <header><div><span>{language === 'vi' ? 'KẾT QUẢ TÌM KIẾM CHO' : 'SEARCH RESULTS FOR'}</span><h2>“{query.trim()}”</h2><p>{searchResults.length} {language === 'vi' ? 'kết quả' : 'results'}</p></div><button type="button" onClick={clearSearch}><X size={16} />{language === 'vi' ? 'Xóa tìm kiếm' : 'Clear search'}</button></header>

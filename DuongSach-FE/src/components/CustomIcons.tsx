@@ -43,7 +43,7 @@ export const IconBookSpine: React.FC<IconProps> = ({ size = 22, color = 'current
 
 // 3. Dấu trang (Bookmark): Tiến trình & Điểm lưu
 export const IconBookmark: React.FC<IconProps> = ({ size = 22, color = 'currentColor', className = '', style }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className} style={style}>
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className} style={{ display: 'inline-block', verticalAlign: 'middle', ...style }}>
     <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
     <line x1="12" y1="7" x2="12" y2="11" />
   </svg>

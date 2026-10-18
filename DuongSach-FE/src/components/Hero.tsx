@@ -41,6 +41,7 @@ export const Hero: React.FC<HeroProps> = ({
       title: string;
       subtitle: string;
       code?: string;
+      imageUrl?: string;
     }> = [];
 
     // Tìm kiếm ki-ốt / gian hàng
@@ -54,6 +55,7 @@ export const Hero: React.FC<HeroProps> = ({
           title: language === 'vi' ? b.name : b.nameEn,
           subtitle: `${b.code} • ${language === 'vi' ? b.categoryLabelVi : b.categoryLabelEn}`,
           code: b.code,
+          imageUrl: b.image.url,
         });
       }
 
@@ -133,7 +135,7 @@ export const Hero: React.FC<HeroProps> = ({
           ) : (
             <>
               Welcome to <br />
-              <span className="serif-italic-accent">HCMC Book Street</span>
+              <span className="hero-street-name">HCMC Book Street</span>
             </>
           )}
         </h1>
@@ -170,23 +172,25 @@ export const Hero: React.FC<HeroProps> = ({
               aria-label="Tìm kiếm gian hàng và sách"
             />
 
-            {searchTerm && (
+            {
               <button 
                 type="button" 
                 className="hero-search-clear"
+                style={{ visibility: searchTerm ? 'visible' : 'hidden' }}
+                disabled={!searchTerm}
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   setSearchTerm('');
                   setIsDropdownOpen(false);
-                  if (onSearch) onSearch('');
+                  searchContainerRef.current?.querySelector<HTMLInputElement>('.hero-search-input')?.focus({ preventScroll: true });
                 }}
                 aria-label={language === 'vi' ? 'Xóa nội dung tìm kiếm' : 'Clear search'}
               >
                 <X size={16} />
               </button>
-            )}
+            }
 
             <button type="submit" className="hero-search-submit-btn" aria-label={language === 'vi' ? 'Tìm kiếm' : 'Search'}>
               <span className="hero-search-btn-text">{language === 'vi' ? 'Tìm kiếm' : 'Search'}</span>
@@ -229,7 +233,9 @@ export const Hero: React.FC<HeroProps> = ({
                     tabIndex={0}
                   >
                     <div className="dropdown-item-icon">
-                      {item.type === 'booth' ? <Store size={18} /> : <BookOpen size={18} />}
+                      {item.imageUrl ? (
+                        <img src={item.imageUrl} alt={item.title} onError={(event) => { event.currentTarget.src = '/duong_sach_logo.png'; event.currentTarget.onerror = null; }} />
+                      ) : item.type === 'booth' ? <Store size={18} /> : <BookOpen size={18} />}
                     </div>
                     <div className="dropdown-item-info">
                       <div className="dropdown-item-title">{item.title}</div>

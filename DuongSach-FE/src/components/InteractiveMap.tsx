@@ -76,7 +76,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   const initialPinchZoomRef = useRef<number>(1);
 
   const handleZoomIn = () => {
-    setZoomLevel(prev => Math.min(prev + 0.35, 2.5));
+    setZoomLevel(prev => Math.min(prev + 0.35, 3.5));
   };
 
   const handleZoomOut = () => {
@@ -123,7 +123,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
         e.touches[0].clientY - e.touches[1].clientY
       );
       const scaleFactor = dist / pinchStartDistanceRef.current;
-      const newZoom = Math.min(Math.max(initialPinchZoomRef.current * scaleFactor, 1), 2.5);
+      const newZoom = Math.min(Math.max(initialPinchZoomRef.current * scaleFactor, 1), 3.5);
       setZoomLevel(newZoom);
       if (newZoom === 1) setPanOffset({ x: 0, y: 0 });
     }
@@ -163,7 +163,11 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   React.useEffect(() => {
     if (highlightedBoothId) {
       const match = mapPoints.find(point => point.code === allBooths.find(booth => booth.id === highlightedBoothId)?.code);
-      if (match) setSelectedPointId(match.id);
+      if (match) {
+        setSelectedPointId(match.id);
+        setZoomLevel(1);
+        setPanOffset({ x: 0, y: 0 });
+      }
     }
   }, [highlightedBoothId, mapPoints, allBooths]);
 
@@ -194,7 +198,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
             {language === 'vi' ? (
               <>Bản đồ <span className="serif-italic-accent">Đường Sách</span> Nguyễn Văn Bình</>
             ) : (
-              'Nguyen Van Binh Book Street Map'
+              <>Nguyen Van Binh <span className="serif-italic-accent">Book Street</span> Map</>
             )}
           </h2>
           <p className="figma-section-subtitle">
@@ -233,7 +237,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
                 <button
                   type="button"
                   className={`btn-zoom-indicator ${zoomLevel > 1 ? 'is-active-zoom' : ''}`}
-                  onClick={zoomLevel > 1 ? handleResetZoom : handleZoomIn}
+                  onClick={handleResetZoom}
                   title={zoomLevel > 1 ? (language === 'vi' ? 'Khôi phục 100%' : 'Reset 100%') : (language === 'vi' ? 'Phóng to bản đồ' : 'Zoom In')}
                   aria-label="Tỷ lệ thu phóng"
                 >
@@ -242,6 +246,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
               </div>
             </div>
 
+            <p className="map-touch-hint">{language === 'vi' ? 'Vuốt ngang để xem bản đồ · Chạm vào số để chọn địa điểm' : 'Swipe to explore · Tap a number to select a location'}</p>
             <div
               className={`blueprint-scroll-viewport ${zoomLevel > 1 ? 'is-zoomed' : ''} ${isDragging ? 'is-dragging' : ''}`}
               ref={mapViewportRef}
@@ -262,7 +267,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
                   transformOrigin: 'center center',
                   transition: isDragging ? 'none' : 'transform 240ms cubic-bezier(0.16, 1, 0.3, 1)',
                   cursor: zoomLevel > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default',
-                  touchAction: zoomLevel > 1 ? 'none' : 'pan-y'
+                  touchAction: zoomLevel > 1 ? 'none' : 'pan-x pan-y'
                 }}
               >
                 <img
@@ -293,11 +298,8 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
                       aria-label={`${language === 'vi' ? 'Xem thông tin' : 'View details'}: ${language === 'vi' ? point.name : (point.nameEn || point.name)}`}
                       aria-pressed={isSelected}
                       aria-controls="map-location-detail"
-                      onPointerDown={(event) => {
-                        if (event.button === 0) setSelectedPointId(point.id);
-                      }}
-                      onClick={(event) => {
-                        if (event.detail === 0) setSelectedPointId(point.id);
+                      onClick={() => {
+                        if (!isDragging) setSelectedPointId(point.id);
                       }}
                     >
                       <span className="marker-index">{index + 1}</span>
@@ -310,29 +312,6 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
 
             {/* Standard unified marker styling for landing page visitors */}
 
-            {/* Mobile Quick Location Selector Chips */}
-            <div className="mobile-map-quick-selector" aria-label="Chọn nhanh địa điểm">
-              <span className="quick-selector-label">
-                {language === 'vi' ? 'Chọn nhanh địa điểm:' : 'Quick Select:'}
-              </span>
-              <div className="quick-selector-chips">
-                {mapPoints.map((point, index) => {
-                  const isSelected = selectedPoint.id === point.id;
-                  return (
-                    <button
-                      key={point.id}
-                      type="button"
-                      className={`quick-spot-chip ${isSelected ? 'active' : ''}`}
-                      onClick={() => setSelectedPointId(point.id)}
-                      aria-pressed={isSelected}
-                    >
-                      <span className="spot-chip-index">{index + 1}</span>
-                      <span>{point.code}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
           </div>
 
           {/* Right Column: Full Info Card for Selected Unit */}

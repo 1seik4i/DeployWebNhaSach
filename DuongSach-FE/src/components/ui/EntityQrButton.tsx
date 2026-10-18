@@ -14,21 +14,37 @@ const ENTITY_CONFIG: Record<QrEntity, { label: string; icon: React.ComponentType
   books: { label: 'Ấn phẩm & Sách số', icon: BookOpen },
 };
 
-export function EntityQrButton({ kind, id, name, admin = false }: { kind: QrEntity; id: string; name: string; admin?: boolean }) {
+export function EntityQrButton({
+  kind,
+  id,
+  name,
+  admin = false,
+  className,
+  children,
+  title,
+}: {
+  kind: QrEntity;
+  id: string;
+  name: string;
+  admin?: boolean;
+  className?: string;
+  children?: React.ReactNode;
+  title?: string;
+}) {
   const [open, setOpen] = useState(false);
   return (
     <>
       <button
         type="button"
-        className="entity-qr-button"
-        title={`Mã QR: ${name}`}
-        aria-label={`Mã QR: ${name}`}
+        className={className ? `entity-qr-button ${className}` : 'entity-qr-button'}
+        title={title || `Mã QR: ${name}`}
+        aria-label={title || `Mã QR: ${name}`}
         onClick={(event) => {
           event.stopPropagation();
           setOpen(true);
         }}
       >
-        <QrCode size={16} />
+        {children || <QrCode size={16} />}
       </button>
       {open && createPortal(<QrModal kind={kind} id={id} name={name} admin={admin} onClose={() => setOpen(false)} />, document.body)}
     </>

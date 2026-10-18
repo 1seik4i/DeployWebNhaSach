@@ -217,7 +217,7 @@ export const BoothsSection: React.FC<BoothsSectionProps> = ({
             {language === 'vi' ? (
               <>Các gian hàng tại <span className="serif-italic-accent">Đường Sách</span></>
             ) : (
-              'Explore Stalls & Pavilions'
+              <>Bookstalls & Pavilions at <span className="serif-italic-accent">Book Street</span></>
             )}
           </h2>
           <p className="figma-section-subtitle">
@@ -345,16 +345,6 @@ export const BoothsSection: React.FC<BoothsSectionProps> = ({
                     className="kiosk-photo-img"
                   />
                   <div className="kiosk-photo-overlay"></div>
-                  <div className="kiosk-banner-tags">
-                    <span className="kiosk-cat-label">
-                      {language === 'vi' ? booth.categoryLabelVi : booth.categoryLabelEn}
-                    </span>
-                    {booth.openHours && (
-                      <span className="kiosk-hours-badge">
-                        ⏰ {booth.openHours}
-                      </span>
-                    )}
-                  </div>
                 </div>
 
                 <div className="kiosk-card-body">
@@ -367,20 +357,23 @@ export const BoothsSection: React.FC<BoothsSectionProps> = ({
 
                   <div className="kiosk-highlights">
                     {booth.topSellingBook && (
-                      <div className="kiosk-bestseller-stat-box" title={booth.topSellingBook.title}>
+                      <div className="kiosk-bestseller-stat-box" title={`${language === 'vi' ? 'Bán chạy nhất' : 'Top Seller'}: ${booth.topSellingBook.title}`}>
                         <div className="kiosk-bestseller-left">
-                          <span className="kiosk-bestseller-badge">🔥 {language === 'vi' ? 'Bán chạy nhất' : 'Top Seller'}</span>
+                          <span
+                            className="kiosk-bestseller-badge"
+                            title={language === 'vi' ? 'Bán chạy nhất' : 'Top Seller'}
+                            aria-label={language === 'vi' ? 'Bán chạy nhất' : 'Top Seller'}
+                          >
+                            🔥
+                          </span>
                           <span className="kiosk-bestseller-name">{booth.topSellingBook.title}</span>
                         </div>
-                        {typeof booth.topSellingBook.soldQuantity === 'number' && booth.topSellingBook.soldQuantity > 0 && (
-                          <span className="kiosk-bestseller-qty">{booth.topSellingBook.soldQuantity.toLocaleString('vi-VN')} {language === 'vi' ? 'bản' : 'sold'}</span>
-                        )}
                       </div>
                     )}
 
                     <span className="kiosk-hl-label">
-                      <IconBookmark size={13} style={{ verticalAlign: 'middle', marginRight: '4px' }} />
-                      {language === 'vi' ? 'Đầu sách đặc trưng:' : 'Notable reads:'}
+                      <IconBookmark size={13} />
+                      <span>{language === 'vi' ? 'Đầu sách đặc trưng:' : 'Notable reads:'}</span>
                     </span>
                     <div className="kiosk-books-row">
                       {booth.featuredBooks.slice(0, 2).map((bk, i) => (
@@ -430,7 +423,8 @@ export const BoothsSection: React.FC<BoothsSectionProps> = ({
             className="btn-section-see-more-borderless"
             aria-label="Xem thêm toàn bộ gian hàng tại Đường Sách"
           >
-            <span>{language === 'vi' ? 'Xem thêm toàn bộ các gian hàng tại Đường Sách' : 'View all bookstalls & pavilions at Book Street'}</span>
+            <span className="see-more-text-full">{language === 'vi' ? 'Xem thêm toàn bộ các gian hàng tại Đường Sách' : 'View all bookstalls & pavilions at Book Street'}</span>
+            <span className="see-more-text-mobile">{language === 'vi' ? 'Xem toàn bộ gian hàng' : 'View all bookstalls'}</span>
             <ChevronRight size={17} className="see-more-arrow-icon" />
           </Link>
         </div>
@@ -489,44 +483,47 @@ export const BoothsSection: React.FC<BoothsSectionProps> = ({
             >
               <X size={20} />
             </button>
-            <div className="modal-booth-header-img">
-              <img src={activeModalBooth.image.url || '/duong_sach_logo.png'} onError={event => { event.currentTarget.onerror = null; event.currentTarget.src = '/duong_sach_logo.png'; }} alt={activeModalBooth.image.alt} className="modal-top-img" />
-              <div className="modal-img-caption">
-                <span className="kiosk-number-badge">{activeModalBooth.code}</span>
+            <div className="booth-detail-scroll-body">
+              <div className="modal-booth-header-img">
+                <img src={activeModalBooth.image.url || '/duong_sach_logo.png'} onError={event => { event.currentTarget.onerror = null; event.currentTarget.src = '/duong_sach_logo.png'; }} alt={activeModalBooth.image.alt} className="modal-top-img" />
+                <div className="modal-img-caption">
+                  <span className="kiosk-number-badge">{activeModalBooth.code}</span>
+                </div>
+              </div>
+              <h3 className="modal-heading-title" id="booth-detail-modal-title">
+                {language === 'vi' ? activeModalBooth.name : activeModalBooth.nameEn}
+              </h3>
+              <p className="modal-body-desc">
+                {language === 'vi' ? activeModalBooth.description : activeModalBooth.descriptionEn}
+              </p>
+              <div className="modal-meta-box">
+                <p><strong>{language === 'vi' ? 'Giờ mở cửa:' : 'Hours:'}</strong> {activeModalBooth.openHours || '08:00 - 22:00'}</p>
+                {activeModalBooth.topSellingBook && (
+                  <p>
+                    <strong>{language === 'vi' ? 'Sách bán chạy nhất:' : 'Best-seller:'}</strong>{' '}
+                    <span style={{ color: '#D97706', fontWeight: 700 }}>{activeModalBooth.topSellingBook.title}</span>
+                    {typeof activeModalBooth.topSellingBook.soldQuantity === 'number' && activeModalBooth.topSellingBook.soldQuantity > 0
+                      ? ` (${activeModalBooth.topSellingBook.soldQuantity.toLocaleString('vi-VN')} bản đã bán)`
+                      : ''}
+                  </p>
+                )}
+                <p><strong>{language === 'vi' ? 'Sách tuyển chọn:' : 'Featured:'}</strong> {activeModalBooth.featuredBooks.join(', ')}</p>
               </div>
             </div>
-            <h3 className="modal-heading-title" id="booth-detail-modal-title">
-              {language === 'vi' ? activeModalBooth.name : activeModalBooth.nameEn}
-            </h3>
-            <p className="modal-body-desc">
-              {language === 'vi' ? activeModalBooth.description : activeModalBooth.descriptionEn}
-            </p>
-            <EntityQrButton kind="booths" id={activeModalBooth.id} name={activeModalBooth.name} />
-            <div className="modal-meta-box">
-              <p><strong>{language === 'vi' ? 'Giờ mở cửa:' : 'Hours:'}</strong> {activeModalBooth.openHours || '08:00 - 22:00'}</p>
-              {activeModalBooth.topSellingBook && (
-                <p>
-                  <strong>{language === 'vi' ? 'Sách bán chạy nhất:' : 'Best-seller:'}</strong>{' '}
-                  <span style={{ color: '#D97706', fontWeight: 700 }}>{activeModalBooth.topSellingBook.title}</span>
-                  {typeof activeModalBooth.topSellingBook.soldQuantity === 'number' && activeModalBooth.topSellingBook.soldQuantity > 0
-                    ? ` (${activeModalBooth.topSellingBook.soldQuantity.toLocaleString('vi-VN')} bản đã bán)`
-                    : ''}
-                </p>
-              )}
-              <p><strong>{language === 'vi' ? 'Sách tuyển chọn:' : 'Featured:'}</strong> {activeModalBooth.featuredBooks.join(', ')}</p>
+            <div className="modal-booth-actions">
+              <button
+                type="button"
+                className="btn-figma-primary"
+                onClick={() => {
+                  const b = activeModalBooth;
+                  setActiveModalBooth(null);
+                  onSelectBoothOnMap(b.id);
+                }}
+              >
+                <MapPin size={16} />
+                <span>{language === 'vi' ? 'Định vị trên bản đồ tương tác' : 'Locate on Map'}</span>
+              </button>
             </div>
-            <button
-              type="button"
-              className="btn-figma-primary"
-              onClick={() => {
-                const b = activeModalBooth;
-                setActiveModalBooth(null);
-                onSelectBoothOnMap(b.id);
-              }}
-            >
-              <MapPin size={16} />
-              <span>{language === 'vi' ? 'Định vị trên bản đồ tương tác' : 'Locate on Map'}</span>
-            </button>
           </div>
         </div>,
         document.body,
@@ -534,4 +531,3 @@ export const BoothsSection: React.FC<BoothsSectionProps> = ({
     </section>
   );
 };
-import { EntityQrButton } from './ui/EntityQrButton';
