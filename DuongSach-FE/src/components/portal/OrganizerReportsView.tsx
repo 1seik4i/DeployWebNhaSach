@@ -16,6 +16,7 @@ import {
 import { Language } from '../../types';
 import { OrganizerEvent } from '../../types/organizer';
 import { organizerApi } from '../../services/organizerApi';
+import './OrganizerPortal.css';
 
 interface OrganizerReportsViewProps {
   language: Language;
@@ -119,7 +120,7 @@ export const OrganizerReportsView: React.FC<OrganizerReportsViewProps> = ({
   const totalRatings = report?.ratingCount || 1;
 
   return (
-    <div className="organizer-content" style={{ padding: '1.75rem 2rem' }}>
+    <div className="organizer-content org-reports-page">
       {/* Header bar */}
       <div style={{ 
         display: 'flex', 
@@ -141,7 +142,7 @@ export const OrganizerReportsView: React.FC<OrganizerReportsViewProps> = ({
         </div>
 
         {/* Controls: Chọn sự kiện & Xuất CSV */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+        <div className="org-reports-controls">
           <div style={{ position: 'relative' }}>
             <select 
               value={selectedEventId} 
@@ -227,132 +228,95 @@ export const OrganizerReportsView: React.FC<OrganizerReportsViewProps> = ({
           {/* ========================================================= */}
           {/* TOP 4 KEY METRIC CARDS */}
           {/* ========================================================= */}
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', 
-            gap: '1.25rem', 
-            marginBottom: '1.75rem' 
-          }}>
+          <div className="org-reports-kpi-grid">
             {/* Card 1: Tổng lượt đăng ký */}
-            <div 
-              style={{
-                background: '#FFFFFF',
-                borderRadius: 14,
-                border: '1px solid #E2E8F0',
-                padding: '1.35rem 1.4rem',
-                boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
-                position: 'relative',
-                overflow: 'hidden'
-              }}
-            >
+            <div className="org-reports-card org-reports-kpi-card">
               <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3.5, background: 'linear-gradient(90deg, #182924 0%, #2D4A3E 100%)' }} />
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.65rem' }}>
                 <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#64748B' }}>
                   {vi ? 'Tổng lượt đăng ký' : 'Total Registrations'}
                 </span>
-                <div style={{ width: 34, height: 34, borderRadius: 9, background: 'rgba(24, 41, 36, 0.08)', display: 'grid', placeItems: 'center', color: '#182924' }}>
+                <div style={{ width: 34, height: 34, borderRadius: 9, background: 'rgba(24, 41, 36, 0.08)', display: 'grid', placeItems: 'center', color: '#182924', flexShrink: 0 }}>
                   <Users size={18} />
                 </div>
               </div>
-              <div style={{ fontSize: '2.1rem', fontWeight: 700, color: '#111827', fontFamily: 'var(--font-serif)', lineHeight: 1.1 }}>
+              <div className="org-reports-kpi-num" style={{ fontSize: '2.1rem', fontWeight: 700, color: '#111827', fontFamily: 'var(--font-serif)', lineHeight: 1.1 }}>
                 {report.totalParticipants.toLocaleString()}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: '0.65rem', fontSize: '0.78rem', color: '#16A34A', fontWeight: 600 }}>
-                <CheckCircle2 size={13} />
-                <span>{vi ? `${report.attended} đã tham gia trực tiếp` : `${report.attended} checked in`}</span>
+                <CheckCircle2 size={13} style={{ flexShrink: 0 }} />
+                <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {vi ? `${report.attended} đã tham gia` : `${report.attended} checked in`}
+                </span>
               </div>
             </div>
 
             {/* Card 2: Gian hàng */}
-            <div 
-              style={{
-                background: '#FFFFFF',
-                borderRadius: 14,
-                border: '1px solid #E2E8F0',
-                padding: '1.35rem 1.4rem',
-                boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
-                position: 'relative',
-                overflow: 'hidden'
-              }}
-            >
+            <div className="org-reports-card org-reports-kpi-card">
               <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3.5, background: '#E9BC63' }} />
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.65rem' }}>
                 <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#64748B' }}>
                   {vi ? 'Gian hàng' : 'Active Bookstalls'}
                 </span>
-                <div style={{ width: 34, height: 34, borderRadius: 9, background: 'rgba(233, 188, 99, 0.15)', display: 'grid', placeItems: 'center', color: '#B48A3C' }}>
+                <div style={{ width: 34, height: 34, borderRadius: 9, background: 'rgba(233, 188, 99, 0.15)', display: 'grid', placeItems: 'center', color: '#B48A3C', flexShrink: 0 }}>
                   <Store size={18} />
                 </div>
               </div>
-              <div style={{ fontSize: '2.1rem', fontWeight: 700, color: '#111827', fontFamily: 'var(--font-serif)', lineHeight: 1.1 }}>
+              <div className="org-reports-kpi-num" style={{ fontSize: '2.1rem', fontWeight: 700, color: '#111827', fontFamily: 'var(--font-serif)', lineHeight: 1.1 }}>
                 {report.totalBooths}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: '0.65rem', fontSize: '0.78rem', color: '#64748B' }}>
-                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#B48A3C' }} />
-                <span>{vi ? 'Phân bổ gian hàng đang mở' : 'Operational units'}</span>
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#B48A3C', flexShrink: 0 }} />
+                <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {vi ? 'Gian hàng đang mở' : 'Operational units'}
+                </span>
               </div>
             </div>
 
             {/* Card 3: Hoạt động */}
-            <div 
-              style={{
-                background: '#FFFFFF',
-                borderRadius: 14,
-                border: '1px solid #E2E8F0',
-                padding: '1.35rem 1.4rem',
-                boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
-                position: 'relative',
-                overflow: 'hidden'
-              }}
-            >
+            <div className="org-reports-card org-reports-kpi-card">
               <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3.5, background: '#0284C7' }} />
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.65rem' }}>
                 <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#64748B' }}>
                   {vi ? 'Hoạt động sự kiện' : 'Activities & Workshops'}
                 </span>
-                <div style={{ width: 34, height: 34, borderRadius: 9, background: 'rgba(2, 132, 199, 0.12)', display: 'grid', placeItems: 'center', color: '#0284C7' }}>
+                <div style={{ width: 34, height: 34, borderRadius: 9, background: 'rgba(2, 132, 199, 0.12)', display: 'grid', placeItems: 'center', color: '#0284C7', flexShrink: 0 }}>
                   <CalendarCheck size={18} />
                 </div>
               </div>
-              <div style={{ fontSize: '2.1rem', fontWeight: 700, color: '#111827', fontFamily: 'var(--font-serif)', lineHeight: 1.1 }}>
+              <div className="org-reports-kpi-num" style={{ fontSize: '2.1rem', fontWeight: 700, color: '#111827', fontFamily: 'var(--font-serif)', lineHeight: 1.1 }}>
                 {report.totalActivities}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: '0.65rem', fontSize: '0.78rem', color: '#0284C7', fontWeight: 600 }}>
-                <TrendingUp size={13} />
-                <span>{vi ? `${Number(report.attendanceRate || 0).toFixed(2)}% tỷ lệ tham dự` : `${Number(report.attendanceRate || 0).toFixed(2)}% attendance rate`}</span>
+                <TrendingUp size={13} style={{ flexShrink: 0 }} />
+                <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {vi ? `${Number(report.attendanceRate || 0).toFixed(1)}% tham dự` : `${Number(report.attendanceRate || 0).toFixed(1)}% rate`}
+                </span>
               </div>
             </div>
 
             {/* Card 4: Đánh giá trung bình */}
-            <div 
-              style={{
-                background: '#FFFFFF',
-                borderRadius: 14,
-                border: '1px solid #E2E8F0',
-                padding: '1.35rem 1.4rem',
-                boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
-                position: 'relative',
-                overflow: 'hidden'
-              }}
-            >
+            <div className="org-reports-card org-reports-kpi-card">
               <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3.5, background: '#F59E0B' }} />
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.65rem' }}>
                 <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#64748B' }}>
-                  {vi ? 'Đánh giá trung bình' : 'Average Rating'}
+                  {vi ? 'Đánh giá TB' : 'Avg Rating'}
                 </span>
-                <div style={{ width: 34, height: 34, borderRadius: 9, background: 'rgba(245, 158, 11, 0.14)', display: 'grid', placeItems: 'center', color: '#D97706' }}>
+                <div style={{ width: 34, height: 34, borderRadius: 9, background: 'rgba(245, 158, 11, 0.14)', display: 'grid', placeItems: 'center', color: '#D97706', flexShrink: 0 }}>
                   <Star size={18} fill="#D97706" />
                 </div>
               </div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                <span style={{ fontSize: '2.1rem', fontWeight: 700, color: '#111827', fontFamily: 'var(--font-serif)', lineHeight: 1.1 }}>
+                <span className="org-reports-kpi-num" style={{ fontSize: '2.1rem', fontWeight: 700, color: '#111827', fontFamily: 'var(--font-serif)', lineHeight: 1.1 }}>
                   {report.averageRating ? Number(report.averageRating).toFixed(1) : '—'}
                 </span>
                 <span style={{ fontSize: '0.9rem', color: '#94A3B8', fontWeight: 600 }}>/ 5.0</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: '0.65rem', fontSize: '0.78rem', color: '#D97706', fontWeight: 600 }}>
-                <Star size={12} fill="#D97706" />
-                <span>{vi ? `${report.ratingCount.toLocaleString()} lượt đánh giá` : `${report.ratingCount.toLocaleString()} reviews`}</span>
+                <Star size={12} fill="#D97706" style={{ flexShrink: 0 }} />
+                <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {vi ? `${report.ratingCount.toLocaleString()} đánh giá` : `${report.ratingCount.toLocaleString()} reviews`}
+                </span>
               </div>
             </div>
           </div>
@@ -360,28 +324,14 @@ export const OrganizerReportsView: React.FC<OrganizerReportsViewProps> = ({
           {/* ========================================================= */}
           {/* DETAILED 3 COLUMNS ANALYTICS SECTIONS */}
           {/* ========================================================= */}
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', 
-            gap: '1.25rem' 
-          }}>
+          <div className="org-reports-charts-grid">
             {/* 1. Trạng thái tham gia */}
-            <div 
-              style={{ 
-                background: '#FFFFFF', 
-                borderRadius: 14, 
-                border: '1px solid #E2E8F0', 
-                padding: '1.35rem 1.4rem',
-                boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
-                display: 'flex',
-                flexDirection: 'column'
-              }}
-            >
+            <div className="org-reports-card org-reports-chart-card">
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '1.25rem' }}>
-                <div style={{ width: 28, height: 28, borderRadius: 7, background: 'rgba(24, 41, 36, 0.08)', display: 'grid', placeItems: 'center', color: '#182924' }}>
+                <div style={{ width: 28, height: 28, borderRadius: 7, background: 'rgba(24, 41, 36, 0.08)', display: 'grid', placeItems: 'center', color: '#182924', flexShrink: 0 }}>
                   <PieChart size={15} />
                 </div>
-                <h2 style={{ fontSize: '0.98rem', fontWeight: 700, color: '#111827', margin: 0 }}>
+                <h2 style={{ fontSize: '0.98rem', fontWeight: 700, color: '#111827', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {vi ? 'Trạng thái tham gia' : 'Attendance Breakdown'}
                 </h2>
               </div>
@@ -393,7 +343,8 @@ export const OrganizerReportsView: React.FC<OrganizerReportsViewProps> = ({
                 background: '#F1F5F9', 
                 overflow: 'hidden', 
                 display: 'flex', 
-                marginBottom: '1.25rem' 
+                marginBottom: '1.25rem',
+                width: '100%'
               }}>
                 <div style={{ width: `${attendedRate}%`, background: '#16A34A', transition: 'width 0.5s ease' }} title={`Đã tham gia: ${attendedRate}%`} />
                 <div style={{ width: `${pendingRate}%`, background: '#F59E0B', transition: 'width 0.5s ease' }} title={`Chưa tham gia: ${pendingRate}%`} />
@@ -401,7 +352,7 @@ export const OrganizerReportsView: React.FC<OrganizerReportsViewProps> = ({
               </div>
 
               {/* Status List Cards */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', flex: 1, justifyContent: 'center' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', flex: 1, justifyContent: 'center', width: '100%', minWidth: 0 }}>
                 {/* Item 1: Đã tham gia */}
                 <div style={{ 
                   display: 'flex', 
@@ -483,39 +434,29 @@ export const OrganizerReportsView: React.FC<OrganizerReportsViewProps> = ({
             </div>
 
             {/* 2. Lượt đăng ký theo hoạt động */}
-            <div 
-              style={{ 
-                background: '#FFFFFF', 
-                borderRadius: 14, 
-                border: '1px solid #E2E8F0', 
-                padding: '1.35rem 1.4rem',
-                boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
-                display: 'flex',
-                flexDirection: 'column'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{ width: 28, height: 28, borderRadius: 7, background: 'rgba(2, 132, 199, 0.1)', display: 'grid', placeItems: 'center', color: '#0284C7' }}>
+            <div className="org-reports-card org-reports-chart-card">
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', gap: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: 7, background: 'rgba(2, 132, 199, 0.1)', display: 'grid', placeItems: 'center', color: '#0284C7', flexShrink: 0 }}>
                     <BarChart3 size={15} />
                   </div>
-                  <h2 style={{ fontSize: '0.98rem', fontWeight: 700, color: '#111827', margin: 0 }}>
+                  <h2 style={{ fontSize: '0.98rem', fontWeight: 700, color: '#111827', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {vi ? 'Đăng ký theo hoạt động' : 'Registrations by Activity'}
                   </h2>
                 </div>
-                <span style={{ fontSize: '0.74rem', color: '#64748B', fontWeight: 600 }}>
+                <span style={{ fontSize: '0.74rem', color: '#64748B', fontWeight: 600, flexShrink: 0 }}>
                   {report.activityStats.length} {vi ? 'hoạt động' : 'activities'}
                 </span>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem', flex: 1 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem', flex: 1, width: '100%', minWidth: 0 }}>
                 {report.activityStats.map((item, idx) => {
                   const percent = Math.round((item.count / maxActivityCount) * 100);
                   const isTop = idx === 0;
                   return (
-                    <div key={item.name} style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0, flex: 1 }}>
+                    <div key={item.name} style={{ display: 'flex', flexDirection: 'column', gap: 5, width: '100%', minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, width: '100%', minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0, flex: 1, overflow: 'hidden' }}>
                           <span style={{ 
                             width: 18, 
                             height: 18, 
@@ -541,13 +482,13 @@ export const OrganizerReportsView: React.FC<OrganizerReportsViewProps> = ({
                             {item.name}
                           </span>
                         </div>
-                        <strong style={{ fontSize: '0.86rem', color: '#182924', fontWeight: 700, flexShrink: 0 }}>
+                        <strong style={{ fontSize: '0.86rem', color: '#182924', fontWeight: 700, flexShrink: 0, marginLeft: 6 }}>
                           {item.count.toLocaleString()}
                         </strong>
                       </div>
 
                       {/* Visual Bar */}
-                      <div style={{ height: 6, borderRadius: 99, background: '#F1F5F9', overflow: 'hidden' }}>
+                      <div style={{ height: 6, borderRadius: 99, background: '#F1F5F9', overflow: 'hidden', width: '100%' }}>
                         <div 
                           style={{ 
                             width: `${percent}%`, 
@@ -573,40 +514,30 @@ export const OrganizerReportsView: React.FC<OrganizerReportsViewProps> = ({
             </div>
 
             {/* 3. Phân bố đánh giá */}
-            <div 
-              style={{ 
-                background: '#FFFFFF', 
-                borderRadius: 14, 
-                border: '1px solid #E2E8F0', 
-                padding: '1.35rem 1.4rem',
-                boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
-                display: 'flex',
-                flexDirection: 'column'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{ width: 28, height: 28, borderRadius: 7, background: 'rgba(245, 158, 11, 0.12)', display: 'grid', placeItems: 'center', color: '#D97706' }}>
+            <div className="org-reports-card org-reports-chart-card">
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', gap: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: 7, background: 'rgba(245, 158, 11, 0.12)', display: 'grid', placeItems: 'center', color: '#D97706', flexShrink: 0 }}>
                     <Star size={15} fill="#D97706" />
                   </div>
-                  <h2 style={{ fontSize: '0.98rem', fontWeight: 700, color: '#111827', margin: 0 }}>
+                  <h2 style={{ fontSize: '0.98rem', fontWeight: 700, color: '#111827', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {vi ? 'Phân bố đánh giá' : 'Rating Distribution'}
                   </h2>
                 </div>
-                <span style={{ fontSize: '0.74rem', color: '#64748B', fontWeight: 600 }}>
+                <span style={{ fontSize: '0.74rem', color: '#64748B', fontWeight: 600, flexShrink: 0 }}>
                   {report.ratingCount} {vi ? 'đánh giá' : 'reviews'}
                 </span>
               </div>
 
               {/* Star Rating Bars */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', flex: 1, justifyContent: 'center' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', flex: 1, justifyContent: 'center', width: '100%', minWidth: 0 }}>
                 {report.ratingDistribution.map(item => {
                   const percent = Math.round((item.count / totalRatings) * 100);
                   const isFive = item.stars === 5;
                   return (
-                    <div key={item.stars} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div key={item.stars} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', minWidth: 0 }}>
                       {/* Star label */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, width: 48, flexShrink: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, width: 42, flexShrink: 0 }}>
                         <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155' }}>
                           {item.stars}
                         </span>
@@ -614,7 +545,7 @@ export const OrganizerReportsView: React.FC<OrganizerReportsViewProps> = ({
                       </div>
 
                       {/* Bar */}
-                      <div style={{ flex: 1, height: 8, borderRadius: 99, background: '#F1F5F9', overflow: 'hidden' }}>
+                      <div style={{ flex: 1, minWidth: 0, height: 8, borderRadius: 99, background: '#F1F5F9', overflow: 'hidden' }}>
                         <div 
                           style={{ 
                             width: `${percent}%`, 
@@ -627,11 +558,11 @@ export const OrganizerReportsView: React.FC<OrganizerReportsViewProps> = ({
                       </div>
 
                       {/* Count & Percent */}
-                      <div style={{ width: 62, textAlign: 'right', flexShrink: 0 }}>
+                      <div style={{ minWidth: 54, textAlign: 'right', flexShrink: 0, whiteSpace: 'nowrap' }}>
                         <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1E293B' }}>
                           {item.count}
                         </span>
-                        <span style={{ fontSize: '0.7rem', color: '#94A3B8', marginLeft: 4 }}>
+                        <span style={{ fontSize: '0.7rem', color: '#94A3B8', marginLeft: 3 }}>
                           ({percent}%)
                         </span>
                       </div>
@@ -642,7 +573,7 @@ export const OrganizerReportsView: React.FC<OrganizerReportsViewProps> = ({
             </div>
           </div>
 
-          <section style={{ marginTop: '1.25rem', background: '#FFFFFF', borderRadius: 14, border: '1px solid #E2E8F0', padding: '1.35rem 1.4rem', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
+          <section className="org-reports-card" style={{ marginTop: '1.25rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: '1rem' }}>
               <h2 style={{ fontSize: '1rem', margin: 0, color: '#111827' }}>{vi ? 'Ý kiến đánh giá của người dùng' : 'User review comments'}</h2>
               <span style={{ fontSize: '0.76rem', color: '#64748B', fontWeight: 700 }}>{report.ratingCount} {vi ? 'đánh giá' : 'reviews'}</span>

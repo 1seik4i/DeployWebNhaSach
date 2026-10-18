@@ -6,6 +6,7 @@ import { config } from '../../config/env.js';
 import { ApiError } from '../../utils/ApiError.js';
 import { securityPolicy } from './security-policy.js';
 import { transaction } from '../../utils/contract.js';
+import { MailService } from '../../services/mail.service.js';
 const attempts = new Map();
 
 export class AuthService {
@@ -155,5 +156,137 @@ export class AuthService {
       totalPoints: user.totalPoints,
       emailNotifications: user.emailNotifications,
     };
+  }
+
+  // Khôi phục mật khẩu - Gửi mã qua email
+  static async forgotPassword(rawEmail) {
+    const email = (rawEmail || '').trim().toLowerCase();
+    const user = await prisma.user.findFirst({
+      where: { email, isDeleted: false },
+    });
+
+    if (!user) {
+      throw ApiError.notFound('Email này chưa được đăng ký.');
+    }
+
+    if (user.status === 'locked') {
+      throw ApiError.forbidden(`Tài khoản đã bị khóa. Lý do: ${user.lockReason || 'Vui lòng liên hệ Ban Quản Lý'}`);
+    }
+
+    // Tạo token ngẫu nhiên an toàn 32-byte hex (64 ký tự)
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+    const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // Hiệu lực 30 phút
+
+    // Vô hiệu hóa các mã token cũ chưa sử dụng
+    await prisma.passwordReset.updateMany({
+      where: { userId: user.id, usedAt: null },
+      data: { usedAt: new Date() },
+    });
+
+    // Lưu token mới vào bảng password_resets
+    await prisma.passwordReset.create({
+      data: {
+        userId: user.id,
+        tokenHash,
+        expiresAt,
+      },
+    });
+
+    // Tạo đường dẫn đặt lại mật khẩu và gửi email
+    const resetUrl = `${config.publicSiteUrl}/reset-password?token=${rawToken}`;
+    await MailService.sendPasswordResetEmail({
+      to: user.email,
+      name: user.fullName || user.email,
+      resetUrl,
+      rawToken,
+    });
+
+    return {
+      message: 'Hướng dẫn khôi phục mật khẩu đã được gửi qua email. Vui lòng kiểm tra hộp thư (bao gồm cả thư mục Spam/Rác).',
+    };
+  }
+
+  // Xác thực token đặt lại mật khẩu hợp lệ trước khi hiển thị form
+  static async verifyResetToken(rawToken) {
+    if (!rawToken) throw ApiError.badRequest('Thiếu mã token đặt lại mật khẩu');
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+    const record = await prisma.passwordReset.findFirst({
+      where: {
+        tokenHash,
+        usedAt: null,
+        expiresAt: { gt: new Date() },
+      },
+      include: {
+        user: { select: { id: true, email: true, fullName: true, status: true, isDeleted: true } },
+      },
+    });
+
+    if (!record || !record.user || record.user.isDeleted) {
+      throw ApiError.badRequest('Liên kết khôi phục mật khẩu không hợp lệ hoặc đã hết hạn. Vui lòng gửi lại yêu cầu mới.');
+    }
+
+    return {
+      valid: true,
+      email: record.user.email,
+      fullName: record.user.fullName,
+    };
+  }
+
+  // Đặt lại mật khẩu mới
+  static async resetPassword({ token: rawToken, newPassword }) {
+    if (!rawToken) throw ApiError.badRequest('Mã token không hợp lệ');
+    if (!newPassword || newPassword.length < 6) {
+      throw ApiError.badRequest('Mật khẩu mới phải có ít nhất 6 ký tự');
+    }
+
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+
+    return transaction(async (tx) => {
+      const record = await tx.passwordReset.findFirst({
+        where: {
+          tokenHash,
+          usedAt: null,
+          expiresAt: { gt: new Date() },
+        },
+        include: { user: true },
+      });
+
+      if (!record || !record.user || record.user.isDeleted) {
+        throw ApiError.badRequest('Liên kết khôi phục mật khẩu không hợp lệ hoặc đã hết hạn.');
+      }
+
+      if (record.user.status === 'locked') {
+        throw ApiError.forbidden(`Tài khoản đã bị khóa. Lý do: ${record.user.lockReason || 'Liên hệ BQL'}`);
+      }
+
+      const passwordHash = await bcrypt.hash(newPassword, 10);
+      const now = new Date();
+
+      // Đánh dấu token đã được sử dụng
+      await tx.passwordReset.update({
+        where: { id: record.id },
+        data: { usedAt: now },
+      });
+
+      // Cập nhật mật khẩu mới của người dùng
+      await tx.user.update({
+        where: { id: record.userId },
+        data: {
+          passwordHash,
+          passwordChangedAt: now,
+        },
+      });
+
+      // Thu hồi tất cả Refresh Token cũ để bắt buộc đăng nhập lại
+      await tx.refreshToken.updateMany({
+        where: { userId: record.userId, revokedAt: null },
+        data: { revokedAt: now },
+      });
+
+      return {
+        message: 'Đặt lại mật khẩu thành công! Bạn có thể đăng nhập ngay với mật khẩu mới.',
+      };
+    });
   }
 }

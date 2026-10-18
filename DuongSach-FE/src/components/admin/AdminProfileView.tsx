@@ -160,7 +160,7 @@ export const AdminProfileView: React.FC<AdminProfileViewProps> = ({
   };
 
   return (
-    <div style={{ padding: '1.75rem 2rem', maxWidth: 1200, margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
+    <div className="adm-profile-container">
       {/* 1. Header */}
       <div style={{ marginBottom: '1.75rem' }}>
         <h1 style={{ 
@@ -173,9 +173,6 @@ export const AdminProfileView: React.FC<AdminProfileViewProps> = ({
         }}>
           Hồ sơ Quản trị viên
         </h1>
-        <p style={{ fontSize: '0.88rem', color: '#6B7280', margin: 0 }}>
-          Quản lý thông tin định danh quản trị và chính sách bảo mật tài khoản cá nhân.
-        </p>
       </div>
 
       {saveToast && (

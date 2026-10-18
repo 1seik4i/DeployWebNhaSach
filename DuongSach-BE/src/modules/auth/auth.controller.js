@@ -26,4 +26,19 @@ export class AuthController {
     ]);
     return ApiResponse.success(res, { user: { ...AuthService.mapUser(user), assignedStall: assignment?.stall || null, permissions: role?.rolePerms.map(r => r.permission.code) || [] } });
   };
+
+  static forgotPassword = async (req, res) => {
+    const result = await AuthService.forgotPassword(req.body.email);
+    return ApiResponse.success(res, result);
+  };
+
+  static verifyResetToken = async (req, res) => {
+    const result = await AuthService.verifyResetToken(req.query.token);
+    return ApiResponse.success(res, result);
+  };
+
+  static resetPassword = async (req, res) => {
+    const result = await AuthService.resetPassword(req.body);
+    return ApiResponse.success(res, result);
+  };
 }

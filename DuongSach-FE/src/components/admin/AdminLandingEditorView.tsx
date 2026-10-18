@@ -551,73 +551,58 @@ export const AdminLandingEditorView: React.FC<AdminLandingEditorViewProps> = ({
                 ? (vi ? 'Chỉnh sửa trực tiếp: Tin tức & Hoạt động' : 'Direct Edit: News & Activities')
                 : (vi ? 'Chỉnh sửa trực tiếp: Bộ Máy Tổ Chức' : 'Direct Edit: Organization Structure')}
             </h2>
-            <p className="editor-current-desc">
-              {vi
-                ? 'Giao diện hiển thị chuẩn 100% Landing Page — Bấm trực tiếp vào văn bản hoặc hình ảnh để chỉnh sửa'
-                : '100% identical to public landing page — Click any text or image to edit directly'}
-            </p>
+ 
           </div>
         </div>
 
         {/* Right: Actions */}
         <div className="editor-actions-group">
-          {/* Helper Badge */}
-          <div className="editor-live-badge">
-            <span className="editor-live-dot" />
-            <span>{vi ? 'Chế độ Sửa trực tiếp: BẬT' : 'Live Direct Edit: ON'}</span>
+
+          <div className="editor-action-buttons-row">
+            {/* Reset button */}
+            <button
+              type="button"
+              className="editor-action-btn secondary"
+              onClick={handleResetCurrent}
+              title={vi ? 'Khôi phục nội dung phần này về mặc định' : 'Reset to default'}
+            >
+              <RotateCcw size={15} />
+              <span>{vi ? 'Đặt lại' : 'Reset'}</span>
+            </button>
+
+            {/* View Public Page Link */}
+            <a
+              href={
+                activeSubTab === 'journey'
+                  ? '/hanh-trinh'
+                  : activeSubTab === 'news'
+                  ? '/tin-tuc'
+                  : '/bo-may-to-chuc'
+              }
+              target="_blank"
+              rel="noopener noreferrer"
+              className="editor-action-btn secondary"
+              title={vi ? 'Mở trang thực tế ở tab mới' : 'View live page'}
+            >
+              <ExternalLink size={15} />
+              <span>{vi ? 'Xem trang web' : 'Live Page'}</span>
+            </a>
+
+            {/* Save Button */}
+            <button
+              type="button"
+              className={`editor-action-btn primary ${hasUnsavedChanges ? 'unsaved' : 'saved'}`}
+              onClick={handleSaveAll}
+            >
+              <Save size={16} />
+              <span>{hasUnsavedChanges ? (vi ? 'Lưu thay đổi *' : 'Save Changes *') : (vi ? 'Đã lưu' : 'Saved')}</span>
+            </button>
           </div>
-
-          {/* Reset button */}
-          <button
-            type="button"
-            className="editor-action-btn secondary"
-            onClick={handleResetCurrent}
-            title={vi ? 'Khôi phục nội dung phần này về mặc định' : 'Reset to default'}
-          >
-            <RotateCcw size={15} />
-            <span>{vi ? 'Đặt lại' : 'Reset'}</span>
-          </button>
-
-          {/* View Public Page Link */}
-          <a
-            href={
-              activeSubTab === 'journey'
-                ? '/hanh-trinh'
-                : activeSubTab === 'news'
-                ? '/tin-tuc'
-                : '/bo-may-to-chuc'
-            }
-            target="_blank"
-            rel="noopener noreferrer"
-            className="editor-action-btn secondary"
-            title={vi ? 'Mở trang thực tế ở tab mới' : 'View live page'}
-          >
-            <ExternalLink size={15} />
-            <span>{vi ? 'Xem trang web' : 'Live Page'}</span>
-          </a>
-
-          {/* Save Button */}
-          <button
-            type="button"
-            className={`editor-action-btn primary ${hasUnsavedChanges ? 'unsaved' : 'saved'}`}
-            onClick={handleSaveAll}
-          >
-            <Save size={16} />
-            <span>{hasUnsavedChanges ? (vi ? 'Lưu thay đổi *' : 'Save Changes *') : (vi ? 'Đã lưu' : 'Saved')}</span>
-          </button>
         </div>
       </header>
 
       {/* Helper Bar */}
       <div className="editor-helper-bar">
-        <div className="editor-helper-info">
-          <Edit3 size={15} />
-          <span>
-            {vi
-              ? '💡 Bấm trực tiếp vào bất kỳ tiêu đề, đoạn văn, trích dẫn, số liệu hoặc hình ảnh trên trang để chỉnh sửa. Bấm "Lưu thay đổi" để áp dụng lên toàn bộ website.'
-              : '💡 Click directly on any text, number, quote or image to edit. Click "Save Changes" to publish across the site.'}
-          </span>
-        </div>
         {hasUnsavedChanges && (
           <span style={{ color: '#D97706', fontWeight: 700 }}>
             {vi ? '⚠️ Có thay đổi chưa lưu' : '⚠️ Unsaved changes'}

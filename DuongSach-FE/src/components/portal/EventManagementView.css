@@ -104,6 +104,13 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
 }
 
+.cal-nav-filters-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+}
+
 .event-status-pills {
   display: inline-flex;
   gap: 0.25rem;
@@ -806,10 +813,309 @@
   border-top: 1px solid #edf2ef;
 }
 
+/* Base styles for responsive helpers */
+.cal-weekday-desktop {
+  display: inline;
+}
+.cal-weekday-mobile {
+  display: none;
+}
+.cal-cell-dots-mobile {
+  display: none;
+}
+.cal-selected-day-agenda-mobile {
+  display: none;
+}
+
 @media (max-width: 900px) {
   .cal-grid-weekdays div { font-size: 0.65rem; }
   .cal-cell { min-height: 80px; padding: 0.3rem; }
   .cal-event-chip { font-size: 0.6rem; padding: 1px 3px; }
   .event-cards-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  .event-mgmt-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.75rem !important;
+  }
+  .event-mgmt-header-actions {
+    width: 100% !important;
+  }
+  .event-mgmt-header-actions button {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+  .event-mgmt-toolbar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.75rem !important;
+    padding: 0.75rem !important;
+  }
+  .cal-nav-filters-wrap {
+    width: 100% !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.65rem !important;
+  }
+  .event-status-pills {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    width: 100% !important;
+    gap: 0.45rem !important;
+    overflow-x: visible !important;
+    white-space: normal !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border-radius: 0 !important;
+    box-sizing: border-box !important;
+  }
+  .event-status-pills::-webkit-scrollbar {
+    display: none !important;
+  }
+  .event-status-pill {
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0.55rem 0.5rem !important;
+    font-size: 0.8rem !important;
+    font-weight: 650 !important;
+    border-radius: 8px !important;
+    background: #FFFFFF !important;
+    border: 1px solid #D8DEDB !important;
+    color: #4B635A !important;
+    min-height: 38px !important;
+    box-sizing: border-box !important;
+    white-space: normal !important;
+    text-align: center !important;
+  }
+  .event-status-pill.is-active {
+    background: #17382E !important;
+    border-color: #17382E !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 2px 6px rgba(23, 56, 46, 0.2) !important;
+  }
+  .event-search-box {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* Calendar Card on mobile */
+  .event-calendar-card {
+    padding: 0.75rem 0.5rem !important;
+    border-radius: 12px;
+  }
+  .cal-nav-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 0.85rem;
+    padding-bottom: 0.85rem;
+  }
+  .cal-nav-month-title {
+    font-size: 1.25rem !important;
+  }
+  .cal-nav-arrows {
+    margin-left: 0.5rem;
+  }
+
+  /* Weekday Header */
+  .cal-weekday-desktop {
+    display: none !important;
+  }
+  .cal-weekday-mobile {
+    display: inline !important;
+    font-size: 0.72rem;
+    font-weight: 750;
+  }
+  .cal-grid-weekdays {
+    padding: 0.2rem 0;
+    margin-bottom: 0.4rem;
+  }
+
+  /* Calendar Cells */
+  .cal-grid-cells {
+    gap: 3px !important;
+  }
+  .cal-cell {
+    min-height: 48px !important;
+    height: 52px !important;
+    padding: 3px 2px !important;
+    border-radius: 8px !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+  }
+  .cal-cell:hover {
+    transform: none !important;
+  }
+  .cal-cell-head {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 0;
+  }
+  .cal-cell-badge-desktop,
+  .cal-cell-empty-text-desktop {
+    display: none !important;
+  }
+  .cal-cell-day-num {
+    font-size: 0.78rem !important;
+  }
+  .cal-cell-events-desktop {
+    display: none !important;
+  }
+
+  /* Dot indicators */
+  .cal-cell-dots-mobile {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 2.5px;
+    margin-top: 3px;
+  }
+  .cal-cell-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .cal-cell-dot-plus {
+    font-size: 0.58rem;
+    font-weight: 800;
+    line-height: 1;
+    color: #556B65;
+  }
+
+  /* Compact Mobile Agenda Section */
+  .cal-selected-day-agenda-mobile {
+    display: block !important;
+    margin-top: 1rem;
+    background: #FFFFFF;
+    border: 1px solid #E2EAE5;
+    border-radius: 12px;
+    padding: 1rem;
+    box-shadow: 0 3px 12px rgba(20, 36, 31, 0.04);
+  }
+  .agenda-mobile-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 0.65rem;
+    border-bottom: 1px solid #EFEFEF;
+    margin-bottom: 0.75rem;
+  }
+  .agenda-mobile-title-block {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+  .agenda-date-label {
+    font-size: 0.9rem;
+    font-weight: 750;
+    color: #172421;
+  }
+  .agenda-count-badge {
+    font-size: 0.74rem;
+    color: #637771;
+    font-weight: 600;
+  }
+  .agenda-propose-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: #17382E;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 8px;
+    padding: 0.42rem 0.8rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .agenda-mobile-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+  .agenda-empty-state {
+    text-align: center;
+    padding: 1.25rem 0.5rem;
+    color: #8C9E98;
+    font-size: 0.82rem;
+  }
+  .agenda-empty-add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: #FAF7EE;
+    color: #B3862A;
+    border: 1px dashed #E9BC63;
+    border-radius: 8px;
+    padding: 0.5rem 0.85rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    margin-top: 0.65rem;
+    cursor: pointer;
+  }
+  .agenda-event-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #F9FAF9;
+    border: 1px solid #E2EAE5;
+    border-left: 3.5px solid #17382E;
+    border-radius: 10px;
+    padding: 0.75rem 0.85rem;
+    cursor: pointer;
+    transition: all 140ms ease;
+  }
+  .agenda-event-card:hover {
+    background: #F0F5F3;
+  }
+  .agenda-event-left {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+    flex: 1;
+  }
+  .agenda-event-time {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.74rem;
+    font-weight: 650;
+  }
+  .agenda-event-title {
+    margin: 0;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #172421;
+    line-height: 1.35;
+  }
+  .agenda-event-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    font-size: 0.74rem;
+    color: #556B65;
+  }
+  .agenda-cat-tag {
+    background: #E8F5EF;
+    color: #17382E;
+    padding: 1px 6px;
+    border-radius: 6px;
+    font-weight: 600;
+  }
+  .agenda-chevron {
+    color: #9CA3AF;
+    flex-shrink: 0;
+    margin-left: 0.5rem;
+  }
 }
 

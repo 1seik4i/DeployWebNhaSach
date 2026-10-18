@@ -22,6 +22,7 @@ import {
   ClipboardList
 } from 'lucide-react';
 import { Language } from '../../types';
+import { AdminProfile } from '../../types/admin';
 import { RoleSidebar, RoleSidebarItem } from '../ui/RoleSidebar';
 
 export type AdminTab =
@@ -57,6 +58,8 @@ export interface AdminSidebarProps {
   isOpenMobile?: boolean;
   onCloseMobile?: () => void;
   onLogout?: () => void;
+  profile?: AdminProfile;
+  onOpenProfile?: () => void;
 }
 
 export const AdminSidebar: React.FC<AdminSidebarProps> = ({
@@ -66,7 +69,9 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
   unreadNotificationsCount = 2,
   isOpenMobile = false,
   onCloseMobile,
-  onLogout: _onLogout
+  onLogout,
+  profile,
+  onOpenProfile
 }) => {
   const isVi = language === 'vi';
 
@@ -249,6 +254,21 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
       isOpenMobile={isOpenMobile}
       onCloseMobile={onCloseMobile}
       onSelect={id => onSelectTab(id as AdminTab)}
+      userProfile={{
+        name: profile?.name || (isVi ? 'Quản Trị Viên Hệ Thống' : 'System Administrator'),
+        subtitle: 'System Admin',
+        avatar: profile?.avatarUrl,
+        onProfileClick: () => {
+          if (onOpenProfile) {
+            onOpenProfile();
+          } else {
+            onSelectTab('profile');
+          }
+          onCloseMobile?.();
+        },
+        onLogout: onLogout,
+        logoutLabel: isVi ? 'Đăng xuất' : 'Sign Out'
+      }}
     />
   );
 };

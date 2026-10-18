@@ -174,7 +174,7 @@ export const OrganizerFeedbackView: React.FC<{ language: Language }> = ({ langua
       </div>
 
       {/* KPI / Metric Cards Grid */}
-      <div style={{
+      <div className="feedback-kpi-grid" style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
         gap: '1rem',
@@ -343,65 +343,36 @@ export const OrganizerFeedbackView: React.FC<{ language: Language }> = ({ langua
       )}
 
       {/* 2. Filter Toolbar & Search */}
-      <div style={{
-        background: '#FFFFFF',
-        border: '1px solid #E2EAE5',
-        borderRadius: '14px',
-        padding: '0.85rem 1.25rem',
-        marginBottom: '1.25rem',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '1rem',
-        boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
-      }}>
+      {/* 2. Filter Toolbar & Search */}
+      <div className="feedback-filter-card">
         {/* Status Tabs */}
-        <div style={{ display: 'inline-flex', gap: '0.35rem', background: '#F4F7F5', padding: '3px 4px', borderRadius: '10px' }}>
-          {STATUS_OPTIONS.map(option => {
-            const isActive = filter === option.value;
-            const count = option.value === 'all' 
-              ? feedbacks.length 
-              : feedbacks.filter(f => f.status === option.value).length;
+        <div className="feedback-status-tabs-wrap">
+          <div className="feedback-status-tabs">
+            {STATUS_OPTIONS.map(option => {
+              const isActive = filter === option.value;
+              const count = option.value === 'all' 
+                ? feedbacks.length 
+                : feedbacks.filter(f => f.status === option.value).length;
 
-            return (
-              <button
-                key={option.value}
-                type="button"
-                style={{
-                  border: 'none',
-                  background: isActive ? '#17382E' : 'transparent',
-                  color: isActive ? '#FFFFFF' : '#4B635A',
-                  padding: '0.45rem 0.85rem',
-                  borderRadius: '8px',
-                  fontSize: '0.82rem',
-                  fontWeight: isActive ? 700 : 550,
-                  cursor: 'pointer',
-                  transition: 'all 140ms ease',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px'
-                }}
-                onClick={() => setFilter(option.value)}
-              >
-                <span>{isVi ? option.labelVi : option.labelEn}</span>
-                <span style={{
-                  fontSize: '0.7rem',
-                  padding: '1px 5px',
-                  borderRadius: '10px',
-                  background: isActive ? 'rgba(255,255,255,0.25)' : '#E2EAE5',
-                  color: isActive ? '#FFFFFF' : '#374151',
-                  fontWeight: 700
-                }}>
-                  {count}
-                </span>
-              </button>
-            );
-          })}
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={`feedback-status-tab-btn ${isActive ? 'is-active' : ''}`}
+                  onClick={() => setFilter(option.value)}
+                >
+                  <span>{isVi ? option.labelVi : option.labelEn}</span>
+                  <span className="feedback-status-tab-badge">
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Search Input */}
-        <div className="organizer-search-box" style={{ width: '280px', minWidth: '220px' }}>
+        <div className="organizer-search-box feedback-search-box">
           <Search size={15} />
           <input
             value={search}

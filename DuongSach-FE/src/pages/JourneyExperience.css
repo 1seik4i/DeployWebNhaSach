@@ -193,8 +193,32 @@
 }
 
 @media (max-width: 768px) {
+  .journey-topbar {
+    padding: 0.65rem 0;
+  }
   .fptu-style-hero {
-    min-height: 440px;
+    min-height: auto !important;
+    display: block;
+    align-items: flex-start;
+    padding: 1.25rem 0 1.75rem !important;
+  }
+  .fptu-hero-container {
+    padding: 0 !important;
+    width: min(1200px, calc(100% - 32px)) !important;
+  }
+  .journey-hero-era {
+    margin-bottom: 0.75rem;
+  }
+  .fptu-hero-title {
+    font-size: clamp(1.85rem, 5.2vw, 2.4rem);
+    margin-bottom: 0.65rem;
+  }
+  .fptu-hero-lead {
+    font-size: 0.92rem;
+    line-height: 1.6;
+  }
+  .fptu-hero-bg-photo {
+    background-position: center 30%;
   }
   .fptu-hero-gradient-overlay {
     background: linear-gradient(
@@ -331,12 +355,35 @@
   box-shadow: 0 4px 18px rgba(24, 41, 36, 0.08);
 }
 
+/* Reading Progress Track on Chapter Rail */
+.journey-rail-progress-track {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(22, 46, 35, 0.08);
+  pointer-events: none;
+  z-index: 10;
+  overflow: hidden;
+}
+
+.journey-rail-progress-fill {
+  height: 100%;
+  width: calc(var(--journey-read-progress, 0) * 100%);
+  background: linear-gradient(90deg, #B27B22 0%, #D4AF37 50%, #E9BC63 100%);
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.7);
+  transition: width 60ms linear;
+  border-radius: 0 2px 2px 0;
+}
+
 .journey-chapter-rail-inner {
   display: flex;
   align-items: center;
   min-height: 52px;
   gap: 0.75rem;
   position: relative;
+  scroll-behavior: smooth;
 }
 
 /* Nút quay lại được chuyển xuống thanh dưới khi dính */
@@ -417,14 +464,14 @@
 .journey-chapter-link::after {
   content: '';
   position: absolute;
-  right: 18%;
+  right: 14%;
   bottom: 0;
-  left: 18%;
+  left: 14%;
   height: 3px;
   background: var(--journey-brass);
   transform: scaleX(0);
   transform-origin: center;
-  z-index: 1;
+  z-index: 2;
   transition: transform 260ms var(--journey-ease-out);
 }
 
@@ -436,14 +483,38 @@
   line-height: 1;
   display: inline-flex;
   align-items: center;
+  transition: transform 180ms ease, color 180ms ease;
 }
 
 .journey-chapter-link.is-active {
   color: var(--journey-canopy);
+  font-weight: 750;
+}
+
+.journey-chapter-link.is-active .journey-chapter-link-index {
+  color: var(--journey-brass);
+  font-weight: 850;
+  transform: scale(1.1);
 }
 
 .journey-chapter-link.is-active::after {
   transform: scaleX(1);
+  box-shadow: 0 0 8px rgba(178, 123, 34, 0.4);
+}
+
+.journey-chapter-link.is-passed {
+  color: #274538;
+}
+
+.journey-chapter-link.is-passed .journey-chapter-link-index {
+  color: #8C6D2D;
+  font-weight: 750;
+}
+
+.journey-chapter-link.is-passed::after {
+  transform: scaleX(0.35);
+  opacity: 0.35;
+  background: #C2A56C;
 }
 
 /* --------------------------------------------------------------------------
@@ -1249,6 +1320,8 @@
     overflow-x: auto;
     overscroll-behavior-inline: contain;
     scrollbar-width: none;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
   }
 
   .journey-chapter-rail-inner::-webkit-scrollbar {
@@ -1321,12 +1394,14 @@
   }
 
   .journey-chapter-rail {
-    top: 57px;
+    top: 0;
+    background: #FFFFFF;
+    box-shadow: 0 4px 14px rgba(24, 41, 36, 0.08);
   }
 
   .journey-section {
-    padding: 3.5rem 0;
-    scroll-margin-top: 105px;
+    padding: 2.25rem 0;
+    scroll-margin-top: 64px;
   }
 
   .journey-hero {
@@ -1334,11 +1409,13 @@
   }
 
   .fptu-style-hero {
-    min-height: 440px;
+    min-height: auto;
+    align-items: flex-start;
+    padding: 1rem 0 1.75rem;
   }
 
   .fptu-hero-container {
-    padding: 3.5rem 0;
+    padding: 0;
   }
 
   .journey-hero-summary {

@@ -33,4 +33,12 @@ export const config = {
   },
   logLevel: process.env.LOG_LEVEL || 'info',
   tz: process.env.TZ || 'Asia/Ho_Chi_Minh',
+  smtp: {
+    host: process.env.SMTP_HOST || '',
+    port: parseInt(process.env.SMTP_PORT || '587', 10),
+    secure: process.env.SMTP_SECURE === 'true',
+    user: process.env.SMTP_USER || '',
+    pass: process.env.SMTP_PASS || '',
+    from: process.env.SMTP_FROM || 'Đường Sách TP.HCM <no-reply@duongsach.vn>',
+  },
 };

@@ -5,7 +5,6 @@ import {
   Menu, 
   X, 
   LogIn, 
-  UserPlus, 
   User, 
   CircleUser,
   ChevronDown,
@@ -26,7 +25,6 @@ import {
   Newspaper,
   Calendar,
   Store,
-  QrCode,
   Globe
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
@@ -595,19 +593,8 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </nav>
 
-          {/* Ticket Right Section: QR Scanner + Account + Language Switcher + Mobile Menu Toggle */}
+          {/* Ticket Right Section: Account + Language Switcher + Mobile Menu Toggle */}
           <div className="ticket-actions-section">
-            {/* QR Scanner Trigger */}
-            <button
-              type="button"
-              className="ticket-qr-action-btn"
-              onClick={() => window.dispatchEvent(new CustomEvent('open-qr-scanner'))}
-              aria-label={language === 'vi' ? 'Quét mã QR Di sản & Sách' : 'Scan QR Code'}
-              title={language === 'vi' ? 'Quét mã QR Di sản & Sách' : 'Scan QR Code'}
-            >
-              <QrCode size={19} className="ticket-qr-icon" />
-            </button>
-
             <div className="ticket-account-menu-wrapper" ref={accountDropdownRef}>
               <button
                 type="button"
@@ -634,7 +621,7 @@ export const Header: React.FC<HeaderProps> = ({
                   </Link>
                   <Link
                     to="/lien-he"
-                    className="dropdown-auth-btn"
+                    className="dropdown-auth-btn outline"
                     role="menuitem"
                     onClick={() => setAccountDropdownOpen(false)}
                   >
@@ -702,16 +689,7 @@ export const Header: React.FC<HeaderProps> = ({
                 className="mobile-auth-btn primary"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                <LogIn size={16} />
                 <span>{language === 'vi' ? 'Đăng nhập' : 'Sign in'}</span>
-              </Link>
-              <Link 
-                to="/lien-he"
-                className="mobile-auth-btn"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <LogIn size={16} />
-                <span>{language === 'vi' ? 'Đăng ký tài khoản Đối tác' : 'Request Partner Registration'}</span>
               </Link>
             </div>
 

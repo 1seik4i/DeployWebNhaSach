@@ -11,6 +11,8 @@
   background-color: #F8FAF9;
   font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
   color: #172421;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 /* 1. TOP HEADER (FULL-WIDTH 64PX) */
@@ -213,6 +215,9 @@
   display: flex;
   flex: 1;
   min-height: calc(100vh - 64px);
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .admin-sidebar {
@@ -311,6 +316,14 @@
   padding: 2.25rem 3rem 4rem;
   overflow-y: auto;
   max-width: 1440px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.adm-profile-container {
+  padding: 1.75rem 2rem;
+  max-width: 1200px;
   margin: 0 auto;
   width: 100%;
   box-sizing: border-box;
@@ -1139,6 +1152,14 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
+}
+
+.adm-tab-label-full {
+  display: inline;
+}
+
+.adm-tab-label-short {
+  display: none;
 }
 
 .adm-tab-pill:hover { border-color: #14241F; color: #14241F; }
@@ -3089,6 +3110,14 @@
 .adm-status-footer { display: inline-flex; align-items: center; gap: 0.4rem; margin: 0 1.45rem 1.2rem; color: #4d6b5d; font-size: 0.75rem; }
 .adm-account-status-refined .adm-btn { align-self: flex-start; margin: auto 1.45rem 1.45rem; }
 
+/* --- Audit Log Responsive Helper Classes --- */
+.adm-audit-desktop-table {
+  display: block;
+}
+.adm-audit-mobile-cards {
+  display: none;
+}
+
 /* --- Responsive --- */
 @media (max-width: 1100px) {
   .adm-kpi-grid { grid-template-columns: repeat(2, 1fr); }
@@ -3099,11 +3128,146 @@
   .adm-profile-details-grid { grid-template-columns: 1fr; }
   .adm-form-row { grid-template-columns: 1fr; }
   .adm-floating-save-bar { left: 0; }
+  .adm-audit-kpi-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 768px) {
-  .adm-dashboard-refined .adm-page-header-actions { width: 100%; }
-  .adm-dashboard-refined .adm-page-header-actions .adm-btn { flex: 1; }
+  /* Topbar mobile */
+  .admin-topbar {
+    height: 56px !important;
+    padding: 0 0.85rem !important;
+  }
+  .admin-topbar-left {
+    gap: 0.65rem !important;
+  }
+  .admin-brand {
+    gap: 0.5rem !important;
+  }
+  .admin-brand-icon {
+    width: 30px !important;
+    height: 30px !important;
+  }
+  .admin-brand-text .brand-main {
+    font-size: 0.88rem !important;
+  }
+  .admin-brand-text .brand-sub {
+    font-size: 0.58rem !important;
+    letter-spacing: 0.12em !important;
+  }
+  .admin-mobile-menu-btn {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 36px !important;
+    height: 36px !important;
+    padding: 0 !important;
+    border-radius: 8px !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  }
+  .admin-topbar-right {
+    gap: 0.5rem !important;
+  }
+  .admin-top-search {
+    display: none !important;
+  }
+  /* User profile & admin info is neatly located inside the sidebar / taskbar drawer on mobile */
+  .admin-user-menu,
+  .admin-user-capsule {
+    display: none !important;
+  }
+  .admin-icon-button {
+    width: 36px !important;
+    height: 36px !important;
+  }
+  .admin-main-viewport {
+    padding: 1.25rem 0.85rem 3rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+  }
+  .adm-profile-container {
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Page Header mobile */
+  .adm-page-header {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.5rem !important;
+    margin-bottom: 1rem !important;
+  }
+  .adm-page-title {
+    font-size: 1.25rem !important;
+    line-height: 1.3 !important;
+    margin: 0 0 0.25rem 0 !important;
+  }
+  .adm-page-subtitle {
+    font-size: 0.82rem !important;
+    line-height: 1.45 !important;
+  }
+  .adm-page-header-actions {
+    width: auto !important;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    gap: 0.5rem !important;
+    margin-top: 0.25rem !important;
+  }
+  .adm-page-header-actions .adm-btn,
+  .adm-page-header-actions button {
+    width: auto !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.45rem !important;
+    padding: 0.55rem 1.15rem !important;
+    height: 38px !important;
+    border-radius: 9px !important;
+    font-size: 0.84rem !important;
+    font-weight: 650 !important;
+    box-shadow: 0 2px 6px rgba(20, 36, 31, 0.12) !important;
+  }
+
+  /* Dashboard mobile */
+  .adm-kpi-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.65rem !important;
+    margin-bottom: 1.25rem !important;
+  }
+  .adm-kpi-card {
+    padding: 0.85rem 0.95rem !important;
+    border-radius: 12px !important;
+  }
+  .adm-kpi-value {
+    font-size: 1.5rem !important;
+  }
+  .adm-kpi-trend {
+    font-size: 0.72rem !important;
+  }
+
+  .adm-dashboard-refined .adm-page-header-actions {
+    width: auto !important;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    gap: 0.5rem !important;
+  }
+  .adm-dashboard-refined .adm-page-header-actions .adm-btn {
+    width: auto !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0.55rem 1rem !important;
+    height: 38px !important;
+    font-size: 0.82rem !important;
+    border-radius: 8px !important;
+  }
+
+  /* Audit Chart mobile */
   .adm-audit-chart { gap: 0.45rem; height: 205px; padding: 0.9rem 0.7rem; }
   .adm-audit-bar-track { height: 124px; }
   .adm-audit-column span { font-size: 0.63rem; }
@@ -3111,6 +3275,213 @@
   .adm-role-legend { width: 100%; }
   .adm-activity-card-refined .adm-activity-item { grid-template-columns: 32px minmax(0, 1fr); align-items: start; }
   .adm-activity-card-refined .adm-activity-time { grid-column: 2; }
+
+  /* Audit View Pro Mobile */
+  .adm-audit-kpi-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.65rem !important;
+  }
+  .adm-audit-kpi-card {
+    padding: 0.75rem 0.85rem !important;
+  }
+  .adm-audit-kpi-card .kpi-value {
+    font-size: 1.2rem !important;
+  }
+
+  .adm-filter-card {
+    padding: 0.75rem 0.85rem !important;
+    margin-bottom: 0.85rem !important;
+    border-radius: 12px !important;
+    background: #FFFFFF !important;
+    border: 1px solid #E5E7EB !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) !important;
+  }
+  .adm-filter-bar {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.55rem !important;
+  }
+  .adm-search-input-wrap {
+    width: 100% !important;
+    min-width: 0 !important;
+    position: relative !important;
+  }
+  .adm-filter-search {
+    width: 100% !important;
+    height: 38px !important;
+    border-radius: 9px !important;
+    background: #F8FAF9 !important;
+    border: 1px solid #E2E8F0 !important;
+    padding: 0 2.25rem 0 2.25rem !important;
+    font-size: 0.82rem !important;
+    font-family: inherit !important;
+    box-sizing: border-box !important;
+  }
+  .adm-filter-search:focus {
+    background: #FFFFFF !important;
+    border-color: #14241F !important;
+    outline: none !important;
+  }
+
+  /* Role Segmented Tabs (3 columns, zero wrapping!) */
+  .adm-role-tabs {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr 1fr !important;
+    background: #F1F5F9 !important;
+    border: 1px solid #E2E8F0 !important;
+    border-radius: 9px !important;
+    padding: 3px !important;
+    gap: 2px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  .adm-role-tabs .adm-tab-pill {
+    width: 100% !important;
+    text-align: center !important;
+    justify-content: center !important;
+    padding: 6px 2px !important;
+    border-radius: 7px !important;
+    border: none !important;
+    background: transparent !important;
+    color: #4B5563 !important;
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+    transition: all 0.15s ease !important;
+    box-shadow: none !important;
+    white-space: nowrap !important;
+  }
+  .adm-role-tabs .adm-tab-pill.active {
+    background: #14241F !important;
+    color: #FFFFFF !important;
+    font-weight: 700 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12) !important;
+  }
+  .adm-tab-label-full {
+    display: none !important;
+  }
+  .adm-tab-label-short {
+    display: inline !important;
+    white-space: nowrap !important;
+  }
+
+  /* Status Dropdown on Mobile */
+  .adm-select-wrap {
+    width: 100% !important;
+    min-width: 0 !important;
+    position: relative !important;
+  }
+  .adm-filter-select {
+    width: 100% !important;
+    height: 38px !important;
+    border-radius: 9px !important;
+    background: #F8FAF9 !important;
+    border: 1px solid #E2E8F0 !important;
+    padding: 0 2rem 0 2.25rem !important;
+    font-size: 0.82rem !important;
+    font-weight: 600 !important;
+    color: #374151 !important;
+    box-sizing: border-box !important;
+  }
+  .adm-filter-select:focus {
+    background: #FFFFFF !important;
+    border-color: #14241F !important;
+    outline: none !important;
+  }
+
+  /* Audit Desktop Table vs Mobile Cards */
+  .adm-audit-desktop-table {
+    display: none !important;
+  }
+  .adm-audit-mobile-cards {
+    display: flex !important;
+    flex-direction: column;
+    gap: 0.65rem;
+    padding: 0.85rem;
+  }
+  .adm-audit-mobile-card {
+    background: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 10px;
+    padding: 0.85rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .adm-audit-mobile-card:hover {
+    background: #F9FAFB;
+  }
+  .adm-audit-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+  .adm-audit-card-mid {
+    font-size: 0.86rem;
+    color: #172421;
+    font-weight: 650;
+    line-height: 1.4;
+  }
+  .adm-audit-card-bot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    font-size: 0.76rem;
+    color: #637771;
+    padding-top: 0.4rem;
+    border-top: 1px dashed #EEF2F0;
+  }
+  .adm-audit-mobile-card .btn-view-log {
+    width: auto !important;
+    height: auto !important;
+    min-height: 28px !important;
+    padding: 4px 10px !important;
+    font-size: 0.76rem !important;
+    font-weight: 700 !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    border-radius: 6px !important;
+    background: #F4F9F6 !important;
+    border: 1px solid #C8E0D6 !important;
+    color: #17382E !important;
+  }
+  .adm-audit-mobile-card .btn-view-log:hover {
+    background: #17382E !important;
+    border-color: #17382E !important;
+    color: #FFFFFF !important;
+  }
+
+  /* Modals on mobile */
+  .adm-modal-overlay {
+    padding: 0.65rem !important;
+  }
+  .adm-modal-content {
+    border-radius: 14px !important;
+    max-height: 94vh !important;
+  }
+  .adm-modal-header,
+  .adm-modal-body,
+  .adm-modal-footer {
+    padding: 0.85rem 1rem !important;
+  }
+
+  /* iOS input auto-zoom prevention */
+  .adm-form-input,
+  .adm-form-select,
+  .adm-form-textarea,
+  .adm-filter-search,
+  .adm-filter-select {
+    font-size: 16px !important;
+  }
+
   .adm-prog-stepper {
     flex-direction: column;
     gap: 1.25rem;
@@ -3143,3 +3514,120 @@
     padding: 0 1.25rem 1.5rem;
   }
 }
+
+@media (max-width: 480px) {
+  .admin-topbar {
+    padding: 0 0.65rem !important;
+  }
+  .admin-brand-text .brand-sub {
+    display: none !important;
+  }
+}
+
+/* User Management Desktop vs Mobile */
+.adm-user-mobile-cards {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .adm-user-desktop-table {
+    display: none !important;
+  }
+  .adm-user-mobile-cards {
+    display: flex !important;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.85rem;
+  }
+  .adm-user-mobile-card {
+    background: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    padding: 0.85rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  }
+  .adm-user-mobile-card.adm-row-locked {
+    background: #FFFBFB;
+    border-color: #FECACA;
+  }
+  .adm-user-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+  .adm-user-badges-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .adm-user-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    font-size: 0.8rem;
+    color: #4B5563;
+    padding: 0.5rem 0;
+    border-top: 1px dashed #EEF2F0;
+    border-bottom: 1px dashed #EEF2F0;
+  }
+  .adm-user-card-footer {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .adm-table-card {
+    border-radius: 14px !important;
+    border: 1px solid #E5E7EB !important;
+    overflow: hidden !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03) !important;
+  }
+  .adm-table-summary {
+    padding: 0.65rem 0.85rem !important;
+    font-size: 0.78rem !important;
+    background: #F9FAFB !important;
+  }
+  .adm-card-action-btn {
+    flex: 1 1 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    height: 36px;
+    padding: 0 8px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 650;
+    cursor: pointer;
+    border: 1px solid #D1D5DB;
+    background: #FFFFFF;
+    color: #374151;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+  }
+  .adm-card-action-btn:hover {
+    background: #F3F4F6;
+  }
+  .adm-card-action-btn.btn-lock {
+    color: #DC2626;
+    border-color: #FCA5A5;
+    background: #FEF2F2;
+  }
+  .adm-card-action-btn.btn-unlock {
+    color: #166534;
+    border-color: #BBF7D0;
+    background: #F0FDF4;
+  }
+  .adm-card-action-btn.btn-key {
+    color: #B45309;
+    border-color: #FDE68A;
+    background: #FFFBEB;
+  }
+}
+
+

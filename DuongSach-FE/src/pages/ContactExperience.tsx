@@ -137,10 +137,10 @@ export const ContactExperience: React.FC<ContactExperienceProps> = ({ language, 
               type="button"
               className="contact-back-btn"
               onClick={() => navigate('/')}
-              title={vi ? 'Quay lại Trang chủ' : 'Back to Home'}
+              title={vi ? 'Trang chủ' : 'Back to Home'}
             >
               <ArrowLeft size={16} />
-              <span>{vi ? 'Quay lại Trang chủ' : 'Back to Home'}</span>
+              <span>{vi ? 'Trang chủ' : 'Back to Home'}</span>
             </button>
 
             <div className="contact-breadcrumbs">

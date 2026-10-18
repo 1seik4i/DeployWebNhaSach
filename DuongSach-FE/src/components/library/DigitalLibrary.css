@@ -888,13 +888,13 @@ button.library-shelf-control:active:not(:disabled) {
 }
 
 @media (max-width: 820px) {
-  .digital-library-section { padding: 3.8rem 0 3.4rem; }
-  .library-section-heading { margin-bottom: 1.5rem; }
+  .digital-library-section { padding: 2.25rem 0 1.75rem !important; }
+  .library-section-heading { margin-bottom: 1.25rem !important; }
   .library-filter-row { justify-content: flex-start; }
   .library-ranking-shell { margin-inline: -1.25rem; }
   .library-ranking-track { padding-inline: 1.25rem; scroll-padding-inline: 1.25rem; }
   .library-carousel-control { opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }
-  .library-section-cta { justify-content: center; }
+  .library-section-cta { justify-content: center; margin-top: 0.75rem !important; }
   .library-catalogue-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .library-shelf-track { --shelf-columns: 3; }
   .library-shelf-control { opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }

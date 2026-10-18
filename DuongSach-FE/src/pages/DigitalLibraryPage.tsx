@@ -594,10 +594,10 @@ export function DigitalLibraryPage({ language }: { language: Language }) {
             type="button"
             className="library-back-btn"
             onClick={() => navigate('/')}
-            title={language === 'vi' ? 'Quay lại Trang chủ' : 'Back to Home'}
+            title={language === 'vi' ? 'Trang chủ' : 'Back to Home'}
           >
             <ArrowLeft size={16} />
-            <span>{language === 'vi' ? 'Quay lại Trang chủ' : 'Back to Home'}</span>
+            <span>{language === 'vi' ? 'Trang chủ' : 'Back to Home'}</span>
           </button>
 
           <div className="library-breadcrumbs">

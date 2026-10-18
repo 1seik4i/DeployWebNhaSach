@@ -306,19 +306,17 @@ export const BoothManagementPage: React.FC<BoothManagementPageProps> = ({
       {/* 1. Header matching Sketch Screen 4 */}
       <div className="partner-page-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.35rem' }}>
-            <h1 className="partner-page-title" style={{ margin: 0 }}>
-              {language === 'vi' ? 'Thông tin gian hàng' : 'Booth Details'}
-            </h1>
-          </div>
+          <h1 className="partner-page-title">
+            {language === 'vi' ? 'Quản lý gian hàng' : 'Booth Management'}
+          </h1>
           <p className="partner-page-sub">
             {language === 'vi' 
-              ? 'Quản lý thông tin gian hàng chính thức của tổ chức tại sự kiện.' 
-              : 'Manage assigned booth information and operational resources.'}
+              ? 'Quản lý thông tin gian hàng chính thức, hình ảnh trưng bày và tài liệu pháp lý.' 
+              : 'Manage assigned booth information, display images, and documents.'}
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+        <div className="partner-page-header-actions">
           <button
             type="button"
             className="btn-part-secondary"
@@ -405,7 +403,7 @@ export const BoothManagementPage: React.FC<BoothManagementPageProps> = ({
       </div>
 
       {/* 3. Tabs Navigation matching Sketch Screen 4 */}
-      <div style={{ background: '#FFFFFF', border: '1px solid #E2EAE5', borderRadius: '14px', padding: '1.75rem' }}>
+      <div className="partner-card-pad" style={{ background: '#FFFFFF', border: '1px solid #E2EAE5', borderRadius: '14px' }}>
         <div className="partner-tabs-bar">
           <button
             type="button"

@@ -600,46 +600,6 @@
   align-items: center;
 }
 
-/* QR Code Scanner Action Button (Circular Golden Heritage Style) */
-.ticket-qr-action-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 38px;
-  padding: 0;
-  background: rgba(233, 188, 99, 0.08);
-  border: 1.5px solid rgba(233, 188, 99, 0.45);
-  border-radius: 50%;
-  color: #E9BC63;
-  cursor: pointer;
-  transition: all 220ms cubic-bezier(0.16, 1, 0.3, 1);
-  user-select: none;
-  backdrop-filter: blur(8px);
-}
-
-.ticket-qr-action-btn .ticket-qr-icon {
-  color: #E9BC63;
-  flex-shrink: 0;
-  transition: transform 220ms ease, color 220ms ease;
-}
-
-.ticket-qr-action-btn:hover {
-  background: rgba(233, 188, 99, 0.22);
-  border-color: #E9BC63;
-  box-shadow: 0 0 16px rgba(233, 188, 99, 0.45);
-  transform: translateY(-1px);
-}
-
-.ticket-qr-action-btn:hover .ticket-qr-icon {
-  transform: scale(1.12);
-  color: #FFE5A3;
-}
-
-.ticket-qr-action-btn:active {
-  transform: translateY(0);
-}
-
 /* Account Trigger Button (Unauthenticated - Icon Only) */
 .ticket-login-btn {
   display: inline-flex;
@@ -1269,14 +1229,15 @@
 }
 
 .mobile-auth-btn.secondary {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #FAF7F2;
 }
 
 .mobile-auth-btn.secondary:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(233, 188, 99, 0.5);
+  color: #E9BC63;
 }
 
 .mobile-nav-figma ul {

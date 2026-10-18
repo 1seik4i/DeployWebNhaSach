@@ -83,8 +83,8 @@ export const PartnerLayout: React.FC<PartnerLayoutProps> = ({
     {
       id: 'events',
       path: '/partner/events',
-      labelVi: 'Sự kiện của tôi',
-      labelEn: 'My Events',
+      labelVi: 'Lịch sự kiện',
+      labelEn: 'Event Calendar',
       icon: <CalendarDays size={18} />,
     },
     {
@@ -341,6 +341,14 @@ export const PartnerLayout: React.FC<PartnerLayoutProps> = ({
           onSelect={id => {
             const item = navItems.find(navItem => navItem.id === id);
             if (item) navigate(item.path);
+          }}
+          userProfile={{
+            name: organization.name,
+            subtitle: language === 'vi' ? 'Đối tác / Đơn vị triển lãm' : 'Partner',
+            avatar: organization.logoUrl,
+            onProfileClick: () => navigate('/partner/profile'),
+            onLogout: onLogout,
+            logoutLabel: language === 'vi' ? 'Đăng xuất' : 'Sign Out'
           }}
         />
 

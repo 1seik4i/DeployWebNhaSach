@@ -507,104 +507,36 @@ export const BoothMapView: React.FC<BoothMapViewProps> = ({
             <h1 className="organizer-view-title" style={{ fontSize: '1.4rem' }}>
               {language === 'vi' ? 'Sơ đồ & Quản lý vị trí gian hàng' : 'Booth Map & Layout Management'}
             </h1>
-            <p className="organizer-view-sub" style={{ margin: '0.2rem 0 0 0' }}>
-              {language === 'vi' ? 'Kéo thả để cập nhật vị trí tọa độ, chỉnh sửa thông tin hoặc thêm/xóa gian hàng. Dữ liệu sẽ đồng bộ tức thì lên Landing Page và Portal Gian hàng.' : 'Drag and drop markers to position booths. All updates automatically sync with Public Landing and Partner Portal.'}
-            </p>
           </div>
         </div>
 
       </div>
 
-      {/* 2. Legend & Tools (Single row aligned) */}
-      <div style={{
-        background: '#FFFFFF',
-        border: '1px solid #E2EAE5',
-        borderRadius: '12px',
-        padding: '0.65rem 1.25rem',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'nowrap',
-        gap: '1.25rem',
-        marginBottom: '1.25rem',
-        overflowX: 'auto',
-        boxShadow: '0 2px 8px rgba(20, 36, 31, 0.03)'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', fontSize: '0.82rem', fontWeight: 650, color: '#374151', flexShrink: 0, whiteSpace: 'nowrap' }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-            <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#9CA3AF', border: '1px solid #6B7280' }}></span>
-            <span>{language === 'vi' ? 'Đã thuê' : 'Assigned'} ({localBooths.filter(b => b.status === 'assigned').length})</span>
-          </span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-            <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#E0F2FE', border: '1px solid #7DD3FC' }}></span>
-            <span>{language === 'vi' ? 'Còn trống' : 'Available'} ({localBooths.filter(b => b.status === 'available').length})</span>
-          </span>
-          {localBooths.some(booth => booth.status === 'pending') && <span style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-            <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#FEF3C7', border: '1px solid #FCD34D' }}></span>
-            <span>{language === 'vi' ? 'Đang giữ chỗ' : 'Pending'} ({localBooths.filter(booth => booth.status === 'pending').length})</span>
-          </span>}
-          {localBooths.some(booth => booth.status === 'unavailable') && <span style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-            <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#FEE2E2', border: '1px solid #FCA5A5' }}></span>
-            <span>{language === 'vi' ? 'Không khả dụng' : 'Unavailable'} ({localBooths.filter(booth => booth.status === 'unavailable').length})</span>
-          </span>}
-          {venuePoints.length > 0 && (
-            <span style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-              <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#DCFCE7', border: '1px solid #16A34A' }}></span>
-              <span>{language === 'vi' ? 'Địa điểm tổ chức' : 'Event locations'} ({venuePoints.length})</span>
-            </span>
-          )}
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexShrink: 0, whiteSpace: 'nowrap' }}>
-          {/* 2 nút Thêm riêng biệt hiển thị bên ngoài */}
+      {/* 2. Primary Actions Toolbar: Create & Map Operation */}
+      <div className="booth-map-action-bar">
+        {/* Creation Buttons Group */}
+        <div className="booth-map-create-group">
           <button
             type="button"
-            className="btn-org-primary"
-            style={{
-              padding: '0.35rem 0.85rem',
-              height: '34px',
-              fontSize: '0.8rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.45rem',
-              background: '#17382E',
-              color: '#FFFFFF',
-              borderRadius: '8px',
-              fontWeight: 650,
-              cursor: 'pointer',
-              border: 'none',
-              boxShadow: '0 2px 6px rgba(23, 56, 46, 0.2)'
-            }}
+            className="booth-map-btn-primary"
             onClick={handleOpenAddBooth}
           >
-            <Store size={14} />
+            <Store size={15} />
             <span>{language === 'vi' ? 'Thêm gian hàng' : 'Add Booth'}</span>
           </button>
 
           <button
             type="button"
-            className="btn-org-primary"
-            style={{
-              padding: '0.35rem 0.85rem',
-              height: '34px',
-              fontSize: '0.8rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.45rem',
-              background: '#0F766E',
-              color: '#FFFFFF',
-              borderRadius: '8px',
-              fontWeight: 650,
-              cursor: 'pointer',
-              border: 'none',
-              boxShadow: '0 2px 6px rgba(15, 118, 110, 0.2)'
-            }}
+            className="booth-map-btn-venue"
             onClick={handleOpenAddVenue}
           >
-            <Building2 size={14} />
+            <Building2 size={15} />
             <span>{language === 'vi' ? 'Thêm địa điểm tổ chức' : 'Add Venue'}</span>
           </button>
+        </div>
 
+        {/* Map Management Actions: Upload & Save */}
+        <div className="booth-map-manage-group">
           <input 
             type="file" 
             accept="image/*" 
@@ -614,61 +546,20 @@ export const BoothMapView: React.FC<BoothMapViewProps> = ({
           />
           <button
             type="button"
-            className="btn-org-secondary"
-            style={{ padding: '0.35rem 0.75rem', height: '34px', fontSize: '0.8rem' }}
+            className="booth-map-btn-secondary"
             onClick={() => fileInputRef.current?.click()}
           >
             <Upload size={14} />
-            <span>Tải bản đồ lên</span>
+            <span>{language === 'vi' ? 'Tải bản đồ lên' : 'Upload Map'}</span>
           </button>
 
           <button
             type="button"
-            className="btn-org-primary"
-            style={{ 
-              padding: '0.35rem 0.85rem', 
-              height: '34px', 
-              fontSize: '0.8rem', 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '0.4rem',
-              background: isSaved ? '#059669' : '#17382E',
-              transition: 'background 0.2s ease'
-            }}
+            className={`booth-map-btn-save ${isSaved ? 'is-saved' : ''}`}
             onClick={handleSaveMap}
           >
             {isSaved ? <CheckCircle size={14} /> : <Save size={14} />}
-            <span>{isSaved ? (language === 'vi' ? 'Đã lưu đồng bộ!' : 'Saved & Synced!') : (language === 'vi' ? 'Lưu sơ đồ' : 'Save Map')}</span>
-          </button>
-
-          <div style={{ width: '1px', height: '24px', background: '#E2EAE5' }}></div>
-
-          <button
-            type="button"
-            className="organizer-icon-button"
-            style={{ width: '28px', height: '28px' }}
-            onClick={() => setZoomLevel(prev => Math.max(0.8, prev - 0.1))}
-            title="Thu nhỏ"
-          >
-            <Minus size={13} />
-          </button>
-          <button
-            type="button"
-            className="organizer-icon-button"
-            style={{ width: '28px', height: '28px' }}
-            onClick={() => setZoomLevel(1)}
-            title="Mặc định"
-          >
-            <RotateCcw size={13} />
-          </button>
-          <button
-            type="button"
-            className="organizer-icon-button"
-            style={{ width: '28px', height: '28px' }}
-            onClick={() => setZoomLevel(prev => Math.min(1.4, prev + 0.1))}
-            title="Phóng to"
-          >
-            <Plus size={13} />
+            <span>{isSaved ? (language === 'vi' ? 'Đã lưu!' : 'Saved!') : (language === 'vi' ? 'Lưu sơ đồ' : 'Save Map')}</span>
           </button>
         </div>
       </div>
@@ -993,6 +884,69 @@ export const BoothMapView: React.FC<BoothMapViewProps> = ({
             );
           })()}
         </div>
+
+        {/* Floating Zoom Controls on Map Canvas */}
+        <div className="booth-map-floating-zoom">
+          <button
+            type="button"
+            className="booth-zoom-btn"
+            onClick={() => setZoomLevel(prev => Math.min(1.4, prev + 0.1))}
+            title={language === 'vi' ? 'Phóng to' : 'Zoom in'}
+            aria-label="Zoom in"
+          >
+            <Plus size={15} />
+          </button>
+          <button
+            type="button"
+            className="booth-zoom-btn"
+            onClick={() => setZoomLevel(1)}
+            title={language === 'vi' ? 'Mặc định (100%)' : 'Reset zoom'}
+            aria-label="Reset zoom"
+          >
+            <RotateCcw size={13} />
+          </button>
+          <button
+            type="button"
+            className="booth-zoom-btn"
+            onClick={() => setZoomLevel(prev => Math.max(0.8, prev - 0.1))}
+            title={language === 'vi' ? 'Thu nhỏ' : 'Zoom out'}
+            aria-label="Zoom out"
+          >
+            <Minus size={15} />
+          </button>
+        </div>
+      </div>
+
+      {/* 4. Map Legend Status Bar (Placed directly under map for quick reference) */}
+      <div className="booth-map-legend-card">
+        <div className="booth-map-legend-items">
+          <span className="booth-legend-item">
+            <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#9CA3AF', border: '1px solid #6B7280' }}></span>
+            <span>{language === 'vi' ? 'Đã thuê' : 'Assigned'} ({localBooths.filter(b => b.status === 'assigned').length})</span>
+          </span>
+          <span className="booth-legend-item">
+            <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#E0F2FE', border: '1px solid #7DD3FC' }}></span>
+            <span>{language === 'vi' ? 'Còn trống' : 'Available'} ({localBooths.filter(b => b.status === 'available').length})</span>
+          </span>
+          {localBooths.some(booth => booth.status === 'pending') && (
+            <span className="booth-legend-item">
+              <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#FEF3C7', border: '1px solid #FCD34D' }}></span>
+              <span>{language === 'vi' ? 'Đang giữ chỗ' : 'Pending'} ({localBooths.filter(booth => booth.status === 'pending').length})</span>
+            </span>
+          )}
+          {localBooths.some(booth => booth.status === 'unavailable') && (
+            <span className="booth-legend-item">
+              <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#FEE2E2', border: '1px solid #FCA5A5' }}></span>
+              <span>{language === 'vi' ? 'Không khả dụng' : 'Unavailable'} ({localBooths.filter(booth => booth.status === 'unavailable').length})</span>
+            </span>
+          )}
+          {venuePoints.length > 0 && (
+            <span className="booth-legend-item">
+              <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#DCFCE7', border: '1px solid #16A34A' }}></span>
+              <span>{language === 'vi' ? 'Địa điểm tổ chức' : 'Event locations'} ({venuePoints.length})</span>
+            </span>
+          )}
+        </div>
       </div>
 
       {/* 5. Integrated Table View Below the Map */}
@@ -1097,7 +1051,8 @@ export const BoothMapView: React.FC<BoothMapViewProps> = ({
         </div>
 
         {/* Table Content */}
-        <div style={{ overflowX: 'auto' }}>
+        {/* Table Content */}
+        <div className="booth-map-desktop-table" style={{ overflowX: 'auto' }}>
           <table className="org-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.86rem' }}>
             <thead>
               <tr style={{ background: '#F8FAF9', borderBottom: '1.5px solid #E2EAE5' }}>
@@ -1180,9 +1135,62 @@ export const BoothMapView: React.FC<BoothMapViewProps> = ({
           </table>
         </div>
 
+        {/* Mobile Cards for Booth List */}
+        <div className="booth-map-mobile-cards">
+          {paginatedBooths.length > 0 ? (
+            paginatedBooths.map(b => (
+              <div
+                key={b.id}
+                className={`booth-map-mobile-card ${selectedBooth?.booth.id === b.id ? 'is-selected' : ''}`}
+                onClick={() => {
+                  setSelectedBooth({ booth: b });
+                  window.scrollTo({ top: 120, behavior: 'smooth' });
+                }}
+              >
+                <div className="booth-card-head">
+                  <span className="booth-code-badge">{b.code}</span>
+                  {getStatusChip(b.status)}
+                </div>
+
+                <div className="booth-card-body">
+                  <h4 className="booth-card-title">{b.name}</h4>
+                  <div className="booth-card-meta">
+                    <span>📐 {b.dimensions} • {b.areaType}</span>
+                    {b.orgName ? (
+                      <span className="booth-card-org">🏢 {b.orgName}</span>
+                    ) : (
+                      <span className="booth-card-org-empty">🏢 Chưa có đơn vị</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="booth-card-footer">
+                  <button
+                    type="button"
+                    className="btn-org-secondary"
+                    style={{ width: '100%', justifyContent: 'center', padding: '0.45rem', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedBooth({ booth: b });
+                      window.scrollTo({ top: 120, behavior: 'smooth' });
+                    }}
+                  >
+                    <Search size={14} />
+                    <span>{language === 'vi' ? 'Xem vị trí trên sơ đồ' : 'View on map'}</span>
+                  </button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div style={{ textAlign: 'center', padding: '2rem 1rem', color: '#6B7280', background: '#FFFFFF', borderRadius: '10px', border: '1px solid #E2EAE5' }}>
+              {language === 'vi' ? 'Không tìm thấy gian hàng phù hợp.' : 'No booths found.'}
+            </div>
+          )}
+        </div>
+
         {/* Pagination when showing all */}
         {!selectedBooth && totalPages > 1 && (
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
+          <div className="booth-map-pagination" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
             <span style={{ fontSize: '0.8rem', color: '#6B7280' }}>
               Hiển thị {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, filteredBooths.length)} trong tổng số {filteredBooths.length} gian hàng
             </span>

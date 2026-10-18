@@ -385,17 +385,16 @@ export const PartnerActivityDetailPage: React.FC<PartnerActivityDetailPageProps>
       </div>
 
       {/* 2. Detail Header matching Sketch Screen 6 */}
-      <div style={{
+      <div className="partner-card-pad" style={{
         background: '#FFFFFF',
         border: '1px solid #E2EAE5',
         borderRadius: '14px',
-        padding: '1.75rem',
         marginBottom: '1.5rem'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.4rem', flexWrap: 'wrap' }}>
-              <h1 className="partner-page-title" style={{ fontSize: '1.65rem', margin: 0 }}>
+              <h1 className="partner-page-title">
                 {activity.title}
               </h1>
               <span className={`status-badge ${activity.status}`}>
@@ -461,7 +460,7 @@ export const PartnerActivityDetailPage: React.FC<PartnerActivityDetailPageProps>
       </div>
 
       {/* 3. Detail Content Body */}
-      <div style={{ background: '#FFFFFF', border: '1px solid #E2EAE5', borderRadius: '14px', padding: '2rem' }}>
+      <div className="partner-card-pad" style={{ background: '#FFFFFF', border: '1px solid #E2EAE5', borderRadius: '14px' }}>
         {isEditing ? (
           <form onSubmit={handleSaveEdit} style={{ maxWidth: '700px' }}>
             <h3 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '1.25rem' }}>
@@ -949,7 +948,8 @@ export const PartnerActivityDetailPage: React.FC<PartnerActivityDetailPageProps>
                   )}
                 </div>
 
-                <div style={{ background: '#FFFFFF', border: '1px solid #E5ECE8', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}>
+                {/* Desktop View Table */}
+                <div className="partner-participant-desktop-table" style={{ background: '#FFFFFF', border: '1px solid #E5ECE8', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}>
                   <div style={{ 
                     display: 'grid', 
                     gridTemplateColumns: '50px 1.8fr 1.2fr 1.4fr 1.2fr', 
@@ -1021,6 +1021,75 @@ export const PartnerActivityDetailPage: React.FC<PartnerActivityDetailPageProps>
                       <p style={{ margin: 0, fontSize: '0.92rem' }}>
                         {participantSearch 
                           ? 'Không tìm thấy độc giả phù hợp với từ khóa tìm kiếm.' 
+                          : 'Chưa có độc giả đăng ký tham gia sự kiện này.'}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Mobile Cards View for Participants */}
+                <div className="partner-participant-mobile-cards">
+                  {filteredParticipants.map((participant, index) => (
+                    <div key={participant.id} className="participant-mobile-card">
+                      <div className="participant-mobile-card-top">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
+                          <span style={{ 
+                            width: '22px', 
+                            height: '22px', 
+                            borderRadius: '50%', 
+                            background: '#F0F4F2', 
+                            color: '#17382E', 
+                            fontSize: '0.72rem', 
+                            fontWeight: 750, 
+                            display: 'grid', 
+                            placeItems: 'center',
+                            flexShrink: 0
+                          }}>
+                            {index + 1}
+                          </span>
+                          <strong style={{ color: '#172421', fontSize: '0.88rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {participant.fullName}
+                            {(participant.attendeesCount || 1) > 1 && <small style={{ color: '#637771', fontWeight: 500 }}> · {participant.attendeesCount} người</small>}
+                          </strong>
+                        </div>
+                        <span style={{ 
+                          fontSize: '0.74rem', 
+                          fontWeight: 700, 
+                          padding: '0.15rem 0.55rem', 
+                          borderRadius: '12px',
+                          background: participant.status === 'attended' ? '#DCFCE7' : '#FEF3C7',
+                          color: participant.status === 'attended' ? '#15803D' : '#B45309',
+                          flexShrink: 0
+                        }}>
+                          {participant.status === 'attended' ? '✓ Đã tham gia' : 'Đã đăng ký'}
+                        </span>
+                      </div>
+                      <div className="participant-mobile-card-bottom">
+                        <span style={{ color: '#556B65', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          📞 {participant.phone || '—'}
+                        </span>
+                        <span style={{ 
+                          fontFamily: 'monospace', 
+                          fontSize: '0.78rem', 
+                          fontWeight: 700, 
+                          color: '#B3862A',
+                          background: '#FAF7EE',
+                          padding: '0.12rem 0.45rem',
+                          borderRadius: '4px',
+                          border: '1px solid #EFE4CC'
+                        }}>
+                          {participant.ticketCode}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+
+                  {filteredParticipants.length === 0 && (
+                    <div style={{ padding: '2rem 1rem', textAlign: 'center', background: '#F8FAF9', borderRadius: '10px', color: '#657B74' }}>
+                      <Users size={28} style={{ opacity: 0.4, marginBottom: '0.4rem' }} />
+                      <p style={{ margin: 0, fontSize: '0.84rem' }}>
+                        {participantSearch 
+                          ? 'Không tìm thấy độc giả phù hợp với từ khóa.' 
                           : 'Chưa có độc giả đăng ký tham gia sự kiện này.'}
                       </p>
                     </div>

@@ -75,15 +75,15 @@ export const PartnerDashboard: React.FC<PartnerDashboardProps> = ({
       <div className="partner-page-header" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.75rem' }}>
         <div>
           <span className="partner-page-eyebrow">
-            {language === 'vi' ? 'CỔNG QUẢN LÝ GIAN HÀNG • ĐƯỜNG SÁCH TP.HCM' : 'EXHIBITOR PORTAL • HCMC BOOK STREET'}
+            {language === 'vi' ? `XIN CHÀO, ${organization.name.toUpperCase()}` : `WELCOME, ${organization.name.toUpperCase()}`}
           </span>
-          <h1 className="partner-page-title" style={{ fontSize: '1.95rem', marginBottom: '0.35rem' }}>
-            {language === 'vi' ? `Xin chào, ${organization.name}!` : `Welcome back, ${organization.name}!`}
+          <h1 className="partner-page-title">
+            {language === 'vi' ? 'Tổng quan' : 'Dashboard'}
           </h1>
           <p className="partner-page-sub">
             {language === 'vi' 
-              ? 'Cổng quản lý gian hàng & hoạt động triển lãm tại Đường Sách TP.HCM.' 
-              : 'Partner portal for booth and literary exhibition management at HCMC Book Street.'}
+              ? 'Hệ thống quản lý hoạt động, theo dõi tiến độ sự kiện và gian hàng tại Đường Sách.' 
+              : 'Stall operations, event tracking, and booth coordination at HCMC Book Street.'}
           </p>
         </div>
       </div>
@@ -267,7 +267,7 @@ export const PartnerDashboard: React.FC<PartnerDashboardProps> = ({
       </div>
 
       {/* 5. Quick Access Action Shortcuts (Đã bỏ nút Đề xuất hoạt động mới) */}
-      <div style={{ display: 'flex', gap: '0.85rem', flexWrap: 'wrap' }}>
+      <div className="partner-dashboard-quick-actions">
         <Link to="/partner/events/apply" className="btn-part-secondary">
           <PlusCircle size={15} />
           <span>{language === 'vi' ? 'Đăng ký tham gia sự kiện' : 'Apply for Event'}</span>

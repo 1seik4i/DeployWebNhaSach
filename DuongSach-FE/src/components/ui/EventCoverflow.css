@@ -1,8 +1,8 @@
-.event-coverflow { width: 100%; overflow: hidden; }
-.event-coverflow-stage-wrap { display: grid; grid-template-columns: 52px minmax(0, 1fr) 52px; align-items: center; gap: .5rem; }
+.event-coverflow { width: 100%; overflow: hidden; contain: paint layout; isolation: isolate; }
+.event-coverflow-stage-wrap { display: grid; grid-template-columns: 52px minmax(0, 1fr) 52px; align-items: center; gap: .5rem; overflow: hidden; }
 .event-coverflow-stage { position: relative; height: clamp(310px, 33vw, 430px); perspective: 950px; transform-style: preserve-3d; outline: none; touch-action: pan-y; user-select: none; }
 .event-coverflow-stage:focus-visible { outline: 3px solid #b4863c; outline-offset: 3px; }
-.event-coverflow-slide { position: absolute; top: 3%; left: 50%; width: clamp(210px, 27vw, 340px); height: 94%; padding: 0; overflow: hidden; border: 1px solid rgba(255,255,255,.65); border-radius: 8px; background: #17382e; box-shadow: 0 16px 34px rgba(20,40,33,.23); color: #fff; cursor: pointer; text-align: left; transform-style: preserve-3d; transition: transform 520ms cubic-bezier(.22,1,.36,1), opacity 420ms ease, box-shadow 420ms ease; }
+.event-coverflow-slide { position: absolute; top: 3%; left: 50%; width: clamp(210px, 27vw, 340px); height: 94%; padding: 0; overflow: hidden; border: 1px solid rgba(255,255,255,.65); border-radius: 8px; background: #17382e; box-shadow: 0 16px 34px rgba(20,40,33,.23); color: #fff; cursor: pointer; text-align: left; transform-style: preserve-3d; backface-visibility: hidden; -webkit-backface-visibility: hidden; will-change: transform, opacity; transition: transform 520ms cubic-bezier(.22,1,.36,1), opacity 420ms ease, box-shadow 420ms ease; }
 .event-coverflow-slide.is-selected { box-shadow: 0 22px 46px rgba(20,40,33,.32); }
 .event-coverflow-slide img { width: 100%; height: 100%; display: block; object-fit: cover; }
 .event-coverflow-week-badge { position: absolute; top: .7rem; left: .7rem; display: grid; place-items: center; min-width: 4.25rem; min-height: 2.15rem; padding: .35rem .45rem; background: #e7b552; color: #17382e; border: 1px solid rgba(255,255,255,.62); border-radius: 2px; font-size: .7rem; font-weight: 800; line-height: 1.1; text-align: center; box-shadow: 0 4px 14px rgba(16, 36, 29, .2); }
@@ -11,25 +11,161 @@
   0%, 100% { transform: scale(1); box-shadow: 0 4px 16px rgba(225, 29, 72, .45); }
   50% { transform: scale(1.04); box-shadow: 0 6px 22px rgba(225, 29, 72, .65); }
 }
-.event-coverflow-kicker-row { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; margin-bottom: .25rem; }
-.event-coverflow-today-pill { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 9999px; background: #ffe4e6; color: #be123c; font-size: .72rem; font-weight: 700; border: 1px solid #fecdd3; }
+.event-coverflow-kicker-row { display: flex; align-items: center; gap: .75rem; flex-wrap: nowrap; white-space: nowrap; margin-bottom: .25rem; height: 24px; min-height: 24px; max-height: 24px; overflow: hidden; }
+.event-coverflow-today-pill { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 9999px; background: #ffe4e6; color: #be123c; font-size: .72rem; font-weight: 700; border: 1px solid #fecdd3; flex-shrink: 0; }
 .event-coverflow-arrow { width: 46px; height: 46px; display: grid; place-items: center; padding: 0; border: 1px solid #a8bdb2; border-radius: 50%; background: rgba(255,255,255,.8); color: #193a2f; cursor: pointer; z-index: 20; }
 .event-coverflow-arrow:hover { background: #193a2f; color: #fff; }
 .event-coverflow-arrow:disabled { opacity: .35; cursor: default; }
-.event-coverflow-details { max-width: 920px; margin: 1rem auto 0; display: flex; align-items: flex-end; justify-content: space-between; gap: 1.5rem; color: #19342b; }
-.event-coverflow-details-main { min-width: 0; }
-.event-coverflow-kicker { color: #825d22; font-size: .76rem; font-weight: 800; }
-.event-coverflow-details h3 { margin: .35rem 0 .45rem; font-family: var(--font-serif); font-size: clamp(1.35rem, 2.2vw, 1.9rem); line-height: 1.25; }
-.event-coverflow-details p { margin: 0 0 .85rem; color: #52665c; line-height: 1.55; }
-.event-coverflow-meta { display: flex; flex-wrap: wrap; gap: .45rem 1.15rem; color: #52665c; font-size: .85rem; }
-.event-coverflow-meta span { display: inline-flex; align-items: center; gap: .35rem; }
+.event-coverflow-details { max-width: 920px; margin: 1rem auto 0; display: flex; align-items: flex-end; justify-content: space-between; gap: 1.5rem; color: #19342b; height: 156px; min-height: 156px; max-height: 156px; padding-bottom: 8px; overflow: hidden; box-sizing: border-box; }
+.event-coverflow-details-main { min-width: 0; flex: 1; animation: eventDetailsFade 220ms ease-out; }
+@keyframes eventDetailsFade {
+  from { opacity: 0.45; }
+  to { opacity: 1; }
+}
+.event-coverflow-kicker { color: #825d22; font-size: .76rem; font-weight: 800; flex-shrink: 0; }
+.event-coverflow-details h3 {
+  margin: .35rem 0 .45rem;
+  font-family: var(--font-serif);
+  font-size: clamp(1.35rem, 2.2vw, 1.9rem);
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: calc(1.25 * 2 * 1em);
+}
+.event-coverflow-details p {
+  margin: 0 0 .85rem;
+  color: #52665c;
+  line-height: 1.55;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: calc(1.55 * 2 * 1em);
+}
+.event-coverflow-meta { display: flex; flex-wrap: wrap; gap: .45rem 1.15rem; color: #52665c; font-size: .85rem; min-height: 1.6rem; }
+.event-coverflow-meta span { display: inline-flex; align-items: center; gap: .35rem; max-width: 100%; }
+.event-coverflow-meta-location { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 280px; }
 .event-coverflow-actions { display: flex; flex-shrink: 0; gap: .55rem; }
 .event-coverflow-actions button { min-height: 42px; padding: .55rem .85rem; border-radius: 5px; font-weight: 750; cursor: pointer; }
-.event-coverflow-detail-btn { border: 1px solid #9aafa4; background: transparent; color: #193a2f; }
+.event-coverflow-detail-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  min-height: 38px;
+  padding: 0 16px;
+  border-radius: 8px;
+  border: 1.5px solid #17382E;
+  background: #FFFFFF;
+  color: #17382E;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  box-shadow: 0 2px 6px rgba(23, 56, 46, 0.08);
+  box-sizing: border-box;
+}
+.event-coverflow-detail-btn:hover {
+  background: #17382E;
+  color: #FFFFFF;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(23, 56, 46, 0.16);
+}
+.event-coverflow-detail-btn svg {
+  color: #17382E;
+  transition: transform 0.18s ease, color 0.18s ease;
+}
+.event-coverflow-detail-btn:hover svg {
+  color: #E9BC63;
+  transform: translateX(2px);
+}
 .event-coverflow-register-btn { border: 1px solid #e2ad52; background: #e2ad52; color: #1b2b25; }
-.event-coverflow-pagination { display: flex; justify-content: center; flex-wrap: wrap; gap: .45rem; margin-top: 1.5rem; }
+.event-coverflow-pagination { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: .45rem; margin-top: 1.5rem; height: 16px; min-height: 16px; max-height: 16px; }
 .event-coverflow-pagination button { width: 8px; height: 8px; padding: 0; border: 0; border-radius: 50%; background: #9eaea4; cursor: pointer; }
 .event-coverflow-pagination button.is-selected { width: 24px; border-radius: 10px; background: #193a2f; }
 .event-coverflow-empty { text-align: center; padding: 3rem 1rem; color: #52665c; }
-@media (max-width: 700px) { .event-coverflow-stage-wrap { grid-template-columns: 32px minmax(0, 1fr) 32px; gap: 0; } .event-coverflow-stage { height: 330px; perspective: 700px; } .event-coverflow-slide { width: min(62vw, 260px); } .event-coverflow-week-badge { top: .55rem; left: .55rem; min-width: 3.75rem; min-height: 1.9rem; font-size: .62rem; } .event-coverflow-arrow { width: 32px; height: 40px; border-radius: 6px; } .event-coverflow-details { align-items: stretch; flex-direction: column; padding-inline: .35rem; } .event-coverflow-actions { flex-wrap: wrap; } }
+@media (max-width: 768px) {
+  .event-coverflow-stage-wrap { grid-template-columns: 32px minmax(0, 1fr) 32px; gap: 0; }
+  .event-coverflow-stage { height: 330px; perspective: 700px; }
+  .event-coverflow-slide { width: min(62vw, 260px); }
+  .event-coverflow-week-badge { top: .55rem; left: .55rem; min-width: 3.75rem; min-height: 1.9rem; font-size: .62rem; }
+  .event-coverflow-arrow { width: 32px; height: 40px; border-radius: 6px; }
+  .event-coverflow-details {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 0.5rem 0.5rem 1.25rem;
+    height: 280px;
+    min-height: 280px;
+    max-height: 280px;
+    overflow: hidden;
+    box-sizing: border-box;
+    justify-content: flex-start;
+  }
+  .event-coverflow-details-main {
+    flex: none;
+    height: 185px;
+    min-height: 185px;
+    max-height: 185px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+  .event-coverflow-kicker-row {
+    height: 24px;
+    min-height: 24px;
+    max-height: 24px;
+    margin-bottom: .2rem;
+  }
+  .event-coverflow-details h3 {
+    font-size: 1.2rem;
+    line-height: 1.3;
+    height: 3.12rem;
+    min-height: 3.12rem;
+    max-height: 3.12rem;
+    margin: .2rem 0 .3rem;
+  }
+  .event-coverflow-details p {
+    font-size: 0.85rem;
+    line-height: 1.45;
+    height: 2.5rem;
+    min-height: 2.5rem;
+    max-height: 2.5rem;
+    margin: 0 0 .35rem;
+  }
+  .event-coverflow-meta {
+    font-size: 0.78rem;
+    gap: .25rem .75rem;
+    height: 2.7rem;
+    min-height: 2.7rem;
+    max-height: 2.7rem;
+    overflow: hidden;
+  }
+  .event-coverflow-meta-location {
+    max-width: 100%;
+  }
+  .event-coverflow-actions {
+    flex: none;
+    height: 42px;
+    min-height: 42px;
+    max-height: 42px;
+    margin-top: 10px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+  }
+  .event-coverflow-detail-btn {
+    align-self: flex-start;
+  }
+  .event-coverflow-pagination {
+    margin-top: 1.25rem;
+    height: 16px;
+    min-height: 16px;
+    max-height: 16px;
+  }
+}
 @media (prefers-reduced-motion: reduce) { .event-coverflow-slide { transition: none; } }

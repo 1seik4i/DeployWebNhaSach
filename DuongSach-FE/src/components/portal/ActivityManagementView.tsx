@@ -415,7 +415,7 @@ export const ActivityManagementView: React.FC<ActivityManagementViewProps> = ({
   };
 
   return (
-    <div className="organizer-content" style={{ padding: '1.75rem 2rem' }}>
+    <div className="organizer-content org-activities-page">
       {/* 1. Header with title and Create button */}
       <div style={{
         display: 'flex',
@@ -478,8 +478,8 @@ export const ActivityManagementView: React.FC<ActivityManagementViewProps> = ({
           </button>
         </div>
 
-        <div className="org-toolbar-left" style={{ marginLeft: 'auto', display: 'flex', gap: '0.65rem', alignItems: 'center', flexWrap: 'nowrap' }}>
-          <div className="organizer-search-box" style={{ width: '220px', minWidth: '180px', flexShrink: 0 }}>
+        <div className="org-toolbar-left org-toolbar-controls">
+          <div className="organizer-search-box">
             <Search size={15} />
             <input
               type="text"
@@ -491,23 +491,9 @@ export const ActivityManagementView: React.FC<ActivityManagementViewProps> = ({
 
           {events && events.length > 0 && (
             <select
+              className="org-filter-select"
               value={selectedEventId || 'all'}
               onChange={(e) => onSelectEventId?.(e.target.value === 'all' ? '' : e.target.value)}
-              style={{
-                padding: '0 0.85rem',
-                height: '38px',
-                borderRadius: '8px',
-                border: '1.5px solid #D1DCD7',
-                background: '#FFFFFF',
-                color: '#172421',
-                fontSize: '0.84rem',
-                fontWeight: 550,
-                cursor: 'pointer',
-                outline: 'none',
-                flexShrink: 0,
-                maxWidth: '220px',
-                boxSizing: 'border-box'
-              }}
             >
               <option value="all">{vi ? 'Tất cả sự kiện' : 'All Events'}</option>
               {events.map((ev) => (
@@ -517,22 +503,9 @@ export const ActivityManagementView: React.FC<ActivityManagementViewProps> = ({
           )}
 
           <select
+            className="org-filter-select"
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
-            style={{
-              padding: '0 0.85rem',
-              height: '38px',
-              borderRadius: '8px',
-              border: '1.5px solid #D1DCD7',
-              background: '#FFFFFF',
-              color: '#172421',
-              fontSize: '0.84rem',
-              fontWeight: 550,
-              cursor: 'pointer',
-              outline: 'none',
-              flexShrink: 0,
-              boxSizing: 'border-box'
-            }}
           >
             <option value="all">{vi ? 'Tất cả loại' : 'All Types'}</option>
             <option value="Talkshow">Talkshow</option>
@@ -574,80 +547,36 @@ export const ActivityManagementView: React.FC<ActivityManagementViewProps> = ({
         {filteredActivities.map((act) => (
           <div
             key={act.id}
-            className="organizer-card"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '1.25rem',
-              padding: '1rem 1.25rem',
-              borderRadius: 14,
-              border: act.hasConflict ? '1px solid #FDE68A' : '1px solid #E5E7EB',
-              borderLeft: act.hasConflict ? '4px solid #D97706' : '1px solid #E5E7EB',
-              background: '#FFFFFF',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
-              transition: 'all 0.2s ease'
-            }}
+            className={`organizer-card org-act-manage-card ${act.hasConflict ? 'has-conflict' : ''}`}
           >
             {/* Khối Thông tin chính (Thumbnail + Tiêu đề + Thời gian/Địa điểm) */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1.1rem', flex: 1, minWidth: 0 }}>
+            <div className="org-act-card-main">
               {act.thumbnail ? (
                 <img
                   src={act.thumbnail}
                   alt={act.title}
-                  style={{
-                    width: 82,
-                    height: 64,
-                    borderRadius: 10,
-                    objectFit: 'cover',
-                    border: '1px solid #E2E8F0',
-                    flexShrink: 0
-                  }}
+                  className="org-act-card-thumb"
                 />
               ) : (
-                <div style={{
-                  width: 82,
-                  height: 64,
-                  borderRadius: 10,
-                  background: '#F1F5F9',
-                  border: '1px solid #E2E8F0',
-                  display: 'grid',
-                  placeItems: 'center',
-                  color: '#94A3B8',
-                  fontSize: '0.72rem',
-                  fontWeight: 600,
-                  flexShrink: 0
-                }}>
+                <div className="org-act-card-thumb-placeholder">
                   {vi ? 'Chưa có ảnh' : 'No image'}
                 </div>
               )}
 
-              <div style={{ minWidth: 0, flex: 1 }}>
-                <h3 
-                  title={act.title} 
-                  style={{ 
-                    margin: '0 0 6px 0', 
-                    fontSize: '1rem', 
-                    fontWeight: 700, 
-                    color: '#111827', 
-                    lineHeight: 1.35,
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis'
-                  }}
-                >
+              <div className="org-act-card-info">
+                <h3 title={act.title} className="org-act-card-title">
                   {act.title}
                 </h3>
 
-                <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem 1.1rem', color: '#64748B', fontSize: '0.8rem' }}>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                <div className="org-act-card-meta">
+                  <span className="org-act-meta-item">
                     <CalendarDays size={14} color="#059669" />
                     <span>{act.dateStr} · {act.timeStr}</span>
                   </span>
 
                   <span 
+                    className="org-act-meta-item"
                     title={act.proposalId ? `${act.boothCode} · ${act.boothName}` : act.location}
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: 5, maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
                   >
                     {act.proposalId ? <Store size={14} color="#B48A3C" /> : <MapPin size={14} color="#0284C7" />}
                     <span>{act.proposalId ? `${act.boothCode} · ${act.boothName}` : act.location}</span>
@@ -655,7 +584,7 @@ export const ActivityManagementView: React.FC<ActivityManagementViewProps> = ({
                 </div>
 
                 {act.hasConflict && (
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 5, color: '#B45309', fontSize: '0.74rem', fontWeight: 700 }}>
+                  <div className="org-act-conflict-tag">
                     <AlertTriangle size={13} />
                     <span>{vi ? 'Có xung đột lịch / địa điểm' : 'Schedule conflict detected'}</span>
                   </div>
@@ -663,72 +592,32 @@ export const ActivityManagementView: React.FC<ActivityManagementViewProps> = ({
               </div>
             </div>
 
-            {/* CỘT RIÊNG CHO CÁC TAG (Thể loại & Trạng thái theo 1 cột đồng bộ) */}
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 6,
-              minWidth: '135px',
-              padding: '0 0.5rem',
-              flexShrink: 0
-            }}>
-              {/* Tag thể loại */}
-              <span style={{
-                padding: '2px 9px',
-                borderRadius: 6,
-                background: '#F1F5F9',
-                color: '#334155',
-                fontSize: '0.72rem',
-                fontWeight: 700,
-                letterSpacing: '0.02em',
-                whiteSpace: 'nowrap',
-                border: '1px solid #E2E8F0'
-              }}>
+            {/* CỘT RIÊNG CHO CÁC TAG (Thể loại & Trạng thái) */}
+            <div className="org-act-card-tags">
+              <span className="org-act-type-tag">
                 {act.type}
               </span>
-
-              {/* Tag trạng thái xét duyệt */}
               {renderStatusBadge(act.status, act.statusLabelVi)}
             </div>
 
             {/* Khối Nút Tác vụ (Xem chi tiết & Phê duyệt / Không duyệt) */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
+            <div className="org-act-card-actions">
               <button
                 type="button"
-                className="btn-org-secondary"
+                className="btn-org-secondary org-act-btn"
                 onClick={() => handleOpenDetail(act)}
                 title={vi ? 'Xem thông tin chi tiết hoạt động' : 'View activity details'}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 5,
-                  padding: '7px 13px',
-                  borderRadius: 8,
-                  fontSize: '0.82rem',
-                  fontWeight: 600,
-                  background: '#FFFFFF',
-                  border: '1px solid #D1D5DB',
-                  color: '#374151',
-                  cursor: 'pointer'
-                }}
               >
                 <Eye size={14} />
-                <span>{vi ? 'Xem chi tiết' : 'Details'}</span>
+                <span>{vi ? 'Chi tiết' : 'Details'}</span>
               </button>
 
               {act.status !== 'pending' && ((act.proposalId && onDeleteProposal) || (!act.proposalId && onDeleteActivity)) && (
                 <button
                   type="button"
-                  className="btn-org-secondary"
+                  className="btn-org-secondary org-act-btn org-act-btn-delete"
                   onClick={() => void handleDeleteActivity(act)}
                   title={vi ? (act.proposalId ? 'Xóa đề xuất' : 'Xóa hoạt động') : (act.proposalId ? 'Delete proposal' : 'Delete activity')}
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 5, padding: '7px 12px',
-                    borderRadius: 8, fontSize: '0.82rem', fontWeight: 600, background: '#FEF2F2',
-                    border: '1px solid #FECACA', color: '#DC2626', cursor: 'pointer'
-                  }}
                 >
                   <Trash2 size={14} />
                   <span>{vi ? 'Xóa' : 'Delete'}</span>
@@ -739,22 +628,9 @@ export const ActivityManagementView: React.FC<ActivityManagementViewProps> = ({
                 <>
                   <button
                     type="button"
-                    className="btn-org-primary"
+                    className="btn-org-primary org-act-btn org-act-btn-approve"
                     onClick={() => handleDirectApprove(act)}
                     title={vi ? 'Phê duyệt hoạt động này' : 'Approve activity'}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 5,
-                      padding: '7px 15px',
-                      borderRadius: 8,
-                      fontSize: '0.82rem',
-                      fontWeight: 600,
-                      background: '#182924',
-                      color: '#FFFFFF',
-                      border: 'none',
-                      cursor: 'pointer'
-                    }}
                   >
                     <Check size={14} />
                     <span>{vi ? 'Duyệt' : 'Approve'}</span>
@@ -762,25 +638,12 @@ export const ActivityManagementView: React.FC<ActivityManagementViewProps> = ({
 
                   <button
                     type="button"
-                    className="btn-org-secondary"
+                    className="btn-org-secondary org-act-btn org-act-btn-reject"
                     onClick={() => handleOpenRejectModal(act)}
                     title={vi ? 'Không phê duyệt (Cho phép góp ý hoặc không)' : 'Reject (With optional feedback)'}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 5,
-                      padding: '7px 12px',
-                      borderRadius: 8,
-                      fontSize: '0.82rem',
-                      fontWeight: 600,
-                      background: '#FEF2F2',
-                      border: '1px solid #FECACA',
-                      color: '#DC2626',
-                      cursor: 'pointer'
-                    }}
                   >
                     <X size={14} />
-                    <span>{vi ? 'Không duyệt' : 'Reject'}</span>
+                    <span>{vi ? 'Từ chối' : 'Reject'}</span>
                   </button>
                 </>
               )}
@@ -788,18 +651,13 @@ export const ActivityManagementView: React.FC<ActivityManagementViewProps> = ({
               {act.status === 'need_revision' && (
                 <button
                   type="button"
-                  className="btn-org-secondary"
+                  className="btn-org-secondary org-act-btn org-act-btn-note"
                   onClick={() => {
                     handleOpenDetail(act);
                     setModalStatus('need_revision');
                     setModalNote('');
                   }}
                   title={vi ? 'Gửi ghi chú cho đối tác và không duyệt đề xuất' : 'Send notes to the partner and reject proposal'}
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 5, padding: '7px 12px',
-                    borderRadius: 8, fontSize: '0.82rem', fontWeight: 600, background: '#FEF2F2',
-                    border: '1px solid #FECACA', color: '#DC2626', cursor: 'pointer'
-                  }}
                 >
                   <MessageSquare size={14} />
                   <span>{vi ? 'Ghi chú & không duyệt' : 'Note & reject'}</span>

@@ -34,18 +34,18 @@ export const PartnerReportsPage: React.FC<PartnerReportsPageProps> = ({
       {/* 1. Header matching Sketch Screen 7 */}
       <div className="partner-page-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h1 className="partner-page-title" style={{ margin: 0 }}>
-            {language === 'vi' ? 'Thống kê sau sự kiện' : 'Reports & Statistics'}
+          <h1 className="partner-page-title">
+            {language === 'vi' ? 'Báo cáo & Thống kê' : 'Reports & Analytics'}
           </h1>
           <p className="partner-page-sub">
             {language === 'vi' 
-              ? 'Báo cáo hiệu quả tham gia gian hàng và các hoạt động tương tác độc giả.' 
+              ? 'Báo cáo số liệu lượt tham gia, tương tác độc giả và hiệu quả hoạt động.' 
               : 'Post-event performance, attendance metrics and reader feedback.'}
           </p>
         </div>
 
         {/* Event Filter Dropdown matching Sketch Screen 7 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div className="partner-reports-actions">
           <select
             value={selectedEvent}
             onChange={(e) => setSelectedEvent(e.target.value)}
@@ -173,7 +173,7 @@ export const PartnerReportsPage: React.FC<PartnerReportsPageProps> = ({
             {language === 'vi' ? 'Đánh giá hoạt động' : 'Activity Ratings'}
           </h3>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginTop: '1.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', marginTop: '1.5rem', flexWrap: 'wrap' }}>
             {/* Visual SVG Donut Indicator dynamically calculated */}
             {(() => {
               const ratingColors = ['#10B981', '#E9BC63', '#60A5FA', '#F87171', '#9CA3AF'];

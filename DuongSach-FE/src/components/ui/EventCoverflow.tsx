@@ -148,7 +148,7 @@ export function EventCoverflow({ events, language, weekEventIds, isLoading = fal
       </div>
 
       <div className="event-coverflow-details" aria-live="polite">
-        <div className="event-coverflow-details-main">
+        <div key={current.id} className="event-coverflow-details-main">
           <div className="event-coverflow-kicker-row">
             <span className="event-coverflow-kicker">{language === 'vi' ? current.typeLabelVi : current.typeLabelEn}</span>
             {(current.isOngoingToday || current.status === 'happening') && (
@@ -158,15 +158,18 @@ export function EventCoverflow({ events, language, weekEventIds, isLoading = fal
             )}
           </div>
           <h3>{language === 'vi' ? current.title : current.titleEn}</h3>
-          <p>{language === 'vi' ? current.summary : current.summaryEn}</p>
+          <p>{(language === 'vi' ? current.summary : current.summaryEn) || (language === 'vi' ? 'Sự kiện văn hóa nghệ thuật và phát triển văn hóa đọc tại Đường Sách TP.HCM.' : 'Cultural and reading events at Ho Chi Minh City Book Street.')}</p>
           <div className="event-coverflow-meta">
             <span><CalendarDays size={16} />{current.dayOfWeek ? `${current.dayOfWeek}, ` : ''}{current.dateRange || current.dateStr}</span>
             <span><Clock3 size={16} />{current.timeStr}</span>
-            <span><MapPin size={16} />{language === 'vi' ? current.location : current.locationEn}</span>
+            <span className="event-coverflow-meta-location"><MapPin size={16} />{language === 'vi' ? current.location : current.locationEn}</span>
           </div>
         </div>
         <div className="event-coverflow-actions">
-          <button type="button" className="event-coverflow-detail-btn" onClick={() => onDetails(current)}>{language === 'vi' ? 'Xem chi tiết' : 'View details'}</button>
+          <button type="button" className="event-coverflow-detail-btn" onClick={() => onDetails(current)}>
+            <span>{language === 'vi' ? 'Xem chi tiết' : 'View details'}</span>
+            <ChevronRight size={15} />
+          </button>
         </div>
       </div>
       {count > 1 && <div className="event-coverflow-pagination" aria-label={language === 'vi' ? 'Chọn sự kiện' : 'Choose event'}>

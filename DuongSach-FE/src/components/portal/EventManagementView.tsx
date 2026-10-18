@@ -184,6 +184,19 @@ export const EventManagementView: React.FC<EventManagementViewProps> = ({
     return days;
   }, [currentYear, currentMonth, filteredEvents]);
 
+  const now = new Date();
+  const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  const effectiveSelectedDateStr = selectedDateStr || todayKey;
+
+  const selectedDayEvents = useMemo(() => {
+    return filteredEvents.filter(e => {
+      if (!e.startDate) return false;
+      const start = e.startDate;
+      const end = e.endDate || e.startDate;
+      return effectiveSelectedDateStr >= start && effectiveSelectedDateStr <= end;
+    });
+  }, [filteredEvents, effectiveSelectedDateStr]);
+
   const getStatusLabel = (status: OrganizerEvent['status']) => {
     switch (status) {
       case 'happening':
@@ -225,11 +238,6 @@ export const EventManagementView: React.FC<EventManagementViewProps> = ({
             </span>
             <h1>{language === 'vi' ? 'Lịch & Quản lý sự kiện' : 'Event Calendar & Management'}</h1>
           </div>
-          <p>
-            {language === 'vi' 
-              ? 'Lịch trình sự kiện toàn không gian Đường Sách TP.HCM. Theo dõi, kích hoạt và điều phối chương trình văn hóa.' 
-              : 'Complete event schedule across Ho Chi Minh City Book Street. Track, manage and publish cultural programs.'}
-          </p>
         </div>
 
         <div className="event-mgmt-actions">
@@ -285,7 +293,7 @@ export const EventManagementView: React.FC<EventManagementViewProps> = ({
           </div>
 
           {/* Quick Filter Tabs & Search */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', flexWrap: 'wrap' }}>
+          <div className="cal-nav-filters-wrap">
             {/* Filter Pills */}
             <div className="event-status-pills">
               <button
@@ -342,22 +350,20 @@ export const EventManagementView: React.FC<EventManagementViewProps> = ({
 
         {/* Calendar Weekday Header */}
         <div className="cal-grid-weekdays">
-          <div>{language === 'vi' ? 'Thứ 2' : 'Mon'}</div>
-          <div>{language === 'vi' ? 'Thứ 3' : 'Tue'}</div>
-          <div>{language === 'vi' ? 'Thứ 4' : 'Wed'}</div>
-          <div>{language === 'vi' ? 'Thứ 5' : 'Thu'}</div>
-          <div>{language === 'vi' ? 'Thứ 6' : 'Fri'}</div>
-          <div>{language === 'vi' ? 'Thứ 7' : 'Sat'}</div>
-          <div style={{ color: '#DC2626' }}>{language === 'vi' ? 'Chủ nhật' : 'Sun'}</div>
+          <div><span className="cal-weekday-desktop">{language === 'vi' ? 'Thứ 2' : 'Mon'}</span><span className="cal-weekday-mobile">T2</span></div>
+          <div><span className="cal-weekday-desktop">{language === 'vi' ? 'Thứ 3' : 'Tue'}</span><span className="cal-weekday-mobile">T3</span></div>
+          <div><span className="cal-weekday-desktop">{language === 'vi' ? 'Thứ 4' : 'Wed'}</span><span className="cal-weekday-mobile">T4</span></div>
+          <div><span className="cal-weekday-desktop">{language === 'vi' ? 'Thứ 5' : 'Thu'}</span><span className="cal-weekday-mobile">T5</span></div>
+          <div><span className="cal-weekday-desktop">{language === 'vi' ? 'Thứ 6' : 'Fri'}</span><span className="cal-weekday-mobile">T6</span></div>
+          <div><span className="cal-weekday-desktop">{language === 'vi' ? 'Thứ 7' : 'Sat'}</span><span className="cal-weekday-mobile">T7</span></div>
+          <div style={{ color: '#DC2626' }}><span className="cal-weekday-desktop">{language === 'vi' ? 'Chủ nhật' : 'Sun'}</span><span className="cal-weekday-mobile">CN</span></div>
         </div>
 
         {/* Calendar Days Grid */}
         <div className="cal-grid-cells">
           {calendarDays.map((cell, idx) => {
             const hasEvents = cell.events.length > 0;
-            const isSelected = selectedDateStr === cell.dateStr;
-            const now = new Date();
-            const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            const isSelected = effectiveSelectedDateStr === cell.dateStr;
             const isToday = cell.dateStr === todayKey;
             const isPastDate = cell.dateStr < todayKey;
             const visibleEvents = cell.events.slice(0, 2);
@@ -380,10 +386,12 @@ export const EventManagementView: React.FC<EventManagementViewProps> = ({
                 }}
                 onClick={() => {
                   setSelectedDateStr(cell.dateStr);
-                  if (!isPastDate) {
-                    onOpenCreateEvent();
-                  } else if (hasEvents) {
-                    setDayOverviewModal({ dateStr: cell.dateStr, day: cell.day, events: cell.events });
+                  if (window.innerWidth > 768) {
+                    if (!isPastDate) {
+                      onOpenCreateEvent();
+                    } else if (hasEvents) {
+                      setDayOverviewModal({ dateStr: cell.dateStr, day: cell.day, events: cell.events });
+                    }
                   }
                 }}
                 title={isPastDate ? (hasEvents ? (language === 'vi' ? 'Ngày đã diễn ra - Bấm để xem các sự kiện' : 'Past date - Click to view events') : (language === 'vi' ? 'Ngày đã qua - Không thể tạo sự kiện mới' : 'Past date - Cannot add new event')) : undefined}
@@ -416,6 +424,7 @@ export const EventManagementView: React.FC<EventManagementViewProps> = ({
 
                   {hasEvents ? (
                     <span 
+                      className="cal-cell-badge-desktop"
                       style={{
                         fontSize: '0.68rem',
                         fontWeight: 650,
@@ -432,7 +441,7 @@ export const EventManagementView: React.FC<EventManagementViewProps> = ({
                     </span>
                   ) : (
                     <span 
-                      className="cal-cell-empty-text"
+                      className="cal-cell-empty-text cal-cell-empty-text-desktop"
                       title={isPastDate ? (language === 'vi' ? 'Ngày đã qua' : 'Past date') : (language === 'vi' ? 'Bấm để tạo sự kiện mới' : 'Click to add event')}
                       style={{ color: '#CBD5E1', fontSize: '0.7rem' }}
                     >
@@ -441,9 +450,23 @@ export const EventManagementView: React.FC<EventManagementViewProps> = ({
                   )}
                 </div>
 
-                {/* Stacked Event Items inside Cell */}
-                <div className="cal-cell-events" style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                  {visibleEvents.map((evt, evtIdx) => {
+                {/* Mobile: Compact indicator dots */}
+                {hasEvents && (
+                  <div className="cal-cell-dots-mobile">
+                    {cell.events.slice(0, 3).map((ev, dotIdx) => (
+                      <span 
+                        key={dotIdx} 
+                        className="cal-cell-dot" 
+                        style={{ backgroundColor: getEventStatusColor(ev.status) }} 
+                      />
+                    ))}
+                    {cell.events.length > 3 && <span className="cal-cell-dot-plus">+</span>}
+                  </div>
+                )}
+
+                {/* Stacked Event Items inside Cell (Desktop) */}
+                <div className="cal-cell-events cal-cell-events-desktop" style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                  {visibleEvents.map((evt) => {
                     const statusColor = getEventStatusColor(evt.status);
                     const timeText = evt.dateRange ? evt.dateRange.split('•')[1]?.trim() || '' : '';
                     return (
@@ -524,6 +547,93 @@ export const EventManagementView: React.FC<EventManagementViewProps> = ({
               </div>
             );
           })}
+        </div>
+
+        {/* Compact Mobile Agenda Section for Selected Day */}
+        <div className="cal-selected-day-agenda-mobile">
+          <div className="agenda-mobile-header">
+            <div className="agenda-mobile-title-block">
+              <span className="agenda-date-label">
+                {(() => {
+                  try {
+                    const parts = effectiveSelectedDateStr.split('-');
+                    if (parts.length === 3) {
+                      const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+                      const dayNameVi = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'][d.getDay()];
+                      const dayNameEn = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][d.getDay()];
+                      return language === 'vi' 
+                        ? `${dayNameVi}, ngày ${parts[2]}/${parts[1]}/${parts[0]}`
+                        : `${dayNameEn}, ${parts[2]}/${parts[1]}/${parts[0]}`;
+                    }
+                  } catch {}
+                  return effectiveSelectedDateStr;
+                })()}
+              </span>
+              <span className="agenda-count-badge">
+                {selectedDayEvents.length} {language === 'vi' ? 'sự kiện' : 'events'}
+              </span>
+            </div>
+
+            {effectiveSelectedDateStr >= todayKey && (
+              <button
+                type="button"
+                className="agenda-propose-btn"
+                onClick={() => onOpenCreateEvent()}
+              >
+                <Plus size={13} />
+                <span>{language === 'vi' ? 'Tạo sự kiện' : 'Create event'}</span>
+              </button>
+            )}
+          </div>
+
+          <div className="agenda-mobile-list">
+            {selectedDayEvents.length === 0 ? (
+              <div className="agenda-empty-state">
+                <p>{language === 'vi' ? 'Không có sự kiện nào trong ngày này.' : 'No events scheduled for this date.'}</p>
+                {effectiveSelectedDateStr >= todayKey && (
+                  <button
+                    type="button"
+                    className="agenda-empty-add-btn"
+                    onClick={() => onOpenCreateEvent()}
+                  >
+                    <Plus size={14} />
+                    <span>{language === 'vi' ? 'Tạo sự kiện mới vào ngày này' : 'Create event for this date'}</span>
+                  </button>
+                )}
+              </div>
+            ) : (
+              selectedDayEvents.map(ev => {
+                const statusColor = getEventStatusColor(ev.status);
+                const timeText = ev.dateRange ? ev.dateRange.split('•')[1]?.trim() || '' : '';
+                return (
+                  <div 
+                    key={ev.id} 
+                    className="agenda-event-card"
+                    style={{ borderLeftColor: statusColor }}
+                    onClick={() => setPreviewEvent(ev)}
+                  >
+                    <div className="agenda-event-left">
+                      <div className="agenda-event-time">
+                        <Clock size={13} style={{ color: statusColor }} />
+                        <span style={{ color: statusColor, fontWeight: 700 }}>{timeText || ev.startDate}</span>
+                        <span className={`event-card-badge ${ev.status}`} style={{ fontSize: '0.68rem', padding: '1px 6px', marginLeft: '6px' }}>
+                          {getStatusLabel(ev.status)}
+                        </span>
+                      </div>
+                      <h4 className="agenda-event-title">{ev.title}</h4>
+                      <div className="agenda-event-meta">
+                        {ev.location && <span>📍 {ev.location}</span>}
+                        {ev.boothOccupancy && <span>🏪 {ev.boothOccupancy}</span>}
+                      </div>
+                    </div>
+                    <div className="agenda-event-right">
+                      <ChevronRight size={18} className="agenda-chevron" />
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
         </div>
       </div>
 

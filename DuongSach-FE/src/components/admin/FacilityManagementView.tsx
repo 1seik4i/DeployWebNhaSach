@@ -149,7 +149,91 @@ export function FacilityManagementView({ kind }: { kind: FacilityKind }) {
       </div>
       {error ? <div className="facility-empty" role="alert"><p>{error}</p><button className="facility-button" onClick={() => setRevision(value => value + 1)}>Thử lại</button></div> : loading ? <div className="facility-empty" role="status">Đang tải danh sách…</div> : rows.length === 0 ?
         <div className="facility-empty"><Icon size={38} /><h3>{search || campus ? 'Không tìm thấy kết quả' : `Chưa có ${labels[kind]}`}</h3><p>{search || campus ? 'Thử thay đổi từ khóa hoặc cơ sở đã chọn.' : `Thêm ${labels[kind]} đầu tiên để bắt đầu quản lý.`}</p><button className="facility-button" onClick={() => { if (search || campus) { setSearch(''); setCampus(''); } else open('new'); }}>{search || campus ? 'Xóa bộ lọc' : `Thêm ${labels[kind]}`}</button></div> :
-        <div className="facility-table-scroll"><table><caption className="facility-sr-only">Danh sách {labels[kind]}</caption><thead><tr><th scope="col">Tên {labels[kind]}</th>{!asset && kind !== 'booths' && <th scope="col">Cơ sở</th>}{kind === 'booths' ? <th scope="col">Trạng thái</th> : <th scope="col">{asset ? 'Tổng số lượng' : 'Sức chứa'}</th>}<th scope="col" className="facility-actions">Thao tác</th></tr></thead><tbody>{rows.map(row => <tr key={row.id}><td><div className="facility-name"><span className="facility-row-icon"><Icon size={19} /></span><strong>{row.name}</strong></div></td>{!asset && kind !== 'booths' && <td>{row.campus}</td>}{kind === 'booths' ? <td><span className={`booth-status ${row.status}`}>{row.status ? boothStatusLabels[row.status] : 'Chưa xác định'}</span></td> : <td><span className="facility-quantity">{(asset ? row.totalQuantity : row.capacity).toLocaleString('vi-VN')}</span> <span className="facility-muted">{asset ? 'thiết bị' : 'người'}</span></td>}<td><div className="facility-row-actions">{kind !== 'assets' && <EntityQrButton kind={kind} id={row.id} name={row.name} admin />}{kind === 'booths' && row.requestId && <><button disabled={reviewingRequestId === row.requestId} onClick={() => void reviewBoothRequest(row, 'approve')} aria-label={`Duyệt yêu cầu ${row.name}`} title="Duyệt yêu cầu"><CheckCircle2 size={17} /></button><button disabled={reviewingRequestId === row.requestId} className="danger" onClick={() => void reviewBoothRequest(row, 'reject')} aria-label={`Từ chối yêu cầu ${row.name}`} title="Từ chối yêu cầu"><XCircle size={17} /></button></>}<button onClick={() => open(row)} aria-label={`Sửa ${row.name}`} title="Chỉnh sửa"><Pencil size={17} /></button><button className="danger" onClick={() => { setFormError(''); setDeleting(row); }} aria-label={`Xóa ${row.name}`} title="Xóa"><Trash2 size={17} /></button></div></td></tr>)}</tbody></table></div>}
+        <>
+          <div className="facility-table-scroll facility-desktop-table">
+            <table>
+              <caption className="facility-sr-only">Danh sách {labels[kind]}</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Tên {labels[kind]}</th>
+                  {!asset && kind !== 'booths' && <th scope="col">Cơ sở</th>}
+                  {kind === 'booths' ? <th scope="col">Trạng thái</th> : <th scope="col">{asset ? 'Tổng số lượng' : 'Sức chứa'}</th>}
+                  <th scope="col" className="facility-actions">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map(row => (
+                  <tr key={row.id}>
+                    <td>
+                      <div className="facility-name">
+                        <span className="facility-row-icon"><Icon size={19} /></span>
+                        <strong>{row.name}</strong>
+                      </div>
+                    </td>
+                    {!asset && kind !== 'booths' && <td>{row.campus}</td>}
+                    {kind === 'booths' ? (
+                      <td><span className={`booth-status ${row.status}`}>{row.status ? boothStatusLabels[row.status] : 'Chưa xác định'}</span></td>
+                    ) : (
+                      <td>
+                        <span className="facility-quantity">{(asset ? row.totalQuantity : row.capacity).toLocaleString('vi-VN')}</span> <span className="facility-muted">{asset ? 'thiết bị' : 'người'}</span>
+                      </td>
+                    )}
+                    <td>
+                      <div className="facility-row-actions">
+                        {kind !== 'assets' && <EntityQrButton kind={kind} id={row.id} name={row.name} admin />}
+                        {kind === 'booths' && row.requestId && (
+                          <>
+                            <button disabled={reviewingRequestId === row.requestId} onClick={() => void reviewBoothRequest(row, 'approve')} aria-label={`Duyệt yêu cầu ${row.name}`} title="Duyệt yêu cầu"><CheckCircle2 size={17} /></button>
+                            <button disabled={reviewingRequestId === row.requestId} className="danger" onClick={() => void reviewBoothRequest(row, 'reject')} aria-label={`Từ chối yêu cầu ${row.name}`} title="Từ chối yêu cầu"><XCircle size={17} /></button>
+                          </>
+                        )}
+                        <button onClick={() => open(row)} aria-label={`Sửa ${row.name}`} title="Chỉnh sửa"><Pencil size={17} /></button>
+                        <button className="danger" onClick={() => { setFormError(''); setDeleting(row); }} aria-label={`Xóa ${row.name}`} title="Xóa"><Trash2 size={17} /></button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="facility-mobile-cards">
+            {rows.map(row => (
+              <div key={row.id} className="facility-mobile-card">
+                <div className="facility-mobile-card-top">
+                  <div className="facility-name">
+                    <span className="facility-row-icon"><Icon size={18} /></span>
+                    <strong>{row.name}</strong>
+                  </div>
+                  {kind === 'booths' ? (
+                    <span className={`booth-status ${row.status}`}>{row.status ? boothStatusLabels[row.status] : 'Chưa xác định'}</span>
+                  ) : (
+                    <span className="facility-mobile-qty-pill">
+                      <strong>{(asset ? row.totalQuantity : row.capacity).toLocaleString('vi-VN')}</strong> {asset ? 'thiết bị' : 'người'}
+                    </span>
+                  )}
+                </div>
+
+                <div className="facility-mobile-card-bot">
+                  {!asset && kind !== 'booths' && (
+                    <span className="facility-mobile-campus-label">{row.campus}</span>
+                  )}
+                  <div className="facility-row-actions">
+                    {kind !== 'assets' && <EntityQrButton kind={kind} id={row.id} name={row.name} admin />}
+                    {kind === 'booths' && row.requestId && (
+                      <>
+                        <button disabled={reviewingRequestId === row.requestId} onClick={() => void reviewBoothRequest(row, 'approve')} aria-label={`Duyệt yêu cầu ${row.name}`} title="Duyệt yêu cầu"><CheckCircle2 size={16} /></button>
+                        <button disabled={reviewingRequestId === row.requestId} className="danger" onClick={() => void reviewBoothRequest(row, 'reject')} aria-label={`Từ chối yêu cầu ${row.name}`} title="Từ chối yêu cầu"><XCircle size={16} /></button>
+                      </>
+                    )}
+                    <button onClick={() => open(row)} aria-label={`Sửa ${row.name}`} title="Chỉnh sửa"><Pencil size={16} /></button>
+                    <button className="danger" onClick={() => { setFormError(''); setDeleting(row); }} aria-label={`Xóa ${row.name}`} title="Xóa"><Trash2 size={16} /></button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>}
       {!loading && !error && <footer className="facility-table-footer">Hiển thị {rows.length} {labels[kind]}{campus && kind !== 'booths' ? ` · ${campus}` : ''}</footer>}
     </div>
     <dialog ref={dialog} className="facility-dialog" aria-labelledby="facility-dialog-title" onCancel={event => { event.preventDefault(); close(); }}>

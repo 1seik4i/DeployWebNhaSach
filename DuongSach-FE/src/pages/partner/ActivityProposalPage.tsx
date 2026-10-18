@@ -34,8 +34,8 @@ export const ActivityProposalPage: React.FC<ActivityProposalPageProps> = ({
       {/* 1. Header matching Sketch Screen 5 */}
       <div className="partner-page-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h1 className="partner-page-title" style={{ margin: 0 }}>
-            {language === 'vi' ? 'Danh sách hoạt động' : 'Activity Management'}
+          <h1 className="partner-page-title">
+            {language === 'vi' ? 'Quản lý hoạt động' : 'Activity Management'}
           </h1>
           <p className="partner-page-sub">
             {language === 'vi' 
@@ -160,7 +160,7 @@ export const ActivityProposalPage: React.FC<ActivityProposalPageProps> = ({
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexShrink: 0 }}>
+                <div className="activity-row-right">
                   <div>
                     <span className={`status-badge ${act.status}`}>
                       {isApproved && 'Đã duyệt'}

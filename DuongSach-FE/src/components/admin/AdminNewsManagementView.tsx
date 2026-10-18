@@ -572,11 +572,6 @@ export const AdminNewsManagementView: React.FC<AdminNewsManagementViewProps> = (
               {isVi ? 'Quản lý & Đăng Tải Bài Viết' : 'News & Articles Publishing'}
             </h1>
           </div>
-          <p className="adm-page-subtitle">
-            {isVi
-              ? 'Tạo mới, chỉnh sửa bài viết tin tức, chèn hình ảnh minh họa và xuất bản trực tiếp lên Cổng Thông Tin Đường Sách TP.HCM.'
-              : 'Create, edit news articles, insert photos, and publish to HCMC Book Street portal.'}
-          </p>
         </div>
 
         <div className="adm-page-header-actions">
@@ -677,7 +672,7 @@ export const AdminNewsManagementView: React.FC<AdminNewsManagementViewProps> = (
             )}
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div className="admin-news-view-mode-row" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <span style={{ fontSize: '0.82rem', color: '#64748B', fontWeight: 600 }}>
               {isVi ? `Hiển thị ${filteredArticles.length} bài viết` : `Showing ${filteredArticles.length} articles`}
             </span>

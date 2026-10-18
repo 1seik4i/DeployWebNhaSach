@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { Language } from '../types';
 import { apiClient } from '../services/apiClient';
+import { realtimeWebSocket } from '../services/websocketClient';
 import './Footer.css';
 
 interface FooterProps {
@@ -49,12 +50,19 @@ export const Footer: React.FC<FooterProps> = ({ language }) => {
       sessionId = crypto.randomUUID();
       sessionStorage.setItem(sessionKey, sessionId);
     }
+
+    // Kết nối WebSocket thời gian thực cho số người trực tuyến
+    const unsubscribeWs = realtimeWebSocket.subscribe((liveCount) => {
+      setOnlineCount(liveCount);
+    });
+
     const recordAndRefresh = () => {
       if (document.visibilityState === 'hidden') return;
       void apiClient.post('/public/visits', { sessionId })
         .then(() => apiClient.get<VisitStats>('/public/visit-stats'))
         .then(stats => {
-          setOnlineCount(stats.onlineCount);
+          // Chỉ fallback cập nhật onlineCount từ API nếu websocket chưa trả về
+          setOnlineCount(prev => (prev !== null ? prev : stats.onlineCount));
           setTodayVisits(stats.todayVisits);
           setMonthVisits(stats.monthVisits);
           setTotalVisits(stats.totalVisits);
@@ -69,6 +77,7 @@ export const Footer: React.FC<FooterProps> = ({ language }) => {
       .then(config => { setSiteConfig(config); setConfigError(''); })
       .catch(error => setConfigError(error instanceof Error ? error.message : 'Không thể tải thông tin liên hệ'));
     return () => {
+      unsubscribeWs();
       window.clearInterval(heartbeat);
       document.removeEventListener('visibilitychange', recordAndRefresh);
     };

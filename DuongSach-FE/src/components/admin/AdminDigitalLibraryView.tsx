@@ -5,6 +5,8 @@ import {
   BookOpen, 
   Check, 
   CheckCircle2,
+  ChevronDown,
+  ChevronUp,
   Download,
   Edit3, 
   Eye, 
@@ -856,9 +858,9 @@ export function AdminDigitalLibraryView({ language }: {
     }[] = [
         { id: 'books', vi: 'Tất cả sách', en: 'All books' }, 
         { id: 'moderation', vi: 'Kiểm duyệt', en: 'Moderation' }, 
+        { id: 'rankings', vi: 'Xếp hạng', en: 'Rankings' }, 
         { id: 'taxonomy', vi: 'Danh mục & nhãn', en: 'Categories & labels' }, 
-        { id: 'stalls', vi: 'Gian hàng & tồn kho', en: 'Stalls & inventory' }, 
-        { id: 'rankings', vi: 'Xếp hạng', en: 'Rankings' }
+        { id: 'stalls', vi: 'Gian hàng & tồn kho', en: 'Stalls & inventory' }
     ];
     return <div className="admin-library-view">
         <header className="admin-library-header">
@@ -953,7 +955,7 @@ export function AdminDigitalLibraryView({ language }: {
                     </select>
                 </div>
 
-                <div className="admin-library-table-wrap">
+                <div className="admin-library-table-wrap admin-library-desktop-table">
                     <table>
                         <thead>
                             <tr>
@@ -1115,6 +1117,165 @@ export function AdminDigitalLibraryView({ language }: {
                         </tbody>
                     </table>
                 </div>
+
+                {/* Mobile Cards for All-Books */}
+                <div className="admin-book-mobile-cards">
+                    {visibleBooks.map(book => {
+                        const bookStallList = getBookStalls(book);
+                        const hasRank = Boolean(book.bestsellerRank || book.weeklyRank);
+                        return (
+                            <div key={book.id} className="admin-book-mobile-card">
+                                <div className="admin-bmc-header">
+                                    <img 
+                                        className="admin-bmc-cover" 
+                                        src={book.coverUrl} 
+                                        alt={book.title} 
+                                        loading="lazy" 
+                                        onClick={() => openView(book)}
+                                    />
+                                    <div className="admin-bmc-main">
+                                        <div className="admin-bmc-title-row">
+                                            <strong className="admin-bmc-title" onClick={() => openView(book)}>
+                                                {book.title}
+                                            </strong>
+                                            {book.status === 'archived' && (
+                                                <span className="admin-bmc-archived-tag">
+                                                    {language === 'vi' ? 'Đã lưu trữ' : 'Archived'}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className="admin-bmc-author">
+                                            {book.author}
+                                        </div>
+                                        {book.publisher && (
+                                            <div className="admin-bmc-publisher">
+                                                {book.publisher}
+                                            </div>
+                                        )}
+                                        <div className="admin-bmc-isbn">
+                                            <span>ISBN:</span> <code className="admin-isbn-mono">{book.isbn}</code>
+                                        </div>
+                                        <div className="admin-bmc-category">
+                                            <CategoryBadge name={book.category?.name} status={book.category?.status} />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="admin-bmc-meta-row">
+                                    <div className="admin-bmc-stall-info">
+                                        <span className="admin-bmc-label">{language === 'vi' ? 'Gian hàng:' : 'Stalls:'}</span>
+                                        {bookStallList.length === 0 ? (
+                                            <span className="admin-stall-empty">{language === 'vi' ? 'Chưa có' : 'None'}</span>
+                                        ) : (
+                                            <div className="admin-stall-cell-clean">
+                                                <span className="admin-stall-tag">
+                                                    <span className="admin-stall-tag-code">{bookStallList[0].stallCode || bookStallList[0].stallName}</span>
+                                                    <span className="admin-stall-tag-qty">({bookStallList[0].inventoryQuantity})</span>
+                                                </span>
+                                                {bookStallList.length > 1 && (
+                                                    <button 
+                                                        type="button" 
+                                                        className="admin-stall-more-clean"
+                                                        onClick={() => setViewingStallsBook({ book, stalls: bookStallList })}
+                                                    >
+                                                        +{bookStallList.length - 1}
+                                                    </button>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                    
+                                    <div className="admin-bmc-rank-info">
+                                        <span className="admin-bmc-label">{language === 'vi' ? 'Xếp hạng:' : 'Rank:'}</span>
+                                        <button 
+                                            type="button" 
+                                            className={`admin-rank-trigger ${hasRank ? 'has-rank' : 'is-unranked'}`}
+                                            onClick={() => setRankingModalBook({
+                                                book,
+                                                bestsellerRank: book.bestsellerRank ?? null,
+                                                weeklyRank: book.weeklyRank ?? null,
+                                            })}
+                                        >
+                                            {book.bestsellerRank ? (
+                                                <span className="admin-rank-chip bestseller">
+                                                    Top #{book.bestsellerRank}
+                                                </span>
+                                            ) : null}
+                                            {book.weeklyRank ? (
+                                                <span className="admin-rank-chip hot">
+                                                    Hot #{book.weeklyRank}
+                                                </span>
+                                            ) : null}
+                                            {!hasRank ? (
+                                                <>
+                                                    <span className="admin-rank-dash">—</span>
+                                                    <span className="admin-rank-add-text">{language === 'vi' ? '+ Gán hạng' : '+ Set'}</span>
+                                                </>
+                                            ) : (
+                                                <Edit3 size={11} className="admin-rank-pencil" />
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="admin-bmc-actions">
+                                    {book.status === 'archived' ? (
+                                        <>
+                                            <button 
+                                                type="button" 
+                                                className="admin-bmc-btn is-restore"
+                                                onClick={() => handleRestoreBook(book)}
+                                            >
+                                                <RotateCcw size={14}/>
+                                                <span>{language === 'vi' ? 'Khôi phục' : 'Restore'}</span>
+                                            </button>
+                                            <button 
+                                                type="button" 
+                                                className="admin-bmc-btn is-danger" 
+                                                onClick={() => setDeletingBook({ book, permanent: true })}
+                                            >
+                                                <Trash2 size={14}/>
+                                                <span>{language === 'vi' ? 'Xóa vĩnh viễn' : 'Delete'}</span>
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <button 
+                                                type="button" 
+                                                className="admin-bmc-btn"
+                                                onClick={() => setQrModalBook({ book, selectedStallId: 'all' })}
+                                            >
+                                                <QrCode size={14}/>
+                                                <span>{language === 'vi' ? 'Mã QR' : 'QR'}</span>
+                                            </button>
+                                            <button 
+                                                type="button" 
+                                                className="admin-bmc-btn is-edit"
+                                                onClick={() => openEdit(book)}
+                                            >
+                                                <Edit3 size={14}/>
+                                                <span>{language === 'vi' ? 'Sửa' : 'Edit'}</span>
+                                            </button>
+                                            <button 
+                                                type="button" 
+                                                className="admin-bmc-btn is-danger" 
+                                                onClick={() => setDeletingBook({ book, permanent: false })}
+                                            >
+                                                <Trash2 size={14}/>
+                                                <span>{language === 'vi' ? 'Lưu trữ' : 'Archive'}</span>
+                                            </button>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })}
+                    {!visibleBooks.length && (
+                        <div className="admin-library-mobile-empty">
+                            {language === 'vi' ? 'Không tìm thấy sách phù hợp với bộ lọc.' : 'No books match the selected filters.'}
+                        </div>
+                    )}
+                </div>
             </section>
         )}
 
@@ -1147,7 +1308,7 @@ export function AdminDigitalLibraryView({ language }: {
                     </select>
                     <input type="date" value={requestDate} onChange={e => setRequestDate(e.target.value)}/>
                 </div>
-                <div className="admin-library-table-wrap">
+                <div className="admin-library-table-wrap admin-library-desktop-table">
                     <table>
                         <thead>
                             <tr>
@@ -1201,6 +1362,62 @@ export function AdminDigitalLibraryView({ language }: {
                             )}
                         </tbody>
                     </table>
+                </div>
+
+                {/* Mobile Cards for Moderation */}
+                <div className="admin-moderation-mobile-cards">
+                    {visibleSubmissions.map(item => (
+                        <div key={item.id} className="admin-mod-mobile-card">
+                            <div className="admin-mod-header">
+                                <div className="admin-mod-stall">
+                                    <strong>{item.stallName}</strong>
+                                    {item.stallCode && <span className="admin-stall-code-tag">{item.stallCode}</span>}
+                                </div>
+                                <span className={`admin-request-status ${item.status.toLowerCase()}`}>
+                                    {item.status === 'PENDING' ? (language === 'vi' ? 'Chờ duyệt' : 'Pending') : item.status === 'APPROVED' ? (language === 'vi' ? 'Đã duyệt' : 'Approved') : (language === 'vi' ? 'Bị từ chối' : 'Rejected')}
+                                </span>
+                            </div>
+                            <div className="admin-mod-body">
+                                <div className="admin-mod-book-title">
+                                    {String(item.proposedData.title || '—')}
+                                </div>
+                                <div className="admin-mod-book-sub">
+                                    {item.proposedData.author && <span>{item.proposedData.author}</span>}
+                                    {item.proposedData.isbn && <code>ISBN: {item.proposedData.isbn}</code>}
+                                </div>
+                                <div className="admin-mod-meta-grid">
+                                    <div>
+                                        <span className="admin-mod-meta-label">{language === 'vi' ? 'Loại yêu cầu:' : 'Type:'}</span>
+                                        <span className="admin-mod-meta-val">{submissionLabel(item, language)}</span>
+                                    </div>
+                                    <div>
+                                        <span className="admin-mod-meta-label">{language === 'vi' ? 'Người gửi:' : 'Submitter:'}</span>
+                                        <span className="admin-mod-meta-val">{item.submitterName || (language === 'vi' ? 'Đối tác gian hàng' : 'Partner')}</span>
+                                    </div>
+                                    <div>
+                                        <span className="admin-mod-meta-label">{language === 'vi' ? 'Ngày gửi:' : 'Date:'}</span>
+                                        <span className="admin-mod-meta-val">{new Date(item.submittedAt).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-GB')}</span>
+                                    </div>
+                                </div>
+                                {item.rejectionReason && (
+                                    <div className="admin-mod-reject-box">
+                                        <strong>{language === 'vi' ? 'Lý do từ chối:' : 'Rejection reason:'}</strong> {item.rejectionReason}
+                                    </div>
+                                )}
+                            </div>
+                            <div className="admin-mod-footer">
+                                <button className="admin-review-button" style={{ width: '100%', justifyContent: 'center' }} onClick={() => setReviewing(item)}>
+                                    <Eye size={15}/>
+                                    <span>{item.status === 'PENDING' ? (language === 'vi' ? 'Xem xét đề xuất' : 'Review Proposal') : (language === 'vi' ? 'Xem chi tiết' : 'View Details')}</span>
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                    {!visibleSubmissions.length && (
+                        <div className="admin-library-mobile-empty">
+                            {language === 'vi' ? 'Không có yêu cầu phù hợp với bộ lọc.' : 'No submissions match the filter.'}
+                        </div>
+                    )}
                 </div>
             </section>
         )}
@@ -1350,7 +1567,7 @@ export function AdminDigitalLibraryView({ language }: {
                         <option value="out_of_stock">{language === 'vi' ? 'Hết hàng' : 'Out of stock'}</option>
                     </select>
                 </div>
-                <div className="admin-library-table-wrap">
+                <div className="admin-library-table-wrap admin-library-desktop-table">
                     <table className="admin-stalls-table">
                         <thead>
                             <tr>
@@ -1439,6 +1656,76 @@ export function AdminDigitalLibraryView({ language }: {
                         </tbody>
                     </table>
                 </div>
+
+                {/* Mobile Cards for Stalls */}
+                <div className="admin-stall-mobile-cards">
+                    {stallRows.map(row => {
+                        const submission = latestStallSubmission(row.stall.stallId, row.book.id);
+                        const status = submission?.status || 'APPROVED';
+                        return (
+                            <div key={row.stall.id} className="admin-stall-mobile-card">
+                                <div className="admin-smc-header">
+                                    <div className="admin-stall-identity">
+                                        <strong className="admin-stall-name-text">{row.stall.stallName}</strong>
+                                        <span className="admin-stall-code-tag">{row.stall.stallCode || '—'}</span>
+                                    </div>
+                                    <span className={`admin-clean-badge stock-${row.stall.availabilityStatus}`}>
+                                        {row.stall.availabilityStatus === 'out_of_stock'
+                                            ? (language === 'vi' ? 'Hết hàng' : 'Out of stock')
+                                            : row.stall.availabilityStatus === 'low_stock'
+                                            ? (language === 'vi' ? 'Sắp hết' : 'Low stock')
+                                            : (language === 'vi' ? 'Còn hàng' : 'Available')}
+                                    </span>
+                                </div>
+                                <div className="admin-smc-body is-clickable" onClick={() => openView(row.book)}>
+                                    <img className="admin-bmc-cover" src={row.book.coverUrl} alt={row.book.title} loading="lazy" />
+                                    <div className="admin-smc-book-info">
+                                        <strong className="admin-book-title">{row.book.title}</strong>
+                                        <small className="admin-book-meta">{row.book.author}</small>
+                                        <div style={{ marginTop: '2px' }}>
+                                            <code className="admin-isbn-mono">{row.book.isbn}</code>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="admin-smc-stats-grid">
+                                    <div className="admin-smc-stat-box">
+                                        <span className="admin-smc-stat-label">{language === 'vi' ? 'Tồn kho' : 'Stock'}</span>
+                                        <span className={`admin-stock-num ${row.stall.inventoryQuantity <= 0 ? 'is-out' : row.stall.inventoryQuantity <= 4 ? 'is-low' : ''}`}>
+                                            {row.stall.inventoryQuantity}
+                                        </span>
+                                    </div>
+                                    <div className="admin-smc-stat-box">
+                                        <span className="admin-smc-stat-label">{language === 'vi' ? 'Đã bán' : 'Sold'}</span>
+                                        <span className="admin-sold-num">{row.stall.soldQuantity ?? 0}</span>
+                                    </div>
+                                    <div className="admin-smc-stat-box">
+                                        <span className="admin-smc-stat-label">{language === 'vi' ? 'Duyệt nội dung' : 'Review'}</span>
+                                        <span className={`admin-clean-badge review-${status.toLowerCase()}`}>
+                                            {status === 'PENDING'
+                                                ? (language === 'vi' ? 'Chờ duyệt' : 'Pending')
+                                                : status === 'REJECTED'
+                                                ? (language === 'vi' ? 'Bị từ chối' : 'Rejected')
+                                                : (language === 'vi' ? 'Đã duyệt' : 'Approved')}
+                                        </span>
+                                    </div>
+                                </div>
+                                {submission?.rejectionReason && (
+                                    <div className="admin-mod-reject-box" style={{ marginTop: '0.4rem' }}>
+                                        <strong>{language === 'vi' ? 'Lý do từ chối:' : 'Rejection:'}</strong> {submission.rejectionReason}
+                                    </div>
+                                )}
+                                <div className="admin-smc-footer">
+                                    <span>{language === 'vi' ? 'Cập nhật:' : 'Updated:'} {new Date(row.stall.updatedAt).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-GB')}</span>
+                                </div>
+                            </div>
+                        );
+                    })}
+                    {!stallRows.length && (
+                        <div className="admin-library-mobile-empty">
+                            {language === 'vi' ? 'Không có sách phù hợp với bộ lọc.' : 'No books match the selected filters.'}
+                        </div>
+                    )}
+                </div>
             </section>
         )}
 
@@ -1460,7 +1747,7 @@ export function AdminDigitalLibraryView({ language }: {
                         </button>
                     </div>
                 </div>
-                <div className="admin-library-table-wrap">
+                <div className="admin-library-table-wrap admin-library-desktop-table">
                     <table className="admin-rankings-table">
                         <thead>
                             <tr>
@@ -1550,6 +1837,98 @@ export function AdminDigitalLibraryView({ language }: {
                             {!ranked.length && <tr><td colSpan={7} className="admin-library-empty">{language === 'vi' ? 'Chưa có dữ liệu xếp hạng.' : 'No ranking data is available.'}</td></tr>}
                         </tbody>
                     </table>
+                </div>
+
+                {/* Mobile Cards for Rankings */}
+                <div className="admin-rank-mobile-cards">
+                    {ranked.map((book, index) => {
+                        const rank = rankingType === 'bestseller' ? book.bestsellerRank : book.weeklyRank;
+                        const source = rankingType === 'bestseller' ? book.bestsellerSource : book.weeklySource;
+                        const isTop3 = (rank ?? 999) <= 3;
+                        return (
+                            <div key={book.id} className={`admin-rank-mobile-card ${isTop3 ? `is-top-${rank}` : ''}`}>
+                                <div className="admin-rmc-header">
+                                    <div className={`admin-rmc-badge ${isTop3 ? `is-top-${rank}` : ''}`}>
+                                        {isTop3 && <Trophy size={14} className="admin-rmc-trophy" />}
+                                        <span>#{rank}</span>
+                                    </div>
+                                    <span className={`admin-source-pill ${source}`}>
+                                        {source === 'admin' ? (language === 'vi' ? 'Admin tuyển chọn' : 'Admin selected') : (language === 'vi' ? 'Tự động bán chạy' : 'Auto sales')}
+                                    </span>
+                                    <div className="admin-rmc-sales">
+                                        <strong>{rankingType === 'bestseller' ? book.totalSold : book.weeklySold ?? '—'}</strong>
+                                        <small>{language === 'vi' ? 'đã bán' : 'sold'}</small>
+                                    </div>
+                                </div>
+
+                                <div className="admin-rmc-body is-clickable" onClick={() => openView(book)}>
+                                    <img className="admin-bmc-cover" src={book.coverUrl} alt={book.title} loading="lazy" />
+                                    <div className="admin-rmc-info">
+                                        <strong className="admin-book-title">{book.title}</strong>
+                                        <span className="admin-author-clean">{book.author}</span>
+                                        <div style={{ marginTop: '4px' }}>
+                                            <CategoryBadge name={book.category?.name} status={book.category?.status} />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="admin-rmc-actions">
+                                    <div className="admin-rmc-reorder-group">
+                                        <button
+                                            type="button"
+                                            className="admin-rmc-arrow-btn"
+                                            disabled={index === 0 || rankingSaving}
+                                            onClick={() => void handleRankDrop(index, index - 1)}
+                                            title={language === 'vi' ? 'Tăng thứ hạng (lên 1 bậc)' : 'Move up'}
+                                        >
+                                            <ChevronUp size={16} />
+                                            <span>{language === 'vi' ? 'Lên' : 'Up'}</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="admin-rmc-arrow-btn"
+                                            disabled={index === ranked.length - 1 || rankingSaving}
+                                            onClick={() => void handleRankDrop(index, index + 1)}
+                                            title={language === 'vi' ? 'Giảm thứ hạng (xuống 1 bậc)' : 'Move down'}
+                                        >
+                                            <ChevronDown size={16} />
+                                            <span>{language === 'vi' ? 'Xuống' : 'Down'}</span>
+                                        </button>
+                                    </div>
+
+                                    <div className="admin-rmc-btn-group">
+                                        <button
+                                            type="button"
+                                            className="admin-rmc-act-btn"
+                                            onClick={() => setRankingModalBook({
+                                                book,
+                                                bestsellerRank: book.bestsellerRank ?? null,
+                                                weeklyRank: book.weeklyRank ?? null
+                                            })}
+                                            title={language === 'vi' ? 'Sửa xếp hạng' : 'Edit rank'}
+                                        >
+                                            <Edit3 size={14} />
+                                            <span>{language === 'vi' ? 'Sửa' : 'Edit'}</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="admin-rmc-act-btn is-danger"
+                                            onClick={() => handleRemoveFromRanking(book.id, book.title)}
+                                            title={language === 'vi' ? 'Gỡ khỏi BXH' : 'Remove'}
+                                        >
+                                            <Trash2 size={14} />
+                                            <span>{language === 'vi' ? 'Gỡ' : 'Remove'}</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                    {!ranked.length && (
+                        <div className="admin-library-mobile-empty">
+                            {language === 'vi' ? 'Chưa có sách nào trong bảng xếp hạng này.' : 'No books in this ranking.'}
+                        </div>
+                    )}
                 </div>
             </section>
         )}
@@ -2149,7 +2528,7 @@ export function AdminDigitalLibraryView({ language }: {
                         </div>
                     </div>
 
-                    <div className="admin-stalls-popup-table-wrap">
+                    <div className="admin-stalls-popup-table-wrap admin-stalls-popup-desktop-table">
                         <table className="admin-stalls-popup-table">
                             <thead>
                                 <tr>
@@ -2196,6 +2575,41 @@ export function AdminDigitalLibraryView({ language }: {
                                 })}
                             </tbody>
                         </table>
+                    </div>
+
+                    {/* Mobile cards for stalls popup */}
+                    <div className="admin-stalls-popup-mobile-cards">
+                        {viewingStallsBook.stalls.map(s => {
+                            const isOut = s.inventoryQuantity === 0;
+                            const isLow = s.inventoryQuantity > 0 && s.inventoryQuantity <= 4;
+                            return (
+                                <div key={s.id || s.stallId} className="admin-stalls-popup-mobile-card">
+                                    <div className="admin-spmc-header">
+                                        <strong>{s.stallName || 'Gian hàng'}</strong>
+                                        <code className="admin-isbn-code">{s.stallCode || '—'}</code>
+                                    </div>
+                                    <div className="admin-spmc-row">
+                                        <div>
+                                            <span className="admin-spmc-label">{language === 'vi' ? 'Tồn kho:' : 'Stock:'} </span>
+                                            <span className={`admin-qty-badge ${isOut ? 'is-out' : isLow ? 'is-low' : ''}`}>{s.inventoryQuantity}</span>
+                                        </div>
+                                        <div>
+                                            <span className="admin-spmc-label">{language === 'vi' ? 'Đã bán:' : 'Sold:'} </span>
+                                            <span className="admin-sold-qty">{s.soldQuantity ?? 0}</span>
+                                        </div>
+                                        <div>
+                                            <span className={`admin-availability ${isOut ? 'out_of_stock' : isLow ? 'low_stock' : 'available'}`}>
+                                                {isOut 
+                                                    ? (language === 'vi' ? 'Hết' : 'Out')
+                                                    : isLow
+                                                        ? (language === 'vi' ? 'Sắp hết' : 'Low')
+                                                        : (language === 'vi' ? 'Còn' : 'In')}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
 
                     <div className="admin-form-actions" style={{ justifyContent: 'space-between', alignItems: 'center' }}>

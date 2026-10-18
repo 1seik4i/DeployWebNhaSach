@@ -178,8 +178,32 @@
 }
 
 @media (max-width: 768px) {
+  .contact-topbar {
+    padding: 0.65rem 0;
+  }
   .contact-hero-fptu {
-    min-height: 400px;
+    min-height: auto !important;
+    display: block;
+    align-items: flex-start;
+    padding: 1.25rem 0 1.75rem !important;
+  }
+  .contact-hero-container {
+    padding: 0 !important;
+    width: min(1200px, calc(100% - 32px)) !important;
+  }
+  .contact-hero-era {
+    margin-bottom: 0.75rem;
+  }
+  .contact-hero-title {
+    font-size: clamp(1.85rem, 5.2vw, 2.4rem);
+    margin-bottom: 0.65rem;
+  }
+  .contact-hero-lead {
+    font-size: 0.92rem;
+    line-height: 1.6;
+  }
+  .contact-hero-bg-photo {
+    background-position: center 30%;
   }
   .contact-hero-gradient-overlay {
     background: linear-gradient(

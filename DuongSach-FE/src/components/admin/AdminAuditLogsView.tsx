@@ -343,7 +343,7 @@ export const AdminAuditLogsView: React.FC<AdminAuditLogsViewProps> = ({ logs }) 
           </div>
         </div>
 
-        <div className="adm-table-responsive">
+        <div className="adm-table-responsive adm-audit-desktop-table">
           <table className="adm-table adm-audit-table">
             <thead>
               <tr>
@@ -453,6 +453,73 @@ export const AdminAuditLogsView: React.FC<AdminAuditLogsViewProps> = ({ logs }) 
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile Cards View */}
+        <div className="adm-audit-mobile-cards">
+          {paginatedLogs.length === 0 ? (
+            <div className="adm-table-empty" style={{ padding: '2rem 1rem', background: '#FFFFFF', borderRadius: '10px', border: '1px solid #E5E7EB', textAlign: 'center' }}>
+              <Clock size={36} style={{ color: '#9CA3AF', marginBottom: '0.5rem' }} />
+              <p style={{ fontWeight: 600, color: '#374151', margin: 0 }}>Không tìm thấy bản ghi nhật ký nào</p>
+              <small style={{ color: '#6B7280' }}>Thử thay đổi từ khóa hoặc bộ lọc phân loại</small>
+            </div>
+          ) : (
+            paginatedLogs.map((log) => {
+              const badgeClass = getActionBadgeClass(log.actionLabelVi, log.targetObject);
+              const icon = getActionIcon(log.actionLabelVi, log.targetObject);
+              const initials = (log.actorName || 'AD').split(/\s+/).filter(Boolean).map(p => p[0]).join('').slice(-2).toUpperCase();
+
+              return (
+                <div
+                  key={log.id}
+                  className={`adm-audit-mobile-card ${selectedLog?.id === log.id ? 'is-selected-row' : ''}`}
+                  onClick={() => setSelectedLog(log)}
+                >
+                  <div className="adm-audit-card-top">
+                    <div className="adm-time-cell">
+                      <Clock size={12} style={{ color: '#059669', flexShrink: 0 }} />
+                      <span className="time-primary" style={{ fontSize: '0.78rem' }}>{log.timestamp}</span>
+                    </div>
+                    <span className={`adm-action-pill ${badgeClass}`} style={{ fontSize: '0.74rem', padding: '2px 8px' }}>
+                      {icon}
+                      <span>{log.actionLabelVi || log.actionType}</span>
+                    </span>
+                  </div>
+
+                  <div className="adm-audit-card-mid">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.25rem' }}>
+                      <Tag size={12} style={{ color: '#059669', flexShrink: 0 }} />
+                      <span style={{ color: '#1B4D3E', fontWeight: 700, fontSize: '0.84rem' }}>{log.targetObject}</span>
+                    </div>
+                    <div style={{ color: '#374151', fontSize: '0.82rem', fontWeight: 500, lineHeight: 1.4 }}>
+                      {formatDetailSummary(log.details)}
+                    </div>
+                  </div>
+
+                  <div className="adm-audit-card-bot">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', minWidth: 0 }}>
+                      <span className="actor-avatar-circle" style={{ width: '22px', height: '22px', fontSize: '0.65rem' }}>{initials}</span>
+                      <span style={{ fontWeight: 600, color: '#1F2937', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '140px' }}>
+                        {log.actorName || 'Quản trị viên'}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn-view-log"
+                      title="Xem chi tiết"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedLog(log);
+                      }}
+                    >
+                      <Eye size={13} />
+                      <span>Chi tiết</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
 
         {/* Pagination Controls */}

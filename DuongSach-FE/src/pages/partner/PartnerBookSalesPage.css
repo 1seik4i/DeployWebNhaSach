@@ -117,6 +117,13 @@
   gap: 0.4rem;
   border-bottom: 2px solid #e1e7e4;
   margin-bottom: 1.25rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.partner-books-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .partner-books-tab-btn {
@@ -128,6 +135,8 @@
   border: none;
   border-bottom: 3px solid transparent;
   margin-bottom: -2px;
+  white-space: nowrap;
+  flex-shrink: 0;
   font-size: 0.88rem;
   font-weight: 700;
   color: #63776e;
@@ -400,6 +409,214 @@
 .partner-col-cover.is-clickable:hover img {
   transform: scale(1.06);
   box-shadow: 0 4px 12px rgba(23, 56, 46, 0.22);
+}
+
+/* Mobile Book Cards (Hidden on Desktop) */
+.partner-books-mobile-cards {
+  display: none;
+}
+
+.partner-book-mobile-card {
+  display: flex;
+  gap: 0.85rem;
+  background: #FFFFFF;
+  border: 1px solid #E1E8E4;
+  border-radius: 12px;
+  padding: 0.85rem;
+  box-shadow: 0 2px 8px rgba(20, 36, 31, 0.04);
+  align-items: flex-start;
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+
+.book-mobile-card-cover-wrap {
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.book-mobile-card-cover {
+  width: 58px;
+  height: 82px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #DCD3C7;
+  box-shadow: 0 2px 6px rgba(23, 56, 46, 0.12);
+  display: block;
+  background: #F1EDE6;
+}
+
+.book-mobile-card-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.book-mobile-card-title-row {
+  cursor: pointer;
+}
+
+.book-mobile-card-title {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 750;
+  color: #172421;
+  line-height: 1.3;
+  margin-bottom: 2px;
+}
+
+.book-mobile-card-author {
+  display: block;
+  font-size: 0.74rem;
+  color: #637771;
+  line-height: 1.3;
+}
+
+.book-mobile-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  font-size: 0.74rem;
+  margin-top: 2px;
+}
+
+.book-mobile-isbn {
+  font-size: 0.7rem;
+  background: #F4F6F5;
+  color: #4B5563;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.book-mobile-stock-pill {
+  font-size: 0.72rem;
+  color: #1F2937;
+  background: #EDF4F1;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.book-mobile-stock-pill.is-low {
+  background: #FEF2F2;
+  color: #DC2626;
+  font-weight: 750;
+}
+
+.book-mobile-sold-pill {
+  font-size: 0.72rem;
+  color: #556B65;
+  background: #F9FAF9;
+  border: 1px solid #E5EBE8;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.book-mobile-type-pill {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #17382E;
+  background: #E2EDE8;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.book-mobile-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.book-mobile-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  border: 1px solid #D5DFDC;
+  background: #FFFFFF;
+  color: #172421;
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+
+.book-mobile-action-btn.edit {
+  background: #FAF7EE;
+  border-color: #E9BC63;
+  color: #B3862A;
+}
+
+.book-mobile-action-btn.view {
+  background: #F4F7F5;
+  border-color: #D1DDD8;
+  color: #17382E;
+}
+
+.book-mobile-action-btn.resubmit {
+  background: #FEF3C7;
+  border-color: #FDE68A;
+  color: #92400E;
+}
+
+.book-mobile-action-btn.delete {
+  background: #FEF2F2;
+  border-color: #FECACA;
+  color: #DC2626;
+}
+
+/* RESPONSIVE FOR PARTNER BOOK SALES */
+@media (max-width: 768px) {
+  .partner-desktop-table {
+    display: none !important;
+  }
+
+  .partner-books-mobile-cards {
+    display: flex !important;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding-top: 0.5rem;
+  }
+
+  .partner-books-summary {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.65rem !important;
+  }
+
+  .partner-books-page .partner-page-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.85rem;
+  }
+
+  .partner-books-primary {
+    width: 100%;
+    justify-content: center;
+    padding: 0.75rem 1rem;
+  }
+
+  .assigned-stall-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.85rem 1rem;
+  }
+
+  .assigned-stall-card em {
+    margin-left: 0;
+  }
+
+  .partner-books-tools {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .partner-books-tools select {
+    width: 100%;
+  }
 }
 
 

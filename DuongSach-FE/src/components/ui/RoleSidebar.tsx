@@ -1,5 +1,5 @@
 import { useModalBehavior } from '../../hooks/useModalBehavior';
-import { BookOpen, PanelLeft, X, ChevronDown } from 'lucide-react';
+import { BookOpen, PanelLeft, X, ChevronDown, LogOut } from 'lucide-react';
 import { ReactNode, useEffect, useState } from 'react';
 import './RoleSidebar.css';
 
@@ -18,6 +18,15 @@ export interface RoleSidebarItem {
   children?: RoleSidebarSubItem[];
 }
 
+export interface RoleSidebarUserProfile {
+  name: string;
+  subtitle?: string;
+  avatar?: string;
+  onProfileClick?: () => void;
+  onLogout?: () => void;
+  logoutLabel?: string;
+}
+
 interface RoleSidebarProps {
   ariaLabel: string;
   roleLabel: string;
@@ -27,6 +36,8 @@ interface RoleSidebarProps {
   isOpenMobile?: boolean;
   onCloseMobile?: () => void;
   onSelect: (id: string) => void;
+  userProfile?: RoleSidebarUserProfile;
+  footerExtra?: ReactNode;
 }
 
 /** Shared role navigation: collapses to an accessible icon rail on desktop and a drawer on mobile. Supports collapsible accordion groups. */
@@ -39,6 +50,8 @@ export function RoleSidebar({
   isOpenMobile = false,
   onCloseMobile,
   onSelect,
+  userProfile,
+  footerExtra,
 }: RoleSidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
 
@@ -170,6 +183,55 @@ export function RoleSidebar({
             );
           })}
         </nav>
+
+        {userProfile && (
+          <div className="role-sidebar-user-block">
+            <div 
+              className={`role-sidebar-user-info ${userProfile.onProfileClick ? 'is-clickable' : ''}`}
+              onClick={() => {
+                if (userProfile.onProfileClick) {
+                  userProfile.onProfileClick();
+                  onCloseMobile?.();
+                }
+              }}
+              role={userProfile.onProfileClick ? 'button' : undefined}
+              tabIndex={userProfile.onProfileClick ? 0 : undefined}
+              title={userProfile.name}
+            >
+              <div className="role-sidebar-user-avatar">
+                {userProfile.avatar ? (
+                  <img src={userProfile.avatar} alt={userProfile.name} />
+                ) : (
+                  <span>
+                    {userProfile.name.split(/\s+/).filter(Boolean).map(part => part[0]).join('').slice(0, 2).toUpperCase() || 'AD'}
+                  </span>
+                )}
+              </div>
+              <div className="role-sidebar-user-details">
+                <span className="role-sidebar-user-name">{userProfile.name}</span>
+                {userProfile.subtitle && <span className="role-sidebar-user-sub">{userProfile.subtitle}</span>}
+              </div>
+            </div>
+
+            {userProfile.onLogout && (
+              <button
+                type="button"
+                className="role-sidebar-logout-btn"
+                onClick={() => {
+                  userProfile.onLogout?.();
+                  onCloseMobile?.();
+                }}
+                title={userProfile.logoutLabel || 'Đăng xuất'}
+                aria-label={userProfile.logoutLabel || 'Đăng xuất'}
+              >
+                <LogOut size={16} />
+                <span className="role-sidebar-logout-label">{userProfile.logoutLabel || 'Đăng xuất'}</span>
+              </button>
+            )}
+          </div>
+        )}
+
+        {footerExtra}
 
         <footer className="role-sidebar-footer">
           <span>{editionLabel}</span>

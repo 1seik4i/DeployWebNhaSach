@@ -226,13 +226,14 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
             <Search size={16} className="adm-search-icon" />
             <input 
               type="text"
-              placeholder="Tìm theo tên, email, số điện thoại hoặc mã..."
+              placeholder="Tìm theo tên, email, SĐT hoặc mã..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="adm-filter-search"
             />
             {searchTerm && (
               <button 
+                type="button"
                 className="adm-search-clear"
                 onClick={() => setSearchTerm('')}
               >
@@ -241,19 +242,21 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
             )}
           </div>
 
-          {/* Role Filter Tabs */}
+          {/* Role Filter Tabs (Segmented Control on mobile) */}
           <div className="adm-role-tabs">
             {[
-              { id: 'all', label: 'Tất cả vai trò' },
-              { id: 'admin', label: 'Quản trị viên' },
-              { id: 'partner', label: 'Đối tác / Gian hàng' }
+              { id: 'all', label: 'Tất cả vai trò', shortLabel: 'Tất cả' },
+              { id: 'admin', label: 'Quản trị viên', shortLabel: 'Quản trị' },
+              { id: 'partner', label: 'Đối tác / Gian hàng', shortLabel: 'Đối tác' }
             ].map((tab) => (
               <button
                 key={tab.id}
+                type="button"
                 className={`adm-tab-pill ${selectedRole === tab.id ? 'active' : ''}`}
                 onClick={() => setSelectedRole(tab.id)}
               >
-                {tab.label}
+                <span className="adm-tab-label-full">{tab.label}</span>
+                <span className="adm-tab-label-short">{tab.shortLabel}</span>
               </button>
             ))}
           </div>
@@ -281,7 +284,8 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
           <span>Tìm thấy <strong>{filteredUsers.length}</strong> tài khoản phù hợp</span>
         </div>
 
-        <div className="adm-table-responsive">
+        {/* Desktop Table */}
+        <div className="adm-table-responsive adm-user-desktop-table">
           <table className="adm-table">
             <thead>
               <tr>
@@ -415,6 +419,110 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile Cards View */}
+        <div className="adm-user-mobile-cards">
+          {filteredUsers.length === 0 ? (
+            <div className="adm-table-empty">
+              <AlertCircle size={32} />
+              <p>Không tìm thấy tài khoản nào phù hợp với bộ lọc hiện tại.</p>
+            </div>
+          ) : (
+            filteredUsers.map((user) => (
+              <div key={user.id} className={`adm-user-mobile-card ${user.status === 'locked' ? 'adm-row-locked' : ''}`}>
+                <div className="adm-user-card-top">
+                  <div className="adm-user-cell">
+                    <div className="adm-user-avatar-sm">
+                      {user.avatarUrl ? (
+                        <img
+                          src={user.avatarUrl}
+                          alt={user.fullName}
+                          className="adm-user-avatar-img"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLElement).style.display = 'none';
+                            const parent = e.currentTarget.parentElement;
+                            if (parent && !parent.querySelector('.adm-user-avatar-fallback')) {
+                              const span = document.createElement('span');
+                              span.className = 'adm-user-avatar-fallback';
+                              span.textContent = user.avatarInitials;
+                              parent.appendChild(span);
+                            }
+                          }}
+                        />
+                      ) : (
+                        <span>{user.avatarInitials}</span>
+                      )}
+                    </div>
+                    <div>
+                      <div className="adm-user-name">{user.fullName}</div>
+                      <div className="adm-user-code">ID: {user.code}</div>
+                    </div>
+                  </div>
+                  <div className="adm-user-badges-wrap">
+                    <span className={`adm-badge-role ${getRoleBadgeClass(user.role)}`}>
+                      {user.roleLabelVi}
+                    </span>
+                    <span className={`adm-badge-status ${getStatusBadgeClass(user.status)}`}>
+                      <span className="adm-status-dot"></span>
+                      {user.statusLabelVi}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="adm-user-card-body">
+                  <div className="adm-contact-cell">
+                    <div className="adm-contact-item">
+                      <Mail size={13} className="adm-contact-icon" />
+                      <span>{user.email}</span>
+                    </div>
+                    {user.phone && user.phone.trim() && (
+                      <div className="adm-contact-item">
+                        <Phone size={13} className="adm-contact-icon" />
+                        <span>{user.phone}</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="adm-time-cell">
+                    <Clock size={12} />
+                    <span>Hoạt động: {user.lastActive}</span>
+                  </div>
+                  {user.status === 'locked' && user.lockReason && (
+                    <div className="adm-lock-hint" title={user.lockReason}>
+                      Lý do: {user.lockReason}
+                    </div>
+                  )}
+                </div>
+
+                <div className="adm-user-card-footer">
+                  <button
+                    className="adm-card-action-btn"
+                    onClick={() => handleOpenEdit(user)}
+                    title="Chỉnh sửa thông tin"
+                  >
+                    <Edit3 size={14} />
+                    <span>Sửa</span>
+                  </button>
+                  <button
+                    className={`adm-card-action-btn ${user.status === 'locked' ? 'btn-unlock' : 'btn-lock'}`}
+                    onClick={() => setLockTargetUser(user)}
+                    title={user.status === 'locked' ? 'Mở khóa tài khoản' : 'Khóa tài khoản'}
+                  >
+                    {user.status === 'locked' ? <Unlock size={14} /> : <Lock size={14} />}
+                    <span>{user.status === 'locked' ? 'Mở khóa' : 'Khóa'}</span>
+                  </button>
+                  <button
+                    className="adm-card-action-btn btn-key"
+                    onClick={() => setResetTargetUser(user)}
+                    title="Đặt lại mật khẩu"
+                  >
+                    <KeyRound size={14} />
+                    <span>Đổi MK</span>
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 

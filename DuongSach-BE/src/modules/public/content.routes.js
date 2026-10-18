@@ -11,6 +11,7 @@ import {
   decorateContentWithReadCounts,
   recordNewsArticleRead,
 } from "./content-analytics.service.js";
+import { getLiveOnlineCount } from "../../services/websocket.service.js";
 
 const router = Router(),
   admin = [authenticate, authorize("admin")];
@@ -195,8 +196,9 @@ router.get(
       prisma.siteVisit.count({ where: { day: { gte: monthStart, lt: nextMonthStart } } }),
       prisma.siteVisit.count(),
     ]);
+    const liveWsCount = getLiveOnlineCount();
     return {
-      onlineCount: onlineSessions.length,
+      onlineCount: liveWsCount > 0 ? liveWsCount : onlineSessions.length,
       todayVisits,
       monthVisits,
       totalVisits,
@@ -236,7 +238,8 @@ router.get(
     }
     const monthlyStats = Array.from({ length: 12 }, (_, index) => ({ month: index + 1, year, count: 0 }));
     for (const row of monthly) monthlyStats[row.day.getUTCMonth()].count += row._count;
-    return { onlineCount: onlineSessions.length, todayVisits, monthVisits, totalVisits, generatedAt: now.toISOString(), dailyVisits, monthlyStats, selectedMonth: month ?? null, selectedYear: year, onlineWindowSeconds: ONLINE_WINDOW_MS / 1000, definition: 'one-session-per-Vietnam-calendar-day' };
+    const liveAdminWsCount = getLiveOnlineCount();
+    return { onlineCount: liveAdminWsCount > 0 ? liveAdminWsCount : onlineSessions.length, todayVisits, monthVisits, totalVisits, generatedAt: now.toISOString(), dailyVisits, monthlyStats, selectedMonth: month ?? null, selectedYear: year, onlineWindowSeconds: ONLINE_WINDOW_MS / 1000, definition: 'one-session-per-Vietnam-calendar-day' };
   }),
 );
 router.get(

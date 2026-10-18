@@ -109,9 +109,27 @@ export const JourneyExperience: React.FC<JourneyExperienceProps> = ({ language, 
   const navigate = useNavigate();
   const location = useLocation();
   const panelRef = useRef<HTMLDivElement>(null);
+  const railInnerRef = useRef<HTMLDivElement>(null);
   const topbarHandoffScrollRef = useRef<number | null>(null);
   const [activeChapter, setActiveChapter] = useState('brand-story');
   const [isRailSticky, setIsRailSticky] = useState(false);
+
+  // Auto-scroll horizontal rail so active chapter tab stays smoothly centered in view on mobile/tablet
+  useEffect(() => {
+    if (!railInnerRef.current) return;
+    const activeLink = railInnerRef.current.querySelector<HTMLElement>('.journey-chapter-link.is-active');
+    if (activeLink) {
+      const container = railInnerRef.current;
+      const linkLeft = activeLink.offsetLeft;
+      const linkWidth = activeLink.offsetWidth;
+      const containerWidth = container.offsetWidth;
+      const scrollTarget = linkLeft - (containerWidth / 2) + (linkWidth / 2);
+      container.scrollTo({
+        left: Math.max(0, scrollTarget),
+        behavior: 'smooth'
+      });
+    }
+  }, [activeChapter]);
 
   const [journeyData, setJourneyData] = useState(() => landingContentService.getJourney());
 
@@ -284,16 +302,23 @@ export const JourneyExperience: React.FC<JourneyExperienceProps> = ({ language, 
 
     const updateActiveChapter = () => {
       frameId = 0;
-      const railHeight = root.querySelector<HTMLElement>('.journey-chapter-rail')?.offsetHeight ?? 52;
-      const readingLine = root.getBoundingClientRect().top + railHeight + 24;
-      let nextActiveChapter = chapters[0]?.id ?? 'brand-story';
-      const isAtDocumentEnd = root.scrollTop + root.clientHeight >= root.scrollHeight - 2;
+      const rail = root.querySelector<HTMLElement>('.journey-chapter-rail');
+      const railHeight = rail?.offsetHeight ?? 52;
+      const rootRect = root.getBoundingClientRect();
+      // Target threshold: when a section enters the top 30-35% of the viewport reading zone
+      const readingThreshold = rootRect.top + Math.max(railHeight + 28, root.clientHeight * 0.32);
 
-      if (isAtDocumentEnd) {
-        nextActiveChapter = chapters.at(-1)?.id ?? nextActiveChapter;
+      let nextActiveChapter = chapters[0]?.id ?? 'brand-story';
+      const isNearBottom = root.scrollTop + root.clientHeight >= root.scrollHeight - 60;
+
+      if (isNearBottom) {
+        nextActiveChapter = chapters[chapters.length - 1]?.id ?? nextActiveChapter;
+      } else if (root.scrollTop <= 80) {
+        nextActiveChapter = chapters[0]?.id ?? 'brand-story';
       } else {
         for (const chapter of chapters) {
-          if (chapter.getBoundingClientRect().top <= readingLine) {
+          const rect = chapter.getBoundingClientRect();
+          if (rect.top <= readingThreshold) {
             nextActiveChapter = chapter.id;
           } else {
             break;
@@ -574,10 +599,10 @@ export const JourneyExperience: React.FC<JourneyExperienceProps> = ({ language, 
               type="button"
               className={`journey-back-btn ${isRailSticky ? 'is-transferred' : ''}`}
               onClick={closeSheet}
-              title={vi ? 'Quay lại Trang chủ' : 'Back to Home'}
+              title={vi ? 'Trang chủ' : 'Back to Home'}
             >
               <ArrowLeft size={16} />
-              <span>{vi ? 'Quay lại Trang chủ' : 'Back to Home'}</span>
+              <span>{vi ? 'Trang chủ' : 'Back to Home'}</span>
             </button>
 
             <div className="journey-breadcrumbs">
@@ -620,35 +645,45 @@ export const JourneyExperience: React.FC<JourneyExperienceProps> = ({ language, 
           className={`journey-chapter-rail ${isRailSticky ? 'is-sticky' : ''}`}
           aria-label={vi ? 'Các chương hành trình' : 'Journey chapters'}
         >
-          <div className="journey-container journey-chapter-rail-inner">
+          {/* Continuous Reading Progress Bar (Thanh tiến trình chạy theo độ cuộn trang) */}
+          <div className="journey-rail-progress-track" aria-hidden="true">
+            <div className="journey-rail-progress-fill" />
+          </div>
+
+          <div ref={railInnerRef} className="journey-container journey-chapter-rail-inner">
             {/* Integrated Back Button when rail sticks to top */}
             <button
               type="button"
               className={`journey-rail-back-btn ${isRailSticky ? 'is-visible' : ''}`}
               onClick={closeSheet}
-              title={vi ? 'Quay lại Trang chủ' : 'Back to Home'}
-              aria-label={vi ? 'Quay lại Trang chủ' : 'Back to Home'}
+              title={vi ? 'Trang chủ' : 'Back to Home'}
+              aria-label={vi ? 'Trang chủ' : 'Back to Home'}
             >
               <ArrowLeft size={16} />
               <span className="rail-back-text">{vi ? 'Quay lại' : 'Back'}</span>
             </button>
 
             <div className="journey-rail-links-group">
-              {JOURNEY_CHAPTERS.map(chapter => (
-                <a
-                  key={chapter.id}
-                  href={`#${chapter.id}`}
-                  className={`journey-chapter-link ${activeChapter === chapter.id ? 'is-active' : ''}`}
-                  aria-current={activeChapter === chapter.id ? 'location' : undefined}
-                  onClick={event => {
-                    event.preventDefault();
-                    scrollToAnchor(chapter.id);
-                  }}
-                >
-                  <span className="journey-chapter-link-index">{chapter.index}</span>
-                  <span>{vi ? chapter.vi : chapter.en}</span>
-                </a>
-              ))}
+              {JOURNEY_CHAPTERS.map((chapter, idx) => {
+                const activeIdx = JOURNEY_CHAPTERS.findIndex(c => c.id === activeChapter);
+                const isPassed = idx < activeIdx;
+                const isActive = activeChapter === chapter.id;
+                return (
+                  <a
+                    key={chapter.id}
+                    href={`#${chapter.id}`}
+                    className={`journey-chapter-link ${isActive ? 'is-active' : ''} ${isPassed ? 'is-passed' : ''}`}
+                    aria-current={isActive ? 'location' : undefined}
+                    onClick={event => {
+                      event.preventDefault();
+                      scrollToAnchor(chapter.id);
+                    }}
+                  >
+                    <span className="journey-chapter-link-index">{chapter.index}</span>
+                    <span>{vi ? chapter.vi : chapter.en}</span>
+                  </a>
+                );
+              })}
             </div>
           </div>
         </nav>

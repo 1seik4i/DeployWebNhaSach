@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { BarChart3, RefreshCw } from 'lucide-react';
 import { apiClient } from '../../services/apiClient';
+import { realtimeWebSocket } from '../../services/websocketClient';
 import type { Language } from '../../types';
 import './AdminTrafficView.css';
 
@@ -37,6 +38,13 @@ export function AdminTrafficView({ language }: { language: Language }) {
   const [selectedMonth, setSelectedMonth] = useState<number>(currentMonth);
   const [selectedYear, setSelectedYear] = useState<number>(currentYear);
   const [hoveredPoint, setHoveredPoint] = useState<{ label: string; count: number; x: number; y: number } | null>(null);
+
+  useEffect(() => {
+    const unsub = realtimeWebSocket.subscribe((liveCount) => {
+      setStats((prev) => (prev ? { ...prev, onlineCount: liveCount } : prev));
+    });
+    return unsub;
+  }, []);
 
   useEffect(() => {
     let active = true;

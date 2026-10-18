@@ -174,20 +174,13 @@ export const PartnerProfilePage: React.FC<PartnerProfilePageProps> = ({
   return (
     <div style={{ maxWidth: 1180, margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
       {/* 1. Header */}
-      <div style={{ marginBottom: '1rem' }}>
-        <h1 style={{ 
-          fontSize: '1.35rem', 
-          fontWeight: 700, 
-          color: '#13241F', 
-          margin: '0 0 0.2rem 0',
-          fontFamily: 'var(--font-serif, "Lora", Georgia, serif)',
-          letterSpacing: '0.01em'
-        }}>
-          {language === 'vi' ? 'Hồ sơ Đơn vị Đối tác' : 'Partner Organization Profile'}
+      <div className="partner-page-header">
+        <h1 className="partner-page-title">
+          {language === 'vi' ? 'Thông tin tổ chức' : 'Organization Profile'}
         </h1>
-        <p style={{ fontSize: '0.82rem', color: '#6B7280', margin: 0 }}>
+        <p className="partner-page-sub">
           {language === 'vi' 
-            ? 'Quản lý hồ sơ pháp lý, thông tin đại diện và tài khoản đối tác triển lãm.' 
+            ? 'Quản lý thông tin pháp nhân, người đại diện và cài đặt tài khoản.' 
             : 'Manage legal organization profile, representative contact and partner account settings.'}
         </p>
       </div>
@@ -216,12 +209,7 @@ export const PartnerProfilePage: React.FC<PartnerProfilePageProps> = ({
       )}
 
       {/* 2-Column Balanced Layout */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'minmax(260px, 300px) 1fr',
-        gap: '1.15rem',
-        alignItems: 'start'
-      }}>
+      <div className="partner-profile-layout-grid">
         
         {/* LEFT COLUMN: Summary & Session */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -498,11 +486,7 @@ export const PartnerProfilePage: React.FC<PartnerProfilePageProps> = ({
 
             {/* Form grid */}
             <form onSubmit={handleSave}>
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(2, 1fr)',
-                gap: '0.75rem 1rem'
-              }}>
+              <div className="partner-profile-form-grid">
                 {/* Tên tổ chức */}
                 <div>
                   <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#374151', marginBottom: 4 }}>

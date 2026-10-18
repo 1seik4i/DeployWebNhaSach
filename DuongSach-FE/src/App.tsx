@@ -16,8 +16,8 @@ import { OrganizationExperience } from './pages/OrganizationExperience';
 import { ContactExperience } from './pages/ContactExperience';
 import { DigitalLibraryPage } from './pages/DigitalLibraryPage';
 import { LoginPage } from './pages/LoginPage';
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { Footer } from './components/Footer';
-import { FloatingQrScanner } from './components/FloatingQrScanner';
 import { PartnerLayout } from './pages/partner/PartnerLayout';
 import { PartnerLoginPage } from './pages/partner/PartnerLoginPage';
 import { PartnerDashboard } from './pages/partner/PartnerDashboard';
@@ -284,6 +284,9 @@ export function App() {
 
   if (location.pathname === '/login') {
     return <LoginPage language={language} />;
+  }
+  if (location.pathname === '/reset-password') {
+    return <ResetPasswordPage language={language} />;
   }
   if (location.pathname.startsWith('/thong-tin/')) return <PublicEntityDetail />;
 
@@ -632,9 +635,6 @@ export function App() {
       {isJourney && <JourneyExperience language={language} open={isJourney} />}
       {isOrganization && <OrganizationExperience language={language} open={isOrganization} />}
       {isContact && <ContactExperience language={language} open={isContact} />}
-
-      {/* Floating QR Scanner Modal & Trigger */}
-      <FloatingQrScanner language={language} />
 
     </div>
   );

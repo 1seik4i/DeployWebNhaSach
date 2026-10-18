@@ -383,7 +383,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
     <div className="partner-page partner-books-page">
       <header className="partner-page-header">
         <div>
-          <h1 className="partner-page-title">{language === 'vi' ? 'Quản lý sách gian hàng' : 'Stall Book Management'}</h1>
+          <h1 className="partner-page-title">{language === 'vi' ? 'Quản lý sách' : 'Book Management'}</h1>
           <p className="partner-page-sub">{language === 'vi' ? 'Quản lý danh mục sách, số lượng tồn kho và theo dõi tiến độ duyệt sách.' : 'Manage book inventory, quantities, and review submissions.'}</p>
         </div>
         <button className="partner-books-primary" onClick={openAdd}>
@@ -455,7 +455,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
               />
             </label>
           </div>
-          <div className="partner-books-table-wrap">
+          <div className="partner-books-table-wrap partner-desktop-table">
             <table>
               <thead>
                 <tr>
@@ -525,6 +525,67 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
               </tbody>
             </table>
           </div>
+
+          {/* Mobile Card View for Tab 1 (Inventory) */}
+          <div className="partner-books-mobile-cards">
+            {visibleRecords.map(row => (
+              <div key={row.stall.id} className="partner-book-mobile-card">
+                <div 
+                  className="book-mobile-card-cover-wrap" 
+                  onClick={() => openRecord('view', row)}
+                  title={language === 'vi' ? 'Nhấn để xem chi tiết sách' : 'Click to view book details'}
+                >
+                  <img src={row.book.coverUrl} alt={row.book.title} className="book-mobile-card-cover" loading="lazy" />
+                </div>
+                <div className="book-mobile-card-body">
+                  <div 
+                    className="book-mobile-card-title-row" 
+                    onClick={() => openRecord('view', row)}
+                  >
+                    <strong className="book-mobile-card-title">{row.book.title}</strong>
+                    <small className="book-mobile-card-author">{row.book.author} {row.book.publisher ? `• ${row.book.publisher}` : ''}</small>
+                  </div>
+                  <div className="book-mobile-card-meta">
+                    <code className="book-mobile-isbn">{row.book.isbn}</code>
+                    <span className={`book-mobile-stock-pill ${row.stall.inventoryQuantity <= 4 ? 'is-low' : ''}`}>
+                      {language === 'vi' ? 'Tồn:' : 'Stock:'} <b>{row.stall.inventoryQuantity}</b>
+                    </span>
+                    <span className="book-mobile-sold-pill">
+                      {language === 'vi' ? 'Đã bán:' : 'Sold:'} {row.stall.soldQuantity ?? 0}
+                    </span>
+                  </div>
+                  <div className="book-mobile-card-actions">
+                    <button 
+                      type="button"
+                      className="book-mobile-action-btn edit"
+                      onClick={() => openRecord('edit', row)}
+                    >
+                      <Edit3 size={14} />
+                      <span>{language === 'vi' ? 'Sửa tồn kho' : 'Edit'}</span>
+                    </button>
+                    <button 
+                      type="button"
+                      className="book-mobile-action-btn delete"
+                      onClick={() => setConfirmAction({
+                        type: 'delete-book',
+                        targetId: row.book.id,
+                        title: language === 'vi' ? 'Gỡ sách khỏi gian hàng' : 'Remove Book from Stall',
+                        message: language === 'vi' ? `Bạn có chắc muốn gỡ cuốn sách "${row.book.title}" khỏi gian hàng? Sách vẫn còn trên Thư viện số chung.` : `Remove "${row.book.title}" from stall?`
+                      })}
+                    >
+                      <Trash2 size={14} />
+                      <span>{language === 'vi' ? 'Gỡ' : 'Remove'}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {!visibleRecords.length && (
+              <div className="partner-books-empty">
+                {language === 'vi' ? 'Gian hàng chưa có cuốn sách nào phù hợp.' : 'No books in this stall match the search.'}
+              </div>
+            )}
+          </div>
         </section>
       )}
 
@@ -551,7 +612,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
               <option value="REJECTED">{language === 'vi' ? 'Bị từ chối' : 'Rejected'}</option>
             </select>
           </div>
-          <div className="partner-books-table-wrap">
+          <div className="partner-books-table-wrap partner-desktop-table">
             <table>
               <thead>
                 <tr>
@@ -633,6 +694,86 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
                 )}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Card View for Tab 2 (Submissions) */}
+          <div className="partner-books-mobile-cards">
+            {visibleSubmissions.map(sub => (
+              <div key={sub.id} className="partner-book-mobile-card">
+                <div 
+                  className="book-mobile-card-cover-wrap" 
+                  onClick={() => setViewingSubmission(sub)}
+                  title={language === 'vi' ? 'Nhấn để xem chi tiết' : 'Click to view details'}
+                >
+                  <img src={sub.proposedData.coverUrl || '/duong_sach_logo.png'} alt="" className="book-mobile-card-cover" loading="lazy" />
+                </div>
+                <div className="book-mobile-card-body">
+                  <div 
+                    className="book-mobile-card-title-row" 
+                    onClick={() => setViewingSubmission(sub)}
+                  >
+                    <strong className="book-mobile-card-title">{String(sub.proposedData.title || '—')}</strong>
+                    <small className="book-mobile-card-author">{sub.proposedData.author || ''} {sub.proposedData.publisher ? `• ${sub.proposedData.publisher}` : ''}</small>
+                  </div>
+                  <div className="book-mobile-card-meta">
+                    <code className="book-mobile-isbn">{String(sub.proposedData.isbn || '—')}</code>
+                    <span className="book-mobile-type-pill">
+                      {sub.type === 'CREATE' ? (language === 'vi' ? 'Thêm mới' : 'Create') : (language === 'vi' ? 'Cập nhật' : 'Update')}
+                    </span>
+                    <span className={`book-content-status ${sub.status.toLowerCase()}`}>
+                      {contentLabel(sub.status, language)}
+                    </span>
+                  </div>
+                  {sub.status === 'REJECTED' && sub.rejectionReason && (
+                    <div style={{ marginTop: '4px' }}>
+                      <small style={{ color: '#b91c1c', display: 'block', fontWeight: 600 }}>
+                        {language === 'vi' ? 'Lý do: ' : 'Reason: '}{sub.rejectionReason}
+                      </small>
+                    </div>
+                  )}
+                  <div className="book-mobile-card-actions">
+                    <button 
+                      type="button"
+                      className="book-mobile-action-btn view"
+                      onClick={() => setViewingSubmission(sub)}
+                    >
+                      <Eye size={14} />
+                      <span>{language === 'vi' ? 'Chi tiết' : 'View'}</span>
+                    </button>
+                    {sub.status === 'REJECTED' && (
+                      <button 
+                        type="button"
+                        className="book-mobile-action-btn resubmit"
+                        onClick={() => openResubmit(sub)}
+                      >
+                        <RotateCcw size={14} />
+                        <span>{language === 'vi' ? 'Gửi lại' : 'Resubmit'}</span>
+                      </button>
+                    )}
+                    {sub.status === 'PENDING' && (
+                      <button 
+                        type="button"
+                        className="book-mobile-action-btn delete"
+                        onClick={() => setConfirmAction({
+                          type: 'cancel-submission',
+                          targetId: sub.id,
+                          title: language === 'vi' ? 'Hủy yêu cầu duyệt sách' : 'Cancel Book Submission',
+                          message: language === 'vi' ? `Bạn có chắc muốn hủy yêu cầu duyệt cho sách "${sub.proposedData.title || ''}"?` : 'Cancel this submission?'
+                        })}
+                      >
+                        <Trash2 size={14} />
+                        <span>{language === 'vi' ? 'Hủy' : 'Cancel'}</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+            {!visibleSubmissions.length && (
+              <div className="partner-books-empty">
+                {language === 'vi' ? 'Chưa có yêu cầu gửi duyệt nào.' : 'No book submissions found.'}
+              </div>
+            )}
           </div>
         </section>
       )}

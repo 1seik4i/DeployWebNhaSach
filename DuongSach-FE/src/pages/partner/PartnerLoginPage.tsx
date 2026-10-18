@@ -12,6 +12,7 @@ import {
 import { Link } from 'react-router-dom';
 import { Language } from '../../types';
 import { authApi } from '../../services/authApi';
+import { ForgotPasswordModal } from '../../components/auth/ForgotPasswordModal';
 import './PartnerLoginPage.css';
 
 interface PartnerLoginPageProps {
@@ -28,6 +29,7 @@ export const PartnerLoginPage: React.FC<PartnerLoginPageProps> = ({
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [forgotModalOpen, setForgotModalOpen] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -153,9 +155,26 @@ export const PartnerLoginPage: React.FC<PartnerLoginPageProps> = ({
             </div>
 
             <div className="partner-form-group">
-              <label htmlFor="partner-password" className="partner-form-label">
-                {language === 'vi' ? 'Mật khẩu bảo mật' : 'Password'}
-              </label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <label htmlFor="partner-password" className="partner-form-label" style={{ marginBottom: 0 }}>
+                  {language === 'vi' ? 'Mật khẩu bảo mật' : 'Password'}
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setForgotModalOpen(true)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#e9bc63',
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    padding: 0,
+                  }}
+                >
+                  {language === 'vi' ? 'Quên mật khẩu?' : 'Forgot password?'}
+                </button>
+              </div>
               <div className="partner-input-wrap">
                 <span className="partner-input-icon">
                   <Lock size={16} />
@@ -213,6 +232,15 @@ export const PartnerLoginPage: React.FC<PartnerLoginPageProps> = ({
             : 'Partner & Exhibitor Portal • Ho Chi Minh City Book Street'}
         </p>
       </div>
+
+      {/* Forgot Password Modal */}
+      <ForgotPasswordModal
+        isOpen={forgotModalOpen}
+        onClose={() => setForgotModalOpen(false)}
+        language={language}
+        portalType="partner"
+        initialEmail={username}
+      />
     </div>
   );
 };

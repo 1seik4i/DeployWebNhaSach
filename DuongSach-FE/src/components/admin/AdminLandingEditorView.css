@@ -733,3 +733,58 @@ main.admin-main-viewport.is-full-width-editor {
   border-color: #38BDF8;
   color: #0369A1;
 }
+
+.editor-action-buttons-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+@media (max-width: 768px) {
+  .editor-control-topbar {
+    padding: 0.75rem 0.85rem !important;
+    gap: 0.65rem !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .editor-current-title-badge {
+    gap: 0.65rem !important;
+  }
+  .editor-current-icon-box {
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 9px !important;
+  }
+  .editor-current-title {
+    font-size: 0.95rem !important;
+  }
+  .editor-current-desc {
+    font-size: 0.72rem !important;
+  }
+  .editor-actions-group {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 0.5rem !important;
+  }
+  .editor-live-badge {
+    width: 100% !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+    font-size: 0.76rem !important;
+    padding: 0.4rem 0.6rem !important;
+  }
+  .editor-action-buttons-row {
+    display: flex !important;
+    width: 100% !important;
+    gap: 0.4rem !important;
+  }
+  .editor-action-btn {
+    flex: 1 1 0 !important;
+    justify-content: center !important;
+    padding: 0.5rem 0.35rem !important;
+    font-size: 0.74rem !important;
+    white-space: nowrap !important;
+  }
+}
+

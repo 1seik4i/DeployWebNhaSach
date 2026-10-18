@@ -210,7 +210,7 @@ export const AdminTopBar: React.FC<AdminTopBarProps> = ({
         </div>
 
         {/* User Capsule Pill */}
-        <div style={{ position: 'relative' }} ref={dropdownRef}>
+        <div className="admin-user-menu" style={{ position: 'relative' }} ref={dropdownRef}>
           <div 
             className="admin-user-capsule"
             onClick={() => {

@@ -432,7 +432,7 @@
 
 @media (max-width: 768px) {
   .yg-footer {
-    padding: 3.5rem 0 0 0;
+    padding: 2.25rem 0 0 0 !important;
   }
 
   .yg-footer-main-grid {

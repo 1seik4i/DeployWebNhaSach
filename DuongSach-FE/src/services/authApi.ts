@@ -22,5 +22,7 @@ export const authApi = {
   getMe: () => apiClient.get<{ user: any }>('/auth/me'),
 
   logout: (refreshToken?: string) => apiClient.post('/auth/logout', { refreshToken }),
-  forgotPassword: (email: string) => apiClient.post('/auth/forgot-password', { email }),
+  forgotPassword: (email: string) => apiClient.post<{ message: string }>('/auth/forgot-password', { email }),
+  verifyResetToken: (token: string) => apiClient.get<{ valid: boolean; email: string; fullName: string }>(`/auth/reset-password/verify?token=${encodeURIComponent(token)}`),
+  resetPassword: (data: { token: string; newPassword: string }) => apiClient.post<{ message: string }>('/auth/reset-password', data),
 };

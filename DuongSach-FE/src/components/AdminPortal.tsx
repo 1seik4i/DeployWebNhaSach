@@ -303,6 +303,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
           }}
           unreadNotificationsCount={unreadNotificationsCount}
           onLogout={onLogout}
+          profile={profile}
+          onOpenProfile={() => setActiveTab('profile')}
           isOpenMobile={isMobileSidebarOpen}
           onCloseMobile={() => setIsMobileSidebarOpen(false)}
         />
@@ -311,7 +313,6 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
         <main className={`admin-main-viewport ${
           activeTab === 'landing-editor' ||
           activeTab === 'landing-journey' ||
-          activeTab === 'landing-news' ||
           activeTab === 'landing-org'
             ? 'is-full-width-editor'
             : ''

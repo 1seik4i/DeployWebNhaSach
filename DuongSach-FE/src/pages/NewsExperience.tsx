@@ -341,8 +341,8 @@ export const NewsExperience: React.FC<NewsExperienceProps> = ({ language, open }
                         <div className="news-baomoi-meta-row">
                           <div className="news-baomoi-source-group">
                             <span className="news-baomoi-source-name">{rel.author}</span>
-                            <span className="news-baomoi-dot">•</span>
-                            <span className="news-baomoi-time">{rel.publishedDate}</span>
+                            <span className="news-baomoi-dot dot-author">•</span>
+                            <span className="news-baomoi-time news-baomoi-date">{rel.publishedDate}</span>
                           </div>
                           <span className="news-meta-dim">
                             <Eye size={12} />
@@ -368,10 +368,10 @@ export const NewsExperience: React.FC<NewsExperienceProps> = ({ language, open }
                   type="button"
                   className="news-back-btn"
                   onClick={() => navigate('/')}
-                  title={vi ? 'Quay lại Trang chủ' : 'Back to Home'}
+                  title={vi ? 'Trang chủ' : 'Back to Home'}
                 >
                   <ArrowLeft size={16} />
-                  <span>{vi ? 'Quay lại Trang chủ' : 'Back to Home'}</span>
+                  <span>{vi ? 'Trang chủ' : 'Back to Home'}</span>
                 </button>
 
                 <div className="news-breadcrumbs">
@@ -419,7 +419,7 @@ export const NewsExperience: React.FC<NewsExperienceProps> = ({ language, open }
             </section>
 
             {/* 2. Main Collection Section with Search & Filter Tabs */}
-            <section className="heritage-inner heritage-collection" id="news-collection" style={{ paddingTop: '2.5rem' }}>
+            <section className="heritage-inner heritage-collection news-collection-section" id="news-collection">
               <div className="heritage-collection-title">
                 <div>
                   <span className="heritage-section-marker">
@@ -513,10 +513,10 @@ export const NewsExperience: React.FC<NewsExperienceProps> = ({ language, open }
                         <div className="news-baomoi-meta-row">
                           <div className="news-baomoi-source-group">
                             <span className="news-baomoi-source-name">{article.author}</span>
+                            <span className="news-baomoi-dot dot-author">•</span>
+                            <span className="news-baomoi-time news-baomoi-date">{article.publishedDate}</span>
                             <span className="news-baomoi-dot">•</span>
-                            <span className="news-baomoi-time">{article.publishedDate}</span>
-                            <span className="news-baomoi-dot">•</span>
-                            <span className="news-baomoi-time">{article.readTime}</span>
+                            <span className="news-baomoi-time news-baomoi-read">{article.readTime}</span>
                           </div>
 
                           <div className="news-baomoi-right-meta">

@@ -101,10 +101,10 @@ export const OrganizationExperience: React.FC<OrganizationExperienceProps> = ({ 
               type="button"
               className="org-back-btn"
               onClick={() => navigate('/')}
-              title={vi ? 'Quay lại Trang chủ' : 'Back to Home'}
+              title={vi ? 'Trang chủ' : 'Back to Home'}
             >
               <ArrowLeft size={16} />
-              <span>{vi ? 'Quay lại Trang chủ' : 'Back to Home'}</span>
+              <span>{vi ? 'Trang chủ' : 'Back to Home'}</span>
             </button>
 
             <div className="org-breadcrumbs">

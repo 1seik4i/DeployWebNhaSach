@@ -65,7 +65,7 @@ export const PartnerNotificationsPage: React.FC<PartnerNotificationsPageProps> =
         </div>
 
         {/* Filter & Actions matching Sketch Screen 8 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div className="partner-page-header-actions">
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value as any)}

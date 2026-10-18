@@ -2,7 +2,7 @@
   padding: 5rem 0 6rem;
   background-color: #E8F0EA;
   position: relative;
-  overflow: visible;
+  overflow: hidden;
 }
 
 .figma-events-section .figma-section-header {
@@ -972,7 +972,11 @@
 
 @media (max-width: 768px) {
   .figma-events-section {
-    padding: 3.5rem 0 4rem;
+    padding: 2.25rem 0 1.75rem !important;
+  }
+
+  .figma-events-section .figma-section-header {
+    margin-bottom: 1.25rem !important;
   }
 
   .figma-tabs-bar {
@@ -1248,20 +1252,30 @@
   .modal-event-buttons-row {
     flex-direction: column;
     align-items: stretch;
+    gap: 10px;
+  }
+  .btn-event-register-primary,
+  .btn-event-feedback-trigger {
+    width: 100%;
+    min-height: 44px;
+    height: 44px;
+    flex: none !important;
   }
 }
 
 .btn-event-register-primary {
-  flex: 1;
+  flex: 1 1 auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 12px 22px;
-  border-radius: 12px;
+  min-height: 44px;
+  height: 44px;
+  padding: 0 20px;
+  border-radius: 10px;
   background: linear-gradient(135deg, #182924 0%, #233e36 100%);
   color: #FFFFFF;
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   font-weight: 700;
   border: 1px solid #182924;
   cursor: pointer;
@@ -1279,15 +1293,18 @@
 }
 
 .btn-event-feedback-trigger {
+  flex: 1 1 auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 12px 20px;
-  border-radius: 12px;
+  min-height: 44px;
+  height: 44px;
+  padding: 0 18px;
+  border-radius: 10px;
   background: #FFFDF5;
   color: #B45309;
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   font-weight: 650;
   border: 1.5px solid #FDE68A;
   cursor: pointer;

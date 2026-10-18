@@ -70,9 +70,6 @@ export const AdminNotificationsView: React.FC<AdminNotificationsViewProps> = ({
       <div className="adm-page-header">
         <div>
           <h1 className="adm-page-title">Thông báo Quản trị</h1>
-          <p className="adm-page-subtitle">
-            Cảnh báo hệ thống, nhật ký đăng nhập bất thường và yêu cầu cần xác thực từ người dùng.
-          </p>
         </div>
         <div className="adm-page-header-actions">
           {unreadCount > 0 && (

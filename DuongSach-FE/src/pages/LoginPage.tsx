@@ -1,4 +1,3 @@
-import { useModalBehavior } from '../hooks/useModalBehavior';
 import React, { useState } from 'react';
 import { 
   Lock, 
@@ -19,6 +18,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Language } from '../types';
 import { authApi } from '../services/authApi';
 import { NotificationCallout } from '../components/ui/NotificationCallout';
+import { ForgotPasswordModal } from '../components/auth/ForgotPasswordModal';
 import './LoginPage.css';
 
 interface LoginPageProps { language: Language; }
@@ -33,10 +33,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ language }) => {
   const [successMsg, setSuccessMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [forgotModalOpen, setForgotModalOpen] = useState(false);
-
-  useModalBehavior(forgotModalOpen, () => setForgotModalOpen(false));
-  const [forgotEmail, setForgotEmail] = useState('');
-  const [forgotSuccess, setForgotSuccess] = useState(false);
 
   const completeLogin = (res: Awaited<ReturnType<typeof authApi.login>>) => {
       const { user, accessToken, refreshToken } = res;
@@ -95,18 +91,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ language }) => {
     }
   };
 
-  const handleForgotSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (forgotEmail.trim()) {
-      try {
-        await authApi.forgotPassword(forgotEmail.trim());
-        setForgotSuccess(true);
-      } catch (error) {
-        setErrorMsg(error instanceof Error ? error.message : 'Không thể gửi yêu cầu đặt lại mật khẩu');
-      }
-    }
-  };
-
   return (
     <div className="auth-page-root">
       {/* Dynamic ambient backdrop */}
@@ -121,7 +105,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ language }) => {
         <div className="auth-top-nav">
           <Link to="/" className="auth-back-link" title={language === 'vi' ? 'Về trang chủ' : 'Back to Home'}>
             <ArrowLeft size={16} />
-            <span>{language === 'vi' ? 'Quay lại Trang chủ' : 'Back to Home'}</span>
+            <span>{language === 'vi' ? 'Trang chủ' : 'Back to Home'}</span>
           </Link>
         </div>
 
@@ -313,60 +297,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({ language }) => {
         </div>
       </div>
 
-      {/* Forgot Password Dialog */}
-      {forgotModalOpen && (
-        <div className="auth-modal-backdrop" onClick={() => setForgotModalOpen(false)}>
-          <div className="auth-modal-card" onClick={(e) => e.stopPropagation()} role="dialog">
-            <h3 className="auth-modal-title">
-              {language === 'vi' ? 'Khôi phục mật khẩu' : 'Reset Password'}
-            </h3>
-            <p className="auth-modal-sub">
-              {language === 'vi'
-                ? 'Nhập địa chỉ email liên kết với tài khoản để nhận hướng dẫn đặt lại mật khẩu.'
-                : 'Enter the email linked to your account to receive password reset instructions.'}
-            </p>
-
-            {forgotSuccess ? (
-              <div className="auth-alert success">
-                <CheckCircle2 size={18} />
-                <span>
-                  {language === 'vi'
-                    ? 'Đã gửi hướng dẫn khôi phục qua email của bạn!'
-                    : 'Password reset instructions have been sent to your email!'}
-                </span>
-              </div>
-            ) : (
-              <form onSubmit={handleForgotSubmit}>
-                <div className="auth-field" style={{ marginBottom: '1.25rem' }}>
-                  <div className="auth-input-wrap">
-                    <Mail size={18} className="auth-input-icon" />
-                    <input
-                      type="email"
-                      required
-                      placeholder="email@example.com"
-                      value={forgotEmail}
-                      onChange={(e) => setForgotEmail(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <div className="auth-modal-actions">
-                  <button
-                    type="button"
-                    className="auth-modal-cancel"
-                    onClick={() => setForgotModalOpen(false)}
-                  >
-                    {language === 'vi' ? 'Đóng' : 'Cancel'}
-                  </button>
-                  <button type="submit" className="auth-modal-submit">
-                    {language === 'vi' ? 'Gửi liên kết' : 'Send Link'}
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-        </div>
-      )}
+      {/* Forgot Password Modal */}
+      <ForgotPasswordModal 
+        isOpen={forgotModalOpen} 
+        onClose={() => setForgotModalOpen(false)} 
+        language={language} 
+        portalType="public"
+        initialEmail={identifier} 
+      />
     </div>
   );
 };
