@@ -63,11 +63,16 @@ export async function fetchMapHotspotsFromApi(): Promise<MapLocationPoint[]> {
 }
 
 export const saveSharedMapPoints = async (points: MapLocationPoint[], imageUrl?: string): Promise<void> => {
+  const savedPoints = new Map(sharedPoints.map(point => [point.id, point]));
+  const changedPoints = points.filter(point => {
+    const saved = savedPoints.get(point.id);
+    return !saved || saved.x !== point.x || saved.y !== point.y;
+  });
   await apiClient.put('/admin/map-config', {
-    points: points.map(point => ({ id: point.id, x: point.x, y: point.y })),
+    points: changedPoints.map(point => ({ id: point.id, x: point.x, y: point.y })),
     ...(imageUrl !== undefined ? { imageUrl } : {}),
   });
-  sharedPoints = points;
+  sharedPoints = points.map(point => ({ ...point }));
   if (imageUrl !== undefined) {
     sharedImage = imageUrl;
     window.dispatchEvent(new CustomEvent('duongsach_map_image_updated', { detail: { imageUrl } }));

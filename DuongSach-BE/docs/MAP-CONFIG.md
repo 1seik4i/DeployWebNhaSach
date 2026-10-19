@@ -1,5 +1,10 @@
 # Map save contract
 
+Image-only changes omit unchanged marker coordinates. The API resolves submitted
+marker references using four batch reads, skips unchanged positions, and saves
+the image and any moved markers in the same transaction. This avoids repeating
+up to four reference lookups for every marker on a remote database.
+
 `PUT /api/admin/map-config` requires admin authentication and accepts optional
 `imageUrl` and `points: [{ id, x, y }]` in one request. Image and coordinates commit
 in the existing database transaction. The browser previews a chosen image locally;

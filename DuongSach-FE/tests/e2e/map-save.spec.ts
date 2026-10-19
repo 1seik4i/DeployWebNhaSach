@@ -1,5 +1,20 @@
 import { expect, test } from '@playwright/test';
 
+test('changing the image leaves the 39 existing marker positions untouched', async ({ page }) => {
+  let payload: { imageUrl: string; points: unknown[] } | undefined;
+  await page.route('**/map-image-only-test', route => route.fulfill({ contentType: 'text/html', body: '<html><head><script type="module">import RefreshRuntime from "/@react-refresh"; RefreshRuntime.injectIntoGlobalHook(window); window.$RefreshReg$ = () => {}; window.$RefreshSig$ = () => type => type; window.__vite_plugin_react_preamble_installed__ = true;</script></head><body><div id="root"></div><script type="module" src="/tests/e2e/fixtures/map-image-only.tsx"></script></body></html>' }));
+  await page.route('**/api/public/map-hotspots', route => route.fulfill({ json: { success: true, data: Array.from({ length: 39 }, (_, i) => ({ id: `booth-${i}`, name: `Booth ${i}`, x: i, y: 25 })) } }));
+  await page.route('**/api/public/map-config', route => route.fulfill({ json: { success: true, data: { imageUrl: '/old-map.png' } } }));
+  await page.route('**/api/admin/map-config', route => {
+    payload = route.request().postDataJSON();
+    return route.fulfill({ json: { success: true, data: {} } });
+  });
+  await page.goto('/map-image-only-test');
+  await page.getByRole('button', { name: 'Save image' }).click();
+  await expect(page.locator('output')).toHaveText('Saved');
+  expect(payload).toEqual({ imageUrl: '/new-map.png', points: [] });
+});
+
 test('map upload stays a draft until Save; failed Save keeps draft; large images are accepted', async ({ page }) => {
   let imageUrl = '/saved-map.png';
   let failSave = true;

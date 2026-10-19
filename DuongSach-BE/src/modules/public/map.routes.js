@@ -143,60 +143,36 @@ router.put(
 
     const result = await transaction(async (tx) => {
       let updatedCount = 0;
-      for (const point of input.points || []) {
-        // 1. Thử cập nhật theo Booth
-        const booth = await tx.booth.findFirst({
-          where: { ...idOrCode(point.id), isDeleted: false },
-        });
-        if (booth) {
-          await tx.location.update({
-            where: { id: booth.locationId },
-            data: { mapX: point.x, mapY: point.y },
-          });
+      const points = input.points || [];
+      if (points.length) {
+        const keys = [...new Set(points.map(point => point.id))];
+        const ids = keys.filter(isUuid);
+        const reference = { OR: [{ id: { in: ids } }, { code: { in: keys } }] };
+        // Resolve references in four reads rather than up to four reads per marker.
+        const [booths, locations, heritages, hotspots] = await Promise.all([
+          tx.booth.findMany({ where: { ...reference, isDeleted: false }, select: { id: true, code: true, location: { select: { id: true, mapX: true, mapY: true } } } }),
+          tx.location.findMany({ where: { ...reference, isDeleted: false }, select: { id: true, code: true, mapX: true, mapY: true } }),
+          tx.heritage.findMany({ where: { isDeleted: false, OR: [...reference.OR, { slug: { in: keys } }] }, select: { id: true, code: true, slug: true, mapX: true, mapY: true } }),
+          tx.mapHotspot.findMany({ where: reference, select: { id: true, code: true, x: true, y: true } }),
+        ]);
+        const find = (rows, key) => rows.find(row => row.id === key || row.code === key || row.slug === key);
+        for (const point of points) {
+          const booth = find(booths, point.id);
+          const location = booth?.location || find(locations, point.id);
+          const heritage = location ? null : find(heritages, point.id);
+          const hotspot = location || heritage ? null : find(hotspots, point.id);
+          const target = location || heritage || hotspot;
+          if (!target) continue;
+          const xKey = hotspot ? 'x' : 'mapX';
+          const yKey = hotspot ? 'y' : 'mapY';
+          if (target[xKey] != null && target[yKey] != null && Number(target[xKey]) === point.x && Number(target[yKey]) === point.y) continue;
+          const model = location ? tx.location : heritage ? tx.heritage : tx.mapHotspot;
+          await model.update({ where: { id: target.id }, data: { [xKey]: point.x, [yKey]: point.y } });
+          target[xKey] = point.x;
+          target[yKey] = point.y;
           updatedCount++;
-          continue;
-        }
-
-        // 2. Thử cập nhật theo Location trực tiếp
-        const location = await tx.location.findFirst({
-          where: { ...idOrCode(point.id), isDeleted: false },
-        });
-        if (location) {
-          await tx.location.update({
-            where: { id: location.id },
-            data: { mapX: point.x, mapY: point.y },
-          });
-          updatedCount++;
-          continue;
-        }
-
-        // 3. Thử cập nhật theo Heritage
-        const heritage = await tx.heritage.findFirst({
-          where: { ...heritageCondition(point.id), isDeleted: false },
-        });
-        if (heritage) {
-          await tx.heritage.update({
-            where: { id: heritage.id },
-            data: { mapX: point.x, mapY: point.y },
-          });
-          updatedCount++;
-          continue;
-        }
-
-        // 4. Thử cập nhật theo MapHotspot
-        const hotspot = await tx.mapHotspot.findFirst({
-          where: idOrCode(point.id),
-        });
-        if (hotspot) {
-          await tx.mapHotspot.update({
-            where: { id: hotspot.id },
-            data: { x: point.x, y: point.y },
-          });
-          updatedCount++;
-          continue;
         }
       }
-
       const defaultVenue = await tx.venue.findFirst({ where: { isDeleted: false }, orderBy: { createdAt: 'asc' } });
       const old = await tx.setting.findUnique({ where: { key: "public.map" } }),
         value = {

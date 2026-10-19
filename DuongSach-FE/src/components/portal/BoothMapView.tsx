@@ -585,7 +585,7 @@ export const BoothMapView: React.FC<BoothMapViewProps> = ({
             disabled={isSavingMap || isReadingImage}
           >
             {isSaved ? <CheckCircle size={14} /> : <Save size={14} />}
-            <span>{isSaved ? (language === 'vi' ? 'Đã lưu!' : 'Saved!') : (language === 'vi' ? 'Lưu sơ đồ' : 'Save Map')}</span>
+            <span>{isSavingMap ? (language === 'vi' ? 'Đang lưu bản đồ…' : 'Saving map…') : isSaved ? (language === 'vi' ? 'Đã lưu!' : 'Saved!') : (language === 'vi' ? 'Lưu sơ đồ' : 'Save Map')}</span>
           </button>
           <small role="status">
             {hasPendingImage
