@@ -1,3 +1,4 @@
+import { useUrlTab } from '../../hooks/useUrlTab';
 import { promptModal, notifyModal } from '../../services/notificationModal';
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -46,7 +47,7 @@ export const PartnerActivityDetailPage: React.FC<PartnerActivityDetailPageProps>
 }) => {
   const { activityId } = useParams<{ activityId: string }>();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'info' | 'schedule' | 'registration' | 'documents'>('info');
+  const [activeTab, setActiveTab] = useUrlTab(['info', 'schedule', 'registration', 'documents'], 'info');
   const [isEditing, setIsEditing] = useState(false);
 
   const activity = activities.find(a => a.id === activityId) || activities[0];

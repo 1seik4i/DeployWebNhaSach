@@ -61,6 +61,8 @@ export interface OrganizerActivityItem {
   title: string;
   type: string;
   dateStr: string;
+  startAt?: string;
+  endAt?: string;
   timeStr: string;
   location: string;
   locationId?: string;

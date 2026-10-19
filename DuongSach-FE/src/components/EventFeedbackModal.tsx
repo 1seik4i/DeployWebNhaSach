@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { Star, X, CheckCircle2, Send } from 'lucide-react';
 import { EventItem, Language } from '../types';
 import { publicApi } from '../services/publicApi';
+import { feedbackContactError } from '../utils/feedbackContact';
 import './EventFeedbackModal.css';
 
 interface EventFeedbackModalProps {
@@ -45,6 +46,7 @@ export const EventFeedbackModal: React.FC<EventFeedbackModalProps> = ({
   const [hoverRating, setHoverRating] = useState<number>(0);
   const [fullName, setFullName] = useState('');
   const [contact, setContact] = useState('');
+  const contactError = feedbackContactError(contact, language);
   const [comment, setComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -62,6 +64,7 @@ export const EventFeedbackModal: React.FC<EventFeedbackModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (contactError || isSubmitting) return;
     setIsSubmitting(true);
     setSubmitError('');
     try {
@@ -72,7 +75,7 @@ export const EventFeedbackModal: React.FC<EventFeedbackModalProps> = ({
         targetName: language === 'vi' ? event.title : event.titleEn || event.title,
         fullName: fullName.trim() || undefined,
         comments: comment.trim() || undefined,
-        contactEmail: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.trim()) ? contact.trim() : undefined,
+        contactEmail: contact.trim() || undefined,
         source: 'web_landing',
       });
       setIsSuccess(true);
@@ -196,8 +199,11 @@ export const EventFeedbackModal: React.FC<EventFeedbackModalProps> = ({
                   className="feedback-text-input"
                   placeholder={language === 'vi' ? 'Để nhận quà tri ân...' : 'To receive perks...'}
                   value={contact}
+                  aria-invalid={Boolean(contactError)}
+                  aria-describedby={contactError ? 'event-feedback-contact-error' : undefined}
                   onChange={(e) => setContact(e.target.value)}
                 />
+                {contactError && <p id="event-feedback-contact-error" className="feedback-contact-error" role="alert">{contactError}</p>}
               </div>
             </div>
 
@@ -225,7 +231,7 @@ export const EventFeedbackModal: React.FC<EventFeedbackModalProps> = ({
               </button>
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || Boolean(contactError)}
                 className="btn-figma-primary btn-feedback-submit"
               >
                 {isSubmitting ? (

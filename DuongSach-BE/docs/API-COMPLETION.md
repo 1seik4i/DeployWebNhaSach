@@ -49,6 +49,7 @@ FE lưu refresh token và gọi `POST /auth/refresh` với `{ "refreshToken": ".
 ### Sự kiện và đối tác
 
 - Partner POST `/partner/event-applications` với `{ "eventId": "<UUID>" }`. Admin xét qua `/admin/partner-applications/{id}/approve|reject`.
+  Không áp dụng ngày mở đăng ký hay `partnerApplyDeadline`. Sự kiện công khai đang diễn ra hoặc sắp diễn ra theo lịch Việt Nam luôn nhận hồ sơ tham gia; sự kiện đã kết thúc, hủy, nháp hoặc xóa không nhận. Đăng ký tham gia vẫn cần Admin xét duyệt.
 - Partner POST `/partner/booth-requests` với `{ "eventId": "<UUID>", "boothId": "<UUID>" }`; Admin `/admin/booth-requests/{id}/approve|reject`.
 - `GET /admin/event-locations?eventId=<UUID>` (Partner có endpoint cùng tên). `PUT /admin/events/{id}/locations`: `{ "locationIds": ["<UUID>"] }`.
 - Hoạt động mới: `eventId`, `title`, `kind`, `locationId`, `startAt`, `endAt`, `capacity`; tùy chọn `description`, `speaker`, `imageUrl`. `kind`: `talkshow|workshop|launch|exhibition|minigame|signing`. POST `/admin/activities`, PATCH `/{id}`, POST `/{id}/publish`.

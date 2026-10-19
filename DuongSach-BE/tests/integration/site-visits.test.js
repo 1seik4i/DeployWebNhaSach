@@ -59,12 +59,12 @@ describe("public site visit analytics", () => {
       onlineWindowSeconds: 300,
       definition: "one-session-per-Vietnam-calendar-day",
     }));
-    expect(response.body.data.onlineCount).toBeGreaterThanOrEqual(1);
+    expect(response.body.data.onlineCount).toBe(0);
     expect(response.body.data.todayVisits).toBeGreaterThanOrEqual(1);
     expect(response.body.data.monthVisits).toBeGreaterThanOrEqual(1);
     expect(response.body.data.totalVisits).toBeGreaterThanOrEqual(1);
   });
-  it("counts an active browser session once even when it has rows for two days", async () => {
+  it("does not treat stored visit heartbeats as live WebSocket connections", async () => {
     const baseline = await request(app).get("/api/public/visit-stats");
     expect(baseline.status, JSON.stringify(baseline.body)).toBe(200);
 
@@ -78,6 +78,6 @@ describe("public site visit analytics", () => {
 
     const response = await request(app).get("/api/public/visit-stats");
     expect(response.status, JSON.stringify(response.body)).toBe(200);
-    expect(response.body.data.onlineCount).toBe(baseline.body.data.onlineCount + 1);
+    expect(response.body.data.onlineCount).toBe(baseline.body.data.onlineCount);
   });
 });

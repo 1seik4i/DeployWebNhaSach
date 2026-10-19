@@ -19,6 +19,8 @@ import {
 import { ProposalService } from "../proposal/proposal.service.js";
 import { eventTiming } from "./event-time.js";
 import { publicEventWhere } from "./visibility.js";
+import { eventImageInput, proposalMetadata } from '../../utils/eventImage.js';
+import { checkIndependentSchedule } from './independent-event.js';
 
 const router = Router(),
   admin = [authenticate, authorize("admin")],
@@ -45,7 +47,7 @@ const activityInput = z.object({
   capacity: quantity.optional().default(1),
   description: z.string().max(20000).optional(),
   speaker: text.optional(),
-  imageUrl: z.string().max(2000).optional(),
+  imageUrl: eventImageInput,
 });
 export async function checkSchedule(tx, data) {
   const event = await tx.event.findFirst({
@@ -463,6 +465,7 @@ router.post(
           speaker,
           organizationId,
           proposalId: id,
+          imageUrl: proposalMetadata(proposal.managementNotes).imageUrl || null,
           status: "draft",
           createdBy: r.user.id,
         },
@@ -566,7 +569,11 @@ router.get(
           event.coverImageUrl,
         ),
       ),
-      ...activities.map((activity) => ({
+      ...activities.filter(activity => !events.some(event =>
+        event.id === activity.eventId && event.title === activity.title &&
+        new Date(event.startAt).getTime() === new Date(activity.startAt).getTime() &&
+        new Date(event.endAt).getTime() === new Date(activity.endAt).getTime()
+      )).map((activity) => ({
         ...base(
           activity,
           `act:${activity.id}`,
@@ -631,7 +638,7 @@ const mapProposal = (p) => {
     eventName: p.event?.title || "",
     registeredCount: (p.event?.registrations?.length || 0) + (p.event?.publicRegistrations || []).reduce((sum, row) => sum + row.attendeesCount, 0),
     requiredEquipments: p.devices?.map((d) => d.name) || [],
-    imageUrl: p.imageUrl || p.event?.coverImageUrl || "",
+    imageUrl: meta.imageUrl || p.imageUrl || p.event?.coverImageUrl || "",
     boothCode: booth?.code || "",
     boothName: booth?.name || "",
     orgName: p.organization?.name || "",
@@ -655,7 +662,7 @@ router.get(
     ).map(mapProposal);
   }),
 );
-const proposalInput = activityInput.omit({ imageUrl: true }).extend({
+const proposalInput = activityInput.extend({
   targetAudience: z.string().max(2000).optional(),
   contactPerson: text.optional(),
   contactPhone: z.string().max(20).optional(),
@@ -683,7 +690,9 @@ async function saveProposal(r, id) {
         : proposalInput,
       { ...input, ...(devices ? { devices } : {}) },
     );
-    const checked = await checkSchedule(tx, { ...old, ...cleanInput });
+    const checked = old && proposalMetadata(old.managementNotes).standaloneEvent
+      ? await checkIndependentSchedule(tx, { ...old, ...cleanInput })
+      : await checkSchedule(tx, { ...old, ...cleanInput });
     if (!id) {
       const settings = await tx.eventSettings.findUnique({
         where: { eventId: checked.eventId },
@@ -706,6 +715,7 @@ async function saveProposal(r, id) {
     try {
       if (old?.managementNotes?.startsWith("{")) meta = JSON.parse(old.managementNotes);
     } catch {}
+    if (cleanInput.imageUrl !== undefined) meta.imageUrl = cleanInput.imageUrl;
     if (schedule !== undefined) meta.schedule = parse(z.array(z.object({
       id: text, time: text, title: text, description: z.string().max(20000).optional(), speaker: z.string().max(200).optional(),
     }).strict()).max(500), schedule);
@@ -749,6 +759,7 @@ async function saveProposal(r, id) {
     if (old?.publishedActivityId) {
       await tx.activity.update({ where: { id: old.publishedActivityId }, data: {
         title: row.title, titleEn: row.titleEn, description: row.description, speaker: row.speaker,
+        ...(cleanInput.imageUrl !== undefined ? { imageUrl: cleanInput.imageUrl } : {}),
         startAt: row.startAt, endAt: row.endAt, locationId: row.locationId, capacity: row.capacity,
       } });
     }

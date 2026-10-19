@@ -10,6 +10,7 @@ const permissions = {
   assets: ["booths.view", "booths.view"],
   schedule: ["events.view", "events.view"],
   "activity-proposals": ["activities.propose", "activities.propose"],
+  "event-registrations": ["events.view", "activities.propose"],
   attendance: ["activities.checkin", "activities.checkin"],
   reports: ["reports.partner", "reports.partner"],
   notifications: ["account.profile", "account.profile"],

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { useUrlTab } from '../../hooks/useUrlTab';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, Clock, MapPin, Users, Eye, Edit3, AlertCircle, Mic } from 'lucide-react';
 import { Language, PartnerActivityProposal } from '../../types';
@@ -17,7 +18,7 @@ export const ActivityProposalPage: React.FC<ActivityProposalPageProps> = ({
   language,
   activities,
 }) => {
-  const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'approved' | 'need_changes' | 'rejected' | 'withdrawn'>('all');
+  const [activeTab, setActiveTab] = useUrlTab(['all', 'pending', 'approved', 'need_changes', 'rejected', 'withdrawn'], 'all');
   const pendingCount = activities.filter(a => a.status === 'pending').length;
   const approvedCount = activities.filter(a => a.status === 'approved').length;
   const needChangesCount = activities.filter(a => a.status === 'need_changes').length;

@@ -1,3 +1,4 @@
+import { AdminPageHeading } from '../admin/AdminPageHeading';
 import { useModalBehavior } from '../../hooks/useModalBehavior';
 import React, { useState, useMemo } from 'react';
 import { 
@@ -88,14 +89,6 @@ export const EventManagementView: React.FC<EventManagementViewProps> = ({
     } else {
       setCurrentMonth(prev => prev + 1);
     }
-  };
-
-  const handleJumpToToday = () => {
-    const now = new Date();
-    setCurrentYear(now.getFullYear());
-    setCurrentMonth(now.getMonth());
-    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-    setSelectedDateStr(todayStr);
   };
 
   // Filter events based on search query and status filter
@@ -227,29 +220,11 @@ export const EventManagementView: React.FC<EventManagementViewProps> = ({
       <div className="event-mgmt-header">
         <div className="event-mgmt-title-wrap">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-            <span style={{
-              display: 'inline-flex',
-              padding: '6px',
-              borderRadius: '9px',
-              background: 'rgba(233,188,99,0.18)',
-              color: '#8C6519'
-            }}>
-              <CalendarIcon size={22} />
-            </span>
-            <h1>{language === 'vi' ? 'Lịch & Quản lý sự kiện' : 'Event Calendar & Management'}</h1>
+            <AdminPageHeading section="events" language={language} />
           </div>
         </div>
 
         <div className="event-mgmt-actions">
-          <button
-            type="button"
-            className="cal-nav-today-btn"
-            onClick={handleJumpToToday}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 0.95rem' }}
-          >
-            <Clock size={15} />
-            <span>{language === 'vi' ? 'Sự kiện hôm nay' : 'Today'}</span>
-          </button>
 
           <button
             type="button"
@@ -257,7 +232,7 @@ export const EventManagementView: React.FC<EventManagementViewProps> = ({
             onClick={onOpenCreateEvent}
           >
             <Plus size={16} />
-            <span>{language === 'vi' ? 'Tạo sự kiện mới' : 'Create Event'}</span>
+            <span>{language === 'vi' ? 'Đăng ký sự kiện mới' : 'Register New Event'}</span>
           </button>
         </div>
       </div>
@@ -581,7 +556,7 @@ export const EventManagementView: React.FC<EventManagementViewProps> = ({
                 onClick={() => onOpenCreateEvent()}
               >
                 <Plus size={13} />
-                <span>{language === 'vi' ? 'Tạo sự kiện' : 'Create event'}</span>
+                <span>{language === 'vi' ? 'Đăng ký sự kiện mới' : 'Register new event'}</span>
               </button>
             )}
           </div>
@@ -597,7 +572,7 @@ export const EventManagementView: React.FC<EventManagementViewProps> = ({
                     onClick={() => onOpenCreateEvent()}
                   >
                     <Plus size={14} />
-                    <span>{language === 'vi' ? 'Tạo sự kiện mới vào ngày này' : 'Create event for this date'}</span>
+                    <span>{language === 'vi' ? 'Đăng ký sự kiện mới vào ngày này' : 'Register new event for this date'}</span>
                   </button>
                 )}
               </div>

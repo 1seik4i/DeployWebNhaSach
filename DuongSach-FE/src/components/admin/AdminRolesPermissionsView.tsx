@@ -20,6 +20,21 @@ interface AdminRolesPermissionsViewProps {
   onResetDefaults: (roleId: AdminRoleType) => void | Promise<void>;
 }
 
+// These permissions are not configurable in the corresponding role's UI.
+const isPermissionVisible = (roleId: AdminRoleType, permission: AdminPermissionItem) => {
+  if (permission.code === 'account.login') return false;
+  if (roleId !== 'partner') return true;
+  return !['content', 'system'].includes(permission.module)
+    && ![
+      'activities.checkin',
+      'activities.review',
+      'library.moderate',
+      'library.taxonomy.manage',
+      'reports.organizer',
+      'reports.system',
+    ].includes(permission.code);
+};
+
 export const AdminRolesPermissionsView: React.FC<AdminRolesPermissionsViewProps> = ({
   roleConfigs,
   permissions,
@@ -50,11 +65,14 @@ export const AdminRolesPermissionsView: React.FC<AdminRolesPermissionsViewProps>
     assignedPermissionCodes: [],
   };
   const activeAssignedCodes = currentPermissions[selectedRoleId] || [];
+  const visiblePermissions = permissions.filter(item => isPermissionVisible(selectedRoleId, item));
+  const visibleAssignedCount = visiblePermissions.filter(item => activeAssignedCodes.includes(item.code)).length;
 
   // Group permissions by module
   const groupedPermissions = React.useMemo(() => {
     const groups: Record<string, { label: string; items: AdminPermissionItem[] }> = {};
     permissions.forEach((item: AdminPermissionItem) => {
+      if (!isPermissionVisible(selectedRoleId, item)) return;
       if (!groups[item.module]) {
         groups[item.module] = {
           label: item.moduleLabelVi,
@@ -64,7 +82,7 @@ export const AdminRolesPermissionsView: React.FC<AdminRolesPermissionsViewProps>
       groups[item.module].items.push(item);
     });
     return groups;
-  }, [permissions]);
+  }, [permissions, selectedRoleId]);
 
   const handleTogglePermission = (code: string) => {
     if (selectedRoleId === 'admin' && code === 'system.roles.manage') {
@@ -158,7 +176,8 @@ export const AdminRolesPermissionsView: React.FC<AdminRolesPermissionsViewProps>
         <div className="adm-role-tabs-row">
           {(['partner', 'admin'] as AdminRoleType[]).map((rId) => {
             const isSelected = selectedRoleId === rId;
-            const count = (currentPermissions[rId] || []).length;
+            const count = permissions.filter(item => isPermissionVisible(rId, item)
+              && (currentPermissions[rId] || []).includes(item.code)).length;
             return (
               <button
                 key={rId}
@@ -193,7 +212,7 @@ export const AdminRolesPermissionsView: React.FC<AdminRolesPermissionsViewProps>
           </div>
         </div>
         <div className="adm-role-meta-stat">
-          Đang kích hoạt <strong>{activeAssignedCodes.length}</strong> trên tổng số <strong>{permissions.length}</strong> quyền của nền tảng.
+          Đang kích hoạt <strong>{visibleAssignedCount}</strong> trên tổng số <strong>{visiblePermissions.length}</strong> quyền hiển thị.
         </div>
       </div>
 

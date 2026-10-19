@@ -228,6 +228,26 @@ router.patch(
   run((r) => updateUser(r, true)),
 );
 router.post(
+  "/admin/users/:id/password",
+  ...admin,
+  run(async (r) => {
+    const id = parse(uuid, r.params.id);
+    const { newPassword } = parse(z.object({ newPassword: password }).strict(), r.body);
+    await validatePassword(newPassword);
+    const passwordHash = await bcrypt.hash(newPassword, 12);
+    return transaction(async (tx) => {
+      if (!(await tx.user.findFirst({ where: { id, isDeleted: false } })))
+        throw ApiError.notFound();
+      const now = new Date();
+      await tx.user.update({ where: { id }, data: { passwordHash, passwordChangedAt: now } });
+      await tx.passwordReset.updateMany({ where: { userId: id, usedAt: null }, data: { usedAt: now } });
+      await tx.refreshToken.updateMany({ where: { userId: id, revokedAt: null }, data: { revokedAt: now } });
+      await audit(tx, r.user, "change-password", "User", id);
+      return { success: true };
+    });
+  }),
+);
+router.post(
   "/admin/users/:id/reset-password",
   ...admin,
   run((r) =>

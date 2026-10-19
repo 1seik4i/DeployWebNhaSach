@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Check, ChevronRight, Inbox, MessageSquare, RefreshCw, Search, X } from 'lucide-react';
+import { ListPagination, useListPagination } from '../ui/ListPagination';
 import { apiClient } from '../../services/apiClient';
 import { useModalBehavior } from '../../hooks/useModalBehavior';
 import type { Language } from '../../types';
@@ -67,6 +68,7 @@ export function AdminEventSuggestionsView({ language }: { language: Language }) 
   };
   const visible = rows.filter(row => (filter === 'all' || row.status === filter) &&
     `${row.fullName} ${row.phone} ${row.content}`.toLocaleLowerCase('vi').includes(query.trim().toLocaleLowerCase('vi')));
+  const pagination = useListPagination(visible, `${filter}:${query}`, 8);
   const label = (value: string) => statuses[value]?.[vi ? 0 : 1] || value;
   const date = (value?: string) => value ? new Date(value).toLocaleDateString(vi ? 'vi-VN' : 'en-GB') : '—';
   const summaries = [
@@ -77,8 +79,7 @@ export function AdminEventSuggestionsView({ language }: { language: Language }) 
 
   return <div className="event-suggestions">
     <header className="es-heading">
-      <div><span className="es-eyebrow">{vi ? 'SỰ KIỆN & HOẠT ĐỘNG' : 'EVENTS & ACTIVITIES'}</span>
-        <h1>{vi ? 'Đề xuất sự kiện' : 'Event suggestions'}</h1>
+      <div><h1>{vi ? 'Đề xuất sự kiện' : 'Event suggestions'}</h1>
         <p>{vi ? 'Tiếp nhận ý tưởng từ khách tham quan, liên hệ và theo dõi kết quả xử lý.' : 'Review visitor ideas, contact contributors and track progress.'}</p>
       </div>
       <button className="adm-btn adm-btn-secondary" onClick={() => void load()}><RefreshCw size={16}/>{vi ? 'Làm mới' : 'Refresh'}</button>
@@ -99,7 +100,7 @@ export function AdminEventSuggestionsView({ language }: { language: Language }) 
       </div>
       <div className="es-table-scroll"><table>
         <thead><tr><th>{vi ? 'Đề xuất' : 'Suggestion'}</th><th>{vi ? 'Người gửi' : 'Contributor'}</th><th>{vi ? 'Ngày gửi' : 'Submitted'}</th><th>{vi ? 'Trạng thái' : 'Status'}</th><th>{vi ? 'Thao tác' : 'Action'}</th></tr></thead>
-        <tbody>{visible.map(row => <tr key={row.id}>
+        <tbody>{pagination.items.map(row => <tr key={row.id}>
           <td><strong className="es-title">{titleOf(row)}</strong><span className="es-preview">{row.internalNote || (vi ? 'Chưa có ghi chú xử lý' : 'No internal note')}</span></td>
           <td><span className="es-person">{row.fullName}</span><span className="es-preview">{row.phone}</span></td>
           <td className="es-date">{date(row.createdAt)}</td>
@@ -108,7 +109,14 @@ export function AdminEventSuggestionsView({ language }: { language: Language }) 
         </tr>)}</tbody>
       </table></div>
       {!visible.length && <div className="es-empty"><Inbox size={32}/><strong>{loading ? (vi ? 'Đang tải đề xuất…' : 'Loading…') : (vi ? 'Không có đề xuất phù hợp' : 'No matching suggestions')}</strong><p>{vi ? 'Đề xuất từ trang Liên hệ sẽ xuất hiện tại đây. Thử thay đổi bộ lọc nếu cần.' : 'Suggestions from the Contact page appear here. Try adjusting the filters.'}</p></div>}
-      <footer className="es-list-footer">{vi ? `Hiển thị ${visible.length} / ${rows.length} đề xuất gần nhất` : `Showing ${visible.length} of ${rows.length} recent suggestions`}</footer>
+      {visible.length > 0 && (
+        <ListPagination
+          page={pagination.page}
+          totalPages={pagination.totalPages}
+          onChange={pagination.setPage}
+          vi={vi}
+        />
+      )}
     </section>
     {selected && <div className="es-overlay" onClick={() => { if (!saving) setSelected(null); }}>
       <form className="es-dialog" role="dialog" aria-modal="true" aria-labelledby="es-dialog-title" onClick={e => e.stopPropagation()} onSubmit={save}>

@@ -970,3 +970,14 @@
   background: linear-gradient(135deg, #0F251F 0%, #1E4236 100%);
 }
 
+.feedback-contact-error {
+  margin: 0.4rem 0 0;
+  color: #b42318;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.sk05-text-input[aria-invalid="true"] {
+  border-color: #b42318;
+}
+

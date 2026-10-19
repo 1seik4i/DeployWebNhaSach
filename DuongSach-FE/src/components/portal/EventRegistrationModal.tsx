@@ -1,3 +1,4 @@
+import { DatePicker } from '../ui/DatePicker';
 import { useModalBehavior } from '../../hooks/useModalBehavior';
 import React, { useState } from 'react';
 import { 
@@ -12,83 +13,118 @@ import {
   Tag,
   Upload
 } from 'lucide-react';
-import { Language } from '../../types';
-import { OrganizerActivityItem, OrganizerEvent } from '../../types/organizer';
+import { Language, PartnerOrganization } from '../../types';
+import './OrganizerPortal.css';
+import { OrganizerActivityItem } from '../../types/organizer';
+import { activityDateKey } from '../../utils/activityDate';
+import { MAX_EVENT_IMAGE_MB } from '../../utils/eventImage';
 
-interface OrganizerCreateActivityModalProps {
+function firstRegistrationDate() {
+  const today = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit',
+  }).format(new Date());
+  const tomorrow = new Date(`${today}T00:00:00Z`);
+  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+  return tomorrow.toISOString().slice(0, 10);
+}
+
+export interface EventRegistrationData extends Omit<OrganizerActivityItem, 'eventId' | 'startAt' | 'endAt'> {
+  startAt: string;
+  endAt: string;
+  devices?: Array<{ name: string; quantity: number }>;
+}
+
+interface EventRegistrationModalProps {
   language: Language;
   isOpen: boolean;
   onClose: () => void;
-  events?: OrganizerEvent[];
   locations?: Array<{ id: string; name: string; capacity: number }>;
-  onCreateActivity: (newActivity: OrganizerActivityItem) => void | Promise<void>;
+  initialDate?: string;
+  organization?: PartnerOrganization;
+  assets?: Array<{ id: string; name: string; totalQuantity: number }>;
+  onRegister: (newActivity: EventRegistrationData) => void | Promise<void>;
 }
 
-export const OrganizerCreateActivityModal: React.FC<OrganizerCreateActivityModalProps> = ({
+export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
   language,
   isOpen,
   onClose,
-  events = [],
   locations = [],
-  onCreateActivity
+  onRegister,
+  initialDate,
+  organization,
+  assets = [],
 }) => {
   const [title, setTitle] = useState('');
   const [type, setType] = useState('talkshow');
   const [partnerName, setPartnerName] = useState('');
   const [speaker, setSpeaker] = useState('');
   const [dateStr, setDateStr] = useState('');
+  const [endDateStr, setEndDateStr] = useState('');
   const [startTime, setStartTime] = useState('09:00');
   const [endTime, setEndTime] = useState('11:00');
   const [location, setLocation] = useState('');
   const [capacity, setCapacity] = useState(50);
-  const [eventId, setEventId] = useState(events[0]?.id || '');
   const [description, setDescription] = useState('');
   const [isPublished, setIsPublished] = useState(true);
   const [thumbnail, setThumbnail] = useState('');
+  const [isReadingImage, setIsReadingImage] = useState(false);
 
+  const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
+  const [agreedTerms, setAgreedTerms] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useModalBehavior(isOpen, onClose);
+  useModalBehavior(isOpen, onClose, isSubmitting);
 
   React.useEffect(() => {
-    if (!events.some(event => event.id === eventId)) setEventId(events[0]?.id || '');
-  }, [events, eventId]);
+    if (!isOpen) return;
+    const date = initialDate && initialDate >= firstRegistrationDate() ? initialDate.split('-').reverse().join('/') : '';
+    setDateStr(date);
+    setEndDateStr(date);
+    setError(null);
+  }, [isOpen, initialDate]);
 
   if (!isOpen) return null;
-
-  const now = new Date();
-  const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  const minRegistrationDate = firstRegistrationDate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting || isReadingImage) return;
     if (!title.trim()) {
-      setError(language === 'vi' ? 'Vui lòng nhập tên hoạt động' : 'Please enter activity title');
+      setError(language === 'vi' ? 'Vui lòng nhập tên sự kiện' : 'Please enter event title');
       return;
     }
-    if (!dateStr) {
-      setError(language === 'vi' ? 'Vui lòng chọn ngày diễn ra' : 'Please select activity date');
-      return;
-    }
-    if (dateStr < todayKey) {
-      setError(language === 'vi' ? 'Không thể tạo hoạt động vào ngày đã diễn ra' : 'Cannot create activity on a past date');
+    const startDate = activityDateKey(dateStr);
+    const endDate = activityDateKey(endDateStr);
+    if (!startDate || !endDate) {
+      setError(language === 'vi' ? 'Ngày bắt đầu và kết thúc phải hợp lệ, theo định dạng dd/mm/yyyy.' : 'Enter valid start and end dates in dd/mm/yyyy format.');
       return;
     }
 
-    // Format dateStr to DD/MM/YYYY if provided in YYYY-MM-DD
-    let formattedDate = dateStr;
-    if (dateStr.includes('-')) {
-      const parts = dateStr.split('-');
-      if (parts.length === 3) {
-        formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
-      }
+    if (startDate < firstRegistrationDate() || endDate < firstRegistrationDate()) {
+      setError(language === 'vi' ? 'Ngày bắt đầu và ngày kết thúc phải từ ngày mai trở đi.' : 'Start and end dates must be tomorrow or later.');
+      return;
     }
 
-    const newActivity: OrganizerActivityItem = {
+    const startAt = `${startDate}T${startTime}:00+07:00`;
+    const endAt = `${endDate}T${endTime}:00+07:00`;
+    if (!startTime || !endTime || new Date(endAt) <= new Date(startAt)) {
+      setError(language === 'vi' ? 'Ngày giờ kết thúc phải sau ngày giờ bắt đầu.' : 'End date and time must be after the start.');
+      return;
+    }
+
+    if (organization && !agreedTerms) {
+      setError(language === 'vi' ? 'Vui lòng xác nhận tuân thủ quy chế tổ chức sự kiện.' : 'Please agree to the event registration terms.');
+      return;
+    }
+    const newActivity: EventRegistrationData = {
       id: '',
-      eventId,
       title: title.trim(),
       type,
-      dateStr: formattedDate,
+      dateStr: dateStr.trim(),
+      startAt,
+      endAt,
       timeStr: `${startTime} – ${endTime}`,
       location: location.trim(),
       capacity: Number(capacity),
@@ -100,19 +136,23 @@ export const OrganizerCreateActivityModal: React.FC<OrganizerCreateActivityModal
       statusLabelVi: 'Đã duyệt',
       isPublished,
       thumbnail,
-      description: description.trim()
+      description: description.trim(),
+      devices: selectedEquipment.map(name => ({ name, quantity: 1 }))
     };
 
+    setIsSubmitting(true);
     try {
-      await onCreateActivity(newActivity);
+      await onRegister(newActivity);
       onClose();
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : 'Không thể tạo hoạt động');
+      setError(submitError instanceof Error ? submitError.message : 'Không thể đăng ký sự kiện');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="org-modal-backdrop" onClick={onClose}>
+    <div className="org-modal-backdrop" style={{ zIndex: 1200 }} onClick={() => { if (!isSubmitting) onClose(); }}>
       <div 
         className="org-modal-box" 
         style={{ 
@@ -129,12 +169,12 @@ export const OrganizerCreateActivityModal: React.FC<OrganizerCreateActivityModal
         <div className="org-modal-header" style={{ padding: '1.25rem 1.75rem', background: '#FFFFFF', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, color: '#17382E', fontFamily: 'var(--font-serif, serif)' }}>
-              {language === 'vi' ? 'Đăng ký hoạt động mới' : 'Create New Activity'}
+              {language === 'vi' ? 'Đăng ký sự kiện mới' : 'Register New Event'}
             </h3>
             <p style={{ fontSize: '0.84rem', color: '#556B65', margin: '4px 0 0 0' }}>
               {language === 'vi' 
-                ? 'Thiết lập thông tin hoạt động, diễn giả, thời gian và sức chứa tham gia' 
-                : 'Configure activity details, speaker, schedule and capacity'}
+                ? 'Thiết lập thông tin sự kiện, diễn giả, thời gian và số người tham gia'
+                : 'Configure event details, speaker, schedule and attendance'}
             </p>
           </div>
           <button 
@@ -160,7 +200,7 @@ export const OrganizerCreateActivityModal: React.FC<OrganizerCreateActivityModal
         </div>
 
         {/* Modal Body */}
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} data-event-registration-form>
           <div className="org-modal-body" style={{ padding: '1.5rem 1.75rem', maxHeight: 'calc(85vh - 140px)', overflowY: 'auto' }}>
             {error && (
               <div style={{
@@ -181,10 +221,15 @@ export const OrganizerCreateActivityModal: React.FC<OrganizerCreateActivityModal
               </div>
             )}
 
-            {/* 1. Activity Title */}
+            {organization && <div style={{ padding: '1rem', background: '#F8FAF9', marginBottom: '1rem', borderRadius: '8px' }}>
+              <strong>{organization.name}</strong>
+              <p>{organization.representativeName} · {organization.phone} · {organization.email}</p>
+              <small>{language === 'vi' ? 'Đăng ký được gửi Ban Quản Lý phê duyệt trước khi công bố.' : 'Registration is reviewed by management before publication.'}</small>
+            </div>}
+            {/* 1. Event Title */}
             <div style={{ marginBottom: '1.1rem' }}>
               <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 650, color: '#1F2937', marginBottom: '0.4rem' }}>
-                {language === 'vi' ? 'Tên hoạt động / Sự kiện *' : 'Activity Title *'}
+                {language === 'vi' ? 'Tên sự kiện *' : 'Event Title *'}
               </label>
               <input 
                 type="text"
@@ -212,7 +257,7 @@ export const OrganizerCreateActivityModal: React.FC<OrganizerCreateActivityModal
               <div>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.82rem', fontWeight: 650, color: '#1F2937', marginBottom: '0.4rem' }}>
                   <Tag size={14} color="#17382E" />
-                  <span>{language === 'vi' ? 'Thể loại hoạt động' : 'Activity Type'}</span>
+                  <span>{language === 'vi' ? 'Thể loại sự kiện' : 'Event Type'}</span>
                 </label>
                 <select
                   value={type}
@@ -234,6 +279,7 @@ export const OrganizerCreateActivityModal: React.FC<OrganizerCreateActivityModal
                   <option value="talkshow">{language === 'vi' ? 'Talkshow & Giao lưu' : 'Talkshow & Panel'}</option>
                   <option value="workshop">{language === 'vi' ? 'Workshop & Thực hành' : 'Workshop & Hands-on'}</option>
                   <option value="launch">{language === 'vi' ? 'Ra mắt sách mới' : 'Book Launch'}</option>
+                  <option value="exhibition">{language === 'vi' ? 'Triển lãm' : 'Exhibition'}</option>
                   <option value="minigame">{language === 'vi' ? 'Mini Game & Quà tặng' : 'Mini Game & Quiz'}</option>
                   <option value="signing">{language === 'vi' ? 'Ký tặng sách' : 'Book Signing'}</option>
                 </select>
@@ -247,7 +293,8 @@ export const OrganizerCreateActivityModal: React.FC<OrganizerCreateActivityModal
                 <input 
                   type="text"
                   placeholder={language === 'vi' ? 'Ví dụ: NXB Trẻ, Nhã Nam...' : 'e.g. Tre Publishing, Nha Nam...'}
-                  value={partnerName}
+                  value={organization?.name || partnerName}
+                  readOnly={Boolean(organization)}
                   onChange={e => setPartnerName(e.target.value)}
                   style={{
                     width: '100%',
@@ -332,28 +379,30 @@ export const OrganizerCreateActivityModal: React.FC<OrganizerCreateActivityModal
                 <Calendar size={14} />
                 <span>{language === 'vi' ? 'THỜI GIAN & ĐỊA ĐIỂM TỔ CHỨC' : 'SCHEDULE & LOCATION'}</span>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', gap: '0.85rem', marginBottom: '0.85rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '0.85rem', marginBottom: '0.85rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.76rem', color: '#556B65', fontWeight: 600, marginBottom: '0.25rem' }}>
-                    {language === 'vi' ? 'Ngày diễn ra *' : 'Date *'}
+                    {language === 'vi' ? 'Ngày bắt đầu *' : 'Start date *'}
                   </label>
-                  <input 
-                    type="date"
-                    value={dateStr}
-                    min={todayKey}
-                    onChange={e => setDateStr(e.target.value)}
-                    style={{ width: '100%', height: '36px', padding: '0 0.65rem', borderRadius: '6px', border: '1px solid #D1D5DB', fontSize: '0.85rem', background: '#FFFFFF', boxSizing: 'border-box' }}
-                    required
-                  />
+                  <DatePicker label={language === 'vi' ? 'Ngày bắt đầu' : 'Start date'} value={dateStr} onChange={setDateStr} language={language} min={minRegistrationDate} align="left" />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.76rem', color: '#556B65', fontWeight: 600, marginBottom: '0.25rem' }}>
+                    {language === 'vi' ? 'Ngày kết thúc *' : 'End date *'}
+                  </label>
+                  <DatePicker label={language === 'vi' ? 'Ngày kết thúc' : 'End date'} value={endDateStr} onChange={setEndDateStr} language={language} min={(activityDateKey(dateStr) || '') > minRegistrationDate ? activityDateKey(dateStr)! : minRegistrationDate} align="right" />
                 </div>
 
                 <div>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.76rem', color: '#556B65', fontWeight: 600, marginBottom: '0.25rem' }}>
                     <Clock size={12} />
-                    <span>{language === 'vi' ? 'Bắt đầu' : 'Start'}</span>
+                    <span>{language === 'vi' ? 'Giờ bắt đầu' : 'Start time'}</span>
                   </label>
                   <input 
                     type="time"
+                    aria-label={language === 'vi' ? 'Giờ bắt đầu' : 'Start time'}
+                    required
                     value={startTime}
                     onChange={e => setStartTime(e.target.value)}
                     style={{ width: '100%', height: '36px', padding: '0 0.5rem', borderRadius: '6px', border: '1px solid #D1D5DB', fontSize: '0.85rem', background: '#FFFFFF', boxSizing: 'border-box' }}
@@ -363,10 +412,12 @@ export const OrganizerCreateActivityModal: React.FC<OrganizerCreateActivityModal
                 <div>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.76rem', color: '#556B65', fontWeight: 600, marginBottom: '0.25rem' }}>
                     <Clock size={12} />
-                    <span>{language === 'vi' ? 'Kết thúc' : 'End'}</span>
+                    <span>{language === 'vi' ? 'Giờ kết thúc' : 'End time'}</span>
                   </label>
                   <input 
                     type="time"
+                    aria-label={language === 'vi' ? 'Giờ kết thúc' : 'End time'}
+                    required
                     value={endTime}
                     onChange={e => setEndTime(e.target.value)}
                     style={{ width: '100%', height: '36px', padding: '0 0.5rem', borderRadius: '6px', border: '1px solid #D1D5DB', fontSize: '0.85rem', background: '#FFFFFF', boxSizing: 'border-box' }}
@@ -385,7 +436,7 @@ export const OrganizerCreateActivityModal: React.FC<OrganizerCreateActivityModal
                   required
                   style={{ width: '100%', height: '36px', padding: '0 0.75rem', borderRadius: '6px', border: '1px solid #D1D5DB', fontSize: '0.85rem', background: '#FFFFFF', boxSizing: 'border-box' }}
                 >
-                  <option value="">{language === 'vi' ? 'Chọn địa điểm thuộc sự kiện' : 'Select an event location'}</option>
+                  <option value="">{language === 'vi' ? 'Chọn địa điểm tổ chức' : 'Select a location'}</option>
                   {locations.map(item => <option key={item.id} value={item.id}>{item.name} · {item.capacity} người</option>)}
                 </select>
               </div>
@@ -395,7 +446,7 @@ export const OrganizerCreateActivityModal: React.FC<OrganizerCreateActivityModal
             <div style={{ marginBottom: '1.25rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
                 <label style={{ fontSize: '0.82rem', fontWeight: 650, color: '#1F2937', margin: 0 }}>
-                  {language === 'vi' ? 'Hình ảnh đại diện hoạt động' : 'Activity Thumbnail'}
+                  {language === 'vi' ? 'Hình ảnh đại diện sự kiện' : 'Event Image'}
                 </label>
                 <label 
                   className="btn-org-secondary" 
@@ -419,15 +470,32 @@ export const OrganizerCreateActivityModal: React.FC<OrganizerCreateActivityModal
                   <input
                     type="file"
                     accept="image/*"
+                    disabled={isSubmitting || isReadingImage}
                     style={{ display: 'none' }}
                     onChange={(e) => {
                       const file = e.target.files?.[0];
+                      e.target.value = '';
                       if (file) {
+                        if (!file.type.startsWith('image/')) {
+                          setError(language === 'vi' ? 'Vui lòng chọn một tệp ảnh.' : 'Please select an image file.');
+                          return;
+                        }
+                        if (file.size > MAX_EVENT_IMAGE_MB * 1024 * 1024) {
+                          setError(language === 'vi' ? `Ảnh sự kiện tối đa ${MAX_EVENT_IMAGE_MB} MB.` : `Event images must be ${MAX_EVENT_IMAGE_MB} MB or smaller.`);
+                          return;
+                        }
+                        setError(null);
+                        setIsReadingImage(true);
                         const reader = new FileReader();
                         reader.onload = (evt) => {
                           if (typeof evt.target?.result === 'string') {
                             setThumbnail(evt.target.result);
                           }
+                          setIsReadingImage(false);
+                        };
+                        reader.onerror = () => {
+                          setIsReadingImage(false);
+                          setError(language === 'vi' ? 'Không thể đọc ảnh. Vui lòng chọn lại tệp.' : 'Unable to read image. Please select it again.');
                         };
                         reader.readAsDataURL(file);
                       }
@@ -435,6 +503,7 @@ export const OrganizerCreateActivityModal: React.FC<OrganizerCreateActivityModal
                   />
                 </label>
               </div>
+              <small>{language === 'vi' ? `Ảnh tối đa ${MAX_EVENT_IMAGE_MB} MB` : `Images up to ${MAX_EVENT_IMAGE_MB} MB`}</small>
 
               <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
                 <input 
@@ -489,8 +558,22 @@ export const OrganizerCreateActivityModal: React.FC<OrganizerCreateActivityModal
               />
             </div>
 
+            {organization && <>
+              <fieldset style={{ marginBottom: '1rem', border: '1px solid #E2EAE5', borderRadius: '8px', padding: '1rem' }}>
+                <legend>{language === 'vi' ? 'Thiết bị hỗ trợ' : 'Equipment'}</legend>
+                {assets.map(asset => <label key={asset.id} style={{ display: 'block', marginBottom: '0.5rem' }}>
+                  <input type="checkbox" checked={selectedEquipment.includes(asset.name)} onChange={() => setSelectedEquipment(previous => previous.includes(asset.name) ? previous.filter(name => name !== asset.name) : [...previous, asset.name])} />{' '}
+                  {asset.name}
+                </label>)}
+                {assets.length === 0 && <small>{language === 'vi' ? 'Chưa có thiết bị khả dụng.' : 'No equipment available.'}</small>}
+              </fieldset>
+              <label style={{ display: 'block', marginBottom: '1rem' }}>
+                <input type="checkbox" required checked={agreedTerms} onChange={e => setAgreedTerms(e.target.checked)} />{' '}
+                {language === 'vi' ? 'Tôi cam kết tuân thủ quy chế tổ chức sự kiện tại Đường Sách.' : 'I agree to the event registration terms.'}
+              </label>
+            </>}
             {/* 7. Public status toggle */}
-            <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+            {!organization && <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
               <input 
                 id="act-published"
                 type="checkbox"
@@ -499,9 +582,9 @@ export const OrganizerCreateActivityModal: React.FC<OrganizerCreateActivityModal
                 style={{ width: '17px', height: '17px', accentColor: '#17382E', cursor: 'pointer' }}
               />
               <label htmlFor="act-published" style={{ fontSize: '0.86rem', color: '#1F2937', fontWeight: 500, cursor: 'pointer' }}>
-                {language === 'vi' ? 'Công bố hoạt động ngay trên lịch trình công khai (Landing Page)' : 'Publish immediately to public event schedule'}
+                {language === 'vi' ? 'Công bố sự kiện ngay trên lịch trình công khai' : 'Publish immediately to public event schedule'}
               </label>
-            </div>
+            </div>}
           </div>
 
           {/* Modal Footer */}
@@ -515,7 +598,8 @@ export const OrganizerCreateActivityModal: React.FC<OrganizerCreateActivityModal
               {language === 'vi' ? 'Hủy bỏ' : 'Cancel'}
             </button>
             <button 
-              type="submit" 
+              type="submit"
+              disabled={isSubmitting || isReadingImage}
               className="btn-org-primary"
               style={{ 
                 padding: '0.5rem 1.4rem', 
@@ -527,7 +611,7 @@ export const OrganizerCreateActivityModal: React.FC<OrganizerCreateActivityModal
                 boxShadow: '0 4px 12px rgba(23, 56, 46, 0.2)' 
               }}
             >
-              <span>{language === 'vi' ? 'Tạo hoạt động' : 'Create Activity'}</span>
+              <span>{isSubmitting ? (language === 'vi' ? 'Đang gửi…' : 'Submitting…') : (language === 'vi' ? 'Đăng ký sự kiện' : 'Register Event')}</span>
             </button>
           </div>
         </form>

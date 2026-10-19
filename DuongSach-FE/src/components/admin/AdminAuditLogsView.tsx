@@ -1,5 +1,5 @@
 import { useModalBehavior } from '../../hooks/useModalBehavior';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Search, 
   Download, 
@@ -26,6 +26,7 @@ import {
   Tag
 } from 'lucide-react';
 import { AdminAuditLogItem } from '../../types/admin';
+import { ListPagination } from '../ui/ListPagination';
 
 interface AdminAuditLogsViewProps {
   logs: AdminAuditLogItem[];
@@ -42,6 +43,10 @@ export const AdminAuditLogsView: React.FC<AdminAuditLogsViewProps> = ({ logs }) 
   const [copiedId, setCopiedId] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterCategory, filterStatus, filterTimeRange]);
 
   // Thống kê nhanh
   const stats = useMemo(() => {
@@ -166,7 +171,7 @@ export const AdminAuditLogsView: React.FC<AdminAuditLogsViewProps> = ({ logs }) 
   };
 
   const formatDetailSummary = (rawDetails: string) => {
-    if (!rawDetails) return '—';
+    if (!rawDetails || !rawDetails.trim()) return '—';
     try {
       if (rawDetails.startsWith('{') || rawDetails.startsWith('[')) {
         const parsed = JSON.parse(rawDetails);
@@ -179,13 +184,23 @@ export const AdminAuditLogsView: React.FC<AdminAuditLogsViewProps> = ({ logs }) 
         if (parsed.status !== undefined) {
           return `Thay đổi trạng thái: ${parsed.status}${parsed.reason ? ' (' + parsed.reason + ')' : ''}`;
         }
+        if (parsed.title) {
+          return `Sự kiện: "${parsed.title}"`;
+        }
+        if (parsed.boothName || parsed.boothCode) {
+          return `Gian hàng: ${parsed.boothName || parsed.boothCode}`;
+        }
+        if (parsed.action) {
+          return `${parsed.action}`;
+        }
         const entries = Object.entries(parsed).slice(0, 3);
+        if (entries.length === 0) return '—';
         return entries.map(([k, v]) => `${k}: ${typeof v === 'object' ? '...' : String(v)}`).join(' • ');
       }
     } catch {
       // Fallback to plain string
     }
-    return rawDetails;
+    return rawDetails || '—';
   };
 
   const handleCopy = (text: string) => {
@@ -199,7 +214,6 @@ export const AdminAuditLogsView: React.FC<AdminAuditLogsViewProps> = ({ logs }) 
       {/* 1. Header with Stats Bar */}
       <div className="adm-page-header">
         <div>
-          <span className="adm-dashboard-eyebrow">NHẬT KÝ & TRUY VẾT HỆ THỐNG</span>
           <h1 className="adm-page-title">Nhật ký Hoạt động (Audit Logs)</h1>
           <p className="adm-page-subtitle">
             Giám sát toàn diện mọi thao tác thay đổi vị trí bản đồ, cập nhật gian hàng, phân quyền và điều hành hệ thống.
@@ -343,17 +357,17 @@ export const AdminAuditLogsView: React.FC<AdminAuditLogsViewProps> = ({ logs }) 
           </div>
         </div>
 
-        <div className="adm-table-responsive adm-audit-desktop-table">
+        <div className="adm-table-responsive adm-audit-desktop-table" tabIndex={0} role="region" aria-label="Bảng nhật ký hệ thống">
           <table className="adm-table adm-audit-table">
             <thead>
               <tr>
-                <th style={{ width: '170px' }}>THỜI GIAN</th>
-                <th style={{ width: '220px' }}>NGƯỜI THỰC HIỆN</th>
-                <th style={{ width: '160px' }}>HÀNH ĐỘNG</th>
-                <th style={{ width: '160px' }}>ĐỐI TƯỢNG</th>
-                <th>CHI TIẾT THAO TÁC</th>
-                <th style={{ width: '140px' }}>TRẠNG THÁI & IP</th>
-                <th style={{ width: '80px', textAlign: 'center' }}>XEM</th>
+                <th style={{ width: '155px', minWidth: '150px' }}>THỜI GIAN</th>
+                <th style={{ width: '190px', minWidth: '180px' }}>NGƯỜI THỰC HIỆN</th>
+                <th style={{ width: '130px', minWidth: '120px' }}>HÀNH ĐỘNG</th>
+                <th style={{ width: '130px', minWidth: '120px' }}>ĐỐI TƯỢNG</th>
+                <th style={{ minWidth: '160px' }}>CHI TIẾT THAO TÁC</th>
+                <th style={{ width: '130px', minWidth: '120px' }}>TRẠNG THÁI & IP</th>
+                <th style={{ width: '60px', minWidth: '55px', textAlign: 'center' }}>XEM</th>
               </tr>
             </thead>
             <tbody>
@@ -522,50 +536,15 @@ export const AdminAuditLogsView: React.FC<AdminAuditLogsViewProps> = ({ logs }) 
           )}
         </div>
 
-        {/* Pagination Controls */}
-        {totalPages > 1 && (
-          <div className="adm-pagination-bar">
-            <span className="pagination-info">
-              Trang <strong>{currentPage}</strong> / <strong>{totalPages}</strong>
-            </span>
-            <div className="pagination-buttons">
-              <button
-                type="button"
-                className="btn-pagination"
-                disabled={currentPage <= 1}
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-              >
-                <ChevronLeft size={15} />
-                <span>Trước</span>
-              </button>
-
-              {Array.from({ length: totalPages }, (_, i) => i + 1)
-                .filter(page => page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1)
-                .map((page, idx, arr) => (
-                  <React.Fragment key={page}>
-                    {idx > 0 && arr[idx - 1] !== page - 1 && <span className="pagination-ellipsis">...</span>}
-                    <button
-                      type="button"
-                      className={`btn-page-number ${currentPage === page ? 'active' : ''}`}
-                      onClick={() => setCurrentPage(page)}
-                    >
-                      {page}
-                    </button>
-                  </React.Fragment>
-                ))}
-
-              <button
-                type="button"
-                className="btn-pagination"
-                disabled={currentPage >= totalPages}
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-              >
-                <span>Sau</span>
-                <ChevronRight size={15} />
-              </button>
-            </div>
-          </div>
-        )}
+        {/* Pagination Controls matching the rest of the system */}
+        <div className="adm-audit-pagination-bar">
+          <ListPagination
+            page={currentPage}
+            totalPages={totalPages}
+            onChange={setCurrentPage}
+            vi={true}
+          />
+        </div>
       </div>
 
       {/* 5. Detail Slide-over Modal */}

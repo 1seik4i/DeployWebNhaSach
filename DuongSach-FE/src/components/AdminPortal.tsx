@@ -1,3 +1,5 @@
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { adminTabPath, isAdminTab, resolveAdminTab } from '../utils/adminNavigation';
 import { promptModal } from '../services/notificationModal';
 import React, { useState, useEffect } from 'react';
 import { FacilityManagementView } from './admin/FacilityManagementView';
@@ -28,7 +30,8 @@ import { BoothMapView } from './portal/BoothMapView';
 import { ActivityManagementView } from './portal/ActivityManagementView';
 import { OrganizerReportsView } from './portal/OrganizerReportsView';
 import { OrganizerFeedbackView } from './portal/OrganizerFeedbackView';
-import { OrganizerCreateActivityModal } from './portal/OrganizerCreateActivityModal';
+import { EventRegistrationModal, EventRegistrationData } from './portal/EventRegistrationModal';
+import { eventRegistrationPayload } from '../services/eventRegistration';
 
 import {
   AdminUserAccount,
@@ -65,10 +68,29 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   language,
   onLogout
 }) => {
-  const [activeTab, setActiveTab] = useState<AdminTab>(() => {
-    const tab = new URLSearchParams(window.location.search).get('tab');
-    return tab === 'traffic' || tab === 'event-applications' || tab === 'event-suggestions' ? tab : 'dashboard';
-  });
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = resolveAdminTab(location.pathname, location.search);
+  const setActiveTab = (tab: AdminTab) => {
+    const target = isAdminTab(tab) ? tab : 'dashboard';
+    const params = new URLSearchParams();
+    const eventId = searchParams.get('eventId');
+    if (eventId) params.set('eventId', eventId);
+    navigate({ pathname: adminTabPath(target), search: params.toString() });
+  };
+
+  // Preserve old notification links while giving every tab one canonical path.
+  useEffect(() => {
+    const pathname = adminTabPath(activeTab);
+    const params = new URLSearchParams(location.search);
+    const legacy = params.has('tab');
+    params.delete('tab');
+    const search = params.toString();
+    if (location.pathname !== pathname || legacy) {
+      navigate({ pathname, search: search ? `?${search}` : '', hash: location.hash }, { replace: true });
+    }
+  }, [activeTab, location.pathname, location.search, location.hash, navigate]);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   // Core Admin Data States
@@ -83,7 +105,15 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   const [loadError, setLoadError] = useState('');
 
   // Merged Management Data States
-  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+  const selectedEventId = searchParams.get('eventId');
+  const setSelectedEventId = (id: string | null) => {
+    setSearchParams(previous => {
+      const next = new URLSearchParams(previous);
+      if (id) next.set('eventId', id);
+      else next.delete('eventId');
+      return next;
+    });
+  };
   const [eventsList, setEventsList] = useState<OrganizerEvent[]>([]);
   const [boothsList, setBoothsList] = useState<OrganizerBoothItem[]>([]);
   const [activitiesList, setActivitiesList] = useState<OrganizerActivityItem[]>([]);
@@ -93,6 +123,13 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
 
   // Modals
   const [isCreateActivityOpen, setIsCreateActivityOpen] = useState(false);
+  const [registrationLocations, setRegistrationLocations] = useState<Array<{ id: string; name: string; capacity: number }>>([]);
+  useEffect(() => {
+    if (!isCreateActivityOpen) return;
+    let active = true;
+    void organizerApi.getEventLocations().then(items => { if (active) setRegistrationLocations(items); }).catch(error => setLoadError(error instanceof Error ? error.message : 'Không thể tải địa điểm tổ chức.'));
+    return () => { active = false; };
+  }, [isCreateActivityOpen]);
 
   const refreshAdminData = async () => {
     try {
@@ -164,7 +201,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   };
 
   const handleUpdateUser = async (id: string, updates: Partial<AdminUserAccount>) => {
-    await adminApi.updateUser(id, { fullName: updates.fullName, phone: updates.phone, role: updates.role, status: updates.status });
+    await adminApi.updateUser(id, { fullName: updates.fullName, email: updates.email, phone: updates.phone, role: updates.role, status: updates.status });
     await refreshAdminData();
   };
 
@@ -175,9 +212,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     await refreshAdminData();
   };
 
-  const handleResetPassword = async (user: AdminUserAccount) => {
-    await adminApi.resetPassword(user.id);
-    await refreshAdminData();
+  const handleResetPassword = async (user: AdminUserAccount, newPassword: string) => {
+    await adminApi.resetPassword(user.id, newPassword);
   };
 
   // --- Handlers: Roles & Permissions ---
@@ -247,23 +283,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     }
   };
 
-  const handleCreateActivity = async (activityData: OrganizerActivityItem) => {
-    const eventId = activityData.eventId || selectedEventId;
-    if (!eventId) throw new Error('Vui lòng chọn sự kiện để đăng ký hoạt động.');
-    const [day, month, year] = activityData.dateStr.split('/');
-    const [startTime, endTime] = activityData.timeStr.split('–').map(value => value.trim());
-    await organizerApi.createActivity({
-      eventId,
-      title: activityData.title,
-      kind: activityData.type,
-      locationId: activityData.location,
-      startAt: `${year}-${month}-${day}T${startTime}:00+07:00`,
-      endAt: `${year}-${month}-${day}T${endTime}:00+07:00`,
-      capacity: activityData.capacity,
-      description: activityData.description,
-      speaker: activityData.speaker,
-      imageUrl: activityData.thumbnail || undefined,
-    });
+  const handleCreateActivity = async (registration: EventRegistrationData) => {
+    await organizerApi.registerEvent(eventRegistrationPayload(registration));
     await refreshAdminData();
     setIsCreateActivityOpen(false);
   };
@@ -322,6 +343,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
           {activeTab === 'traffic' && <AdminTrafficView language={language} />}
           {activeTab === 'dashboard' && (
             <AdminDashboardView
+              adminName={profile.name}
               stats={dashboardStats}
               onNavigateTab={(tab) => setActiveTab(tab as AdminTab)}
               auditLogs={auditLogs}
@@ -367,7 +389,6 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                 partnerApplications={partnerApplications}
                 onApprovePartnerApplication={async (id) => { await organizerApi.approvePartnerApplication(id); await refreshAdminData(); }}
                 onRejectPartnerApplication={async (id, note) => { await organizerApi.rejectPartnerApplication(id, note); await refreshAdminData(); }}
-                onCreateActivity={handleCreateActivity}
                 onUpdateActivity={async (id, data) => { await organizerApi.updateActivity(id, data); await refreshAdminData(); }}
                 onDeleteActivity={async (id) => { await organizerApi.deleteActivity(id); await refreshAdminData(); }}
                 onBack={() => setSelectedEventId(null)}
@@ -494,13 +515,12 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
       </div>
 
       {/* Merged Management Modals */}
-      <OrganizerCreateActivityModal
+      <EventRegistrationModal
         language={language}
         isOpen={isCreateActivityOpen}
-        locations={eventLocations}
-        events={eventsList}
+        locations={registrationLocations}
         onClose={() => setIsCreateActivityOpen(false)}
-        onCreateActivity={handleCreateActivity}
+        onRegister={handleCreateActivity}
       />
 
     </div>

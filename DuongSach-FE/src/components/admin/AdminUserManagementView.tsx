@@ -1,5 +1,6 @@
 import { useModalBehavior } from '../../hooks/useModalBehavior';
 import React, { useState, useMemo } from 'react';
+import { ListPagination, useListPagination } from '../ui/ListPagination';
 import { apiClient } from '../../services/apiClient';
 import { 
   Search, 
@@ -9,7 +10,6 @@ import {
   Unlock, 
   KeyRound, 
   Edit3, 
-  CheckCircle2, 
   AlertCircle,
   X,
   Clock,
@@ -27,7 +27,7 @@ interface AdminUserManagementViewProps {
   onAddUser: (user: { fullName: string; email: string; phone?: string; role: AdminRoleType; status: AdminAccountStatus; password: string }) => void | Promise<void>;
   onUpdateUser: (id: string, updates: Partial<AdminUserAccount>) => void | Promise<void>;
   onToggleLock: (id: string, reason?: string) => void | Promise<void>;
-  onResetPassword: (user: AdminUserAccount) => void | Promise<void>;
+  onResetPassword: (user: AdminUserAccount, newPassword: string) => void | Promise<void>;
 }
 
 export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = ({
@@ -47,6 +47,18 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
   const [lockTargetUser, setLockTargetUser] = useState<AdminUserAccount | null>(null);
   const [lockReason, setLockReason] = useState('');
   const [resetTargetUser, setResetTargetUser] = useState<AdminUserAccount | null>(null);
+  const [resetPassword, setResetPassword] = useState('');
+  const [resetConfirmation, setResetConfirmation] = useState('');
+  const [resetError, setResetError] = useState('');
+  const [isResetting, setIsResetting] = useState(false);
+  const [passwordNotice, setPasswordNotice] = useState('');
+  const closeResetModal = () => {
+    if (isResetting) return;
+    setResetTargetUser(null);
+    setResetPassword('');
+    setResetConfirmation('');
+    setResetError('');
+  };
 
   // New user form state
   const [newFullName, setNewFullName] = useState('');
@@ -62,7 +74,7 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
   useModalBehavior(isAddModalOpen, () => closeAddModal(), isCreating);
   useModalBehavior(Boolean(editingUser), () => setEditingUser(null));
   useModalBehavior(Boolean(lockTargetUser), () => setLockTargetUser(null));
-  useModalBehavior(Boolean(resetTargetUser), () => setResetTargetUser(null));
+  useModalBehavior(Boolean(resetTargetUser), closeResetModal, isResetting);
 
   const closeAddModal = () => {
     if (isCreating) return;
@@ -74,6 +86,8 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
 
   // Edit user form state
   const [editFullName, setEditFullName] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [editError, setEditError] = useState('');
   const [editPhone, setEditPhone] = useState('');
   const [editRole, setEditRole] = useState<AdminRoleType>('partner');
   const [editStatus, setEditStatus] = useState<AdminAccountStatus>('active');
@@ -93,10 +107,13 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
       return matchesSearch && matchesRole && matchesStatus;
     });
   }, [users, searchTerm, selectedRole, selectedStatus]);
+  const pagination = useListPagination(filteredUsers, `${searchTerm}:${selectedRole}:${selectedStatus}`);
 
   const handleOpenEdit = (user: AdminUserAccount) => {
     setEditingUser(user);
     setEditFullName(user.fullName);
+    setEditEmail(user.email);
+    setEditError('');
     setEditPhone(user.phone);
     setEditRole(user.role);
     setEditStatus(user.status);
@@ -117,16 +134,22 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
       pending_verification: 'Chờ xác thực'
     };
 
-    await onUpdateUser(editingUser.id, {
-      fullName: editFullName.trim(),
-      phone: editPhone.trim(),
-      role: editRole,
-      roleLabelVi: roleMap[editRole],
-      status: editStatus,
-      statusLabelVi: statusMap[editStatus]
-    });
+    try {
+      setEditError('');
+      await onUpdateUser(editingUser.id, {
+        fullName: editFullName.trim(),
+        email: editEmail.trim().toLowerCase(),
+        phone: editPhone.trim(),
+        role: editRole,
+        roleLabelVi: roleMap[editRole],
+        status: editStatus,
+        statusLabelVi: statusMap[editStatus]
+      });
 
-    setEditingUser(null);
+      setEditingUser(null);
+    } catch (error) {
+      setEditError(error instanceof Error ? error.message : 'Không thể cập nhật tài khoản.');
+    }
   };
 
   const handleOpenAdd = () => {
@@ -181,10 +204,30 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
     setLockReason('');
   };
 
-  const handleConfirmReset = async () => {
-    if (!resetTargetUser) return;
-    await onResetPassword(resetTargetUser);
-    setResetTargetUser(null);
+  const handleConfirmReset = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!resetTargetUser || isResetting) return;
+    setResetError('');
+    if (resetPassword.length < 8 || new TextEncoder().encode(resetPassword).length > 72) {
+      setResetError('Mật khẩu cần ít nhất 8 ký tự và tối đa 72 byte.');
+      return;
+    }
+    if (resetPassword !== resetConfirmation) {
+      setResetError('Mật khẩu xác nhận không khớp.');
+      return;
+    }
+    setIsResetting(true);
+    try {
+      await onResetPassword(resetTargetUser, resetPassword);
+      setPasswordNotice(`Đã đổi mật khẩu cho tài khoản ${resetTargetUser.fullName}.`);
+      setResetTargetUser(null);
+      setResetPassword('');
+      setResetConfirmation('');
+    } catch (error) {
+      setResetError(error instanceof Error ? error.message : 'Không thể đổi mật khẩu. Vui lòng thử lại.');
+    } finally {
+      setIsResetting(false);
+    }
   };
 
   const getRoleBadgeClass = (role: AdminRoleType) => role === 'partner' ? 'badge-role-partner' : 'badge-role-admin';
@@ -199,6 +242,7 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
 
   return (
     <div className="adm-users-view">
+      {passwordNotice && <div className="adm-toast-banner" role="status">{passwordNotice}</div>}
       {/* Header */}
       <div className="adm-page-header">
         <div>
@@ -279,7 +323,7 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
       </div>
 
       {/* Table Card */}
-      <div className="adm-card adm-table-card">
+      <div className="adm-card adm-table-card adm-user-table-card">
         <div className="adm-table-summary">
           <span>Tìm thấy <strong>{filteredUsers.length}</strong> tài khoản phù hợp</span>
         </div>
@@ -306,7 +350,7 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
                   </td>
                 </tr>
               ) : (
-                filteredUsers.map((user) => (
+                pagination.items.map((user) => (
                   <tr key={user.id} className={user.status === 'locked' ? 'adm-row-locked' : ''}>
                     {/* Name & Code */}
                     <td className="adm-td-user">
@@ -344,12 +388,12 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
                       <div className="adm-contact-cell">
                         <div className="adm-contact-item">
                           <Mail size={13} className="adm-contact-icon" />
-                          <span>{user.email}</span>
+                          <span title={user.email}>{user.email}</span>
                         </div>
                         {user.phone && user.phone.trim() && (
                           <div className="adm-contact-item">
                             <Phone size={13} className="adm-contact-icon" />
-                            <span>{user.phone}</span>
+                            <span title={user.phone}>{user.phone}</span>
                           </div>
                         )}
                       </div>
@@ -407,7 +451,7 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
                         {/* Reset password button */}
                         <button
                           className="adm-icon-btn"
-                          title="Đặt lại mật khẩu"
+                          title="Đổi mật khẩu"
                           onClick={() => setResetTargetUser(user)}
                         >
                           <KeyRound size={15} />
@@ -429,7 +473,7 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
               <p>Không tìm thấy tài khoản nào phù hợp với bộ lọc hiện tại.</p>
             </div>
           ) : (
-            filteredUsers.map((user) => (
+            pagination.items.map((user) => (
               <div key={user.id} className={`adm-user-mobile-card ${user.status === 'locked' ? 'adm-row-locked' : ''}`}>
                 <div className="adm-user-card-top">
                   <div className="adm-user-cell">
@@ -474,12 +518,12 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
                   <div className="adm-contact-cell">
                     <div className="adm-contact-item">
                       <Mail size={13} className="adm-contact-icon" />
-                      <span>{user.email}</span>
+                      <span title={user.email}>{user.email}</span>
                     </div>
                     {user.phone && user.phone.trim() && (
                       <div className="adm-contact-item">
                         <Phone size={13} className="adm-contact-icon" />
-                        <span>{user.phone}</span>
+                        <span title={user.phone}>{user.phone}</span>
                       </div>
                     )}
                   </div>
@@ -514,7 +558,7 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
                   <button
                     className="adm-card-action-btn btn-key"
                     onClick={() => setResetTargetUser(user)}
-                    title="Đặt lại mật khẩu"
+                    title="Đổi mật khẩu"
                   >
                     <KeyRound size={14} />
                     <span>Đổi MK</span>
@@ -525,6 +569,8 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
           )}
         </div>
       </div>
+
+      <ListPagination page={pagination.page} totalPages={pagination.totalPages} onChange={pagination.setPage} vi />
 
       {/* Modal: Add New User */}
       {isAddModalOpen && (
@@ -657,13 +703,17 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
 
                 <div className="adm-form-row">
                   <div className="adm-form-group">
-                    <label className="adm-form-label">Email (Không thể sửa)</label>
+                    <label className="adm-form-label" htmlFor="admin-edit-user-email">Email</label>
                     <input 
-                      type="text" 
-                      disabled
-                      className="adm-form-input adm-input-disabled"
-                      value={editingUser.email}
+                      id="admin-edit-user-email"
+                      type="email"
+                      required
+                      maxLength={200}
+                      className="adm-form-input"
+                      value={editEmail}
+                      onChange={e => setEditEmail(e.target.value)}
                     />
+                    {editError && <p role="alert">{editError}</p>}
                   </div>
                   <div className="adm-form-group">
                     <label className="adm-form-label">Số điện thoại</label>
@@ -776,39 +826,45 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
       {/* Dialog: Reset Password */}
       {resetTargetUser && (
         <div className="adm-modal-overlay">
-          <div className="adm-modal-content adm-dialog-content">
+          <form className="adm-modal-content adm-dialog-content" onSubmit={handleConfirmReset}>
             <div className="adm-modal-header">
-              <h3 className="adm-modal-title">Đặt lại mật khẩu</h3>
-              <button className="adm-modal-close" onClick={() => setResetTargetUser(null)}>
+              <h3 className="adm-modal-title">Đổi mật khẩu</h3>
+              <button type="button" className="adm-modal-close" disabled={isResetting} onClick={closeResetModal}>
                 <X size={18} />
               </button>
             </div>
             <div className="adm-modal-body">
               <p className="adm-confirm-text">
-                Hệ thống sẽ tạo yêu cầu đặt lại mật khẩu cho tài khoản <strong>{resetTargetUser.fullName}</strong> và ghi thông báo bảo mật vào cơ sở dữ liệu.
+                Nhập mật khẩu mới cho tài khoản <strong>{resetTargetUser.fullName}</strong>.
               </p>
-              <div className="adm-callout-info">
-                <CheckCircle2 size={16} />
-                <span>Yêu cầu đặt lại mật khẩu có hiệu lực trong vòng 30 phút.</span>
+              <div className="adm-form-group">
+                <label htmlFor="admin-reset-password">Mật khẩu mới</label>
+                <input id="admin-reset-password" className="adm-form-input" type="password" autoComplete="new-password" required minLength={8} value={resetPassword} disabled={isResetting} onChange={e => setResetPassword(e.target.value)} />
               </div>
+              <div className="adm-form-group">
+                <label htmlFor="admin-reset-confirmation">Xác nhận mật khẩu mới</label>
+                <input id="admin-reset-confirmation" className="adm-form-input" type="password" autoComplete="new-password" required value={resetConfirmation} disabled={isResetting} onChange={e => setResetConfirmation(e.target.value)} />
+              </div>
+              {resetError && <p className="adm-error-text" role="alert">{resetError}</p>}
             </div>
             <div className="adm-modal-footer">
               <button 
                 type="button" 
                 className="adm-btn adm-btn-secondary"
-                onClick={() => setResetTargetUser(null)}
+                onClick={closeResetModal}
+                disabled={isResetting}
               >
                 Hủy bỏ
               </button>
               <button 
-                type="button" 
+                type="submit" 
                 className="adm-btn adm-btn-primary"
-                onClick={handleConfirmReset}
+                disabled={isResetting}
               >
-                Tạo yêu cầu đặt lại
+                {isResetting ? 'Đang lưu...' : 'Lưu mật khẩu mới'}
               </button>
             </div>
-          </div>
+          </form>
         </div>
       )}
     </div>

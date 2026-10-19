@@ -110,7 +110,6 @@ export const PartnerProfilePage: React.FC<PartnerProfilePageProps> = ({
         address,
         website,
         representativeName: repName,
-        email,
         phone,
         logoUrl
       });
@@ -175,14 +174,16 @@ export const PartnerProfilePage: React.FC<PartnerProfilePageProps> = ({
     <div style={{ maxWidth: 1180, margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
       {/* 1. Header */}
       <div className="partner-page-header">
+        <div>
         <h1 className="partner-page-title">
-          {language === 'vi' ? 'Thông tin tổ chức' : 'Organization Profile'}
+          {language === 'vi' ? 'Thông tin gian hàng' : 'Booth Information'}
         </h1>
         <p className="partner-page-sub">
           {language === 'vi' 
             ? 'Quản lý thông tin pháp nhân, người đại diện và cài đặt tài khoản.' 
             : 'Manage legal organization profile, representative contact and partner account settings.'}
         </p>
+        </div>
       </div>
 
       {saveSuccess && (
@@ -572,8 +573,9 @@ export const PartnerProfilePage: React.FC<PartnerProfilePageProps> = ({
                     <input
                       type="email"
                       value={email}
-                      onChange={e => setEmail(e.target.value)}
-                      disabled={!isEditing}
+                      readOnly
+                      disabled
+                      title={language === 'vi' ? 'Chỉ Admin được thay đổi email.' : 'Only an admin can change this email.'}
                       style={{
                         width: '100%',
                         padding: '7px 11px 7px 30px',

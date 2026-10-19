@@ -36,6 +36,8 @@ export const createApp = () => {
     credentials: true,
   }));
   app.use(compression());
+  // Map/event images are base64 encoded: allow 20 MiB plus encoding overhead.
+  app.use(['/api/admin/map-config', '/api/admin/activities', '/api/partner/activity-proposals', '/api/admin/event-registrations', '/api/partner/event-registrations'], express.json({ limit: '30mb' }));
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 

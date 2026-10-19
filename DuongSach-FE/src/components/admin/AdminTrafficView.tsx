@@ -63,7 +63,7 @@ export function AdminTrafficView({ language }: { language: Language }) {
         }
         const endpoint = `/admin/visit-stats${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
         const result = await apiClient.get<TrafficStats>(endpoint);
-        if (active) { setStats(result); setError(''); }
+        if (active) { setStats({ ...result, ...realtimeWebSocket.getCurrentStats(), onlineCount: realtimeWebSocket.getCurrentOnlineCount() ?? result.onlineCount }); setError(''); }
       } catch {
         if (active) setError(vi ? 'Không thể tải thống kê truy cập. Vui lòng thử lại.' : 'Unable to load visitor analytics. Please try again.');
       } finally {
@@ -72,9 +72,13 @@ export function AdminTrafficView({ language }: { language: Language }) {
       }
     };
     void refresh();
+    const unsubscribeStats = realtimeWebSocket.subscribeStats(snapshot => {
+      setStats(previous => previous ? { ...previous, ...snapshot } : previous);
+      void refresh();
+    });
     const timer = window.setInterval(() => void refresh(), 30000);
     document.addEventListener('visibilitychange', refresh);
-    return () => { active = false; window.clearInterval(timer); document.removeEventListener('visibilitychange', refresh); };
+    return () => { active = false; unsubscribeStats(); window.clearInterval(timer); document.removeEventListener('visibilitychange', refresh); };
   }, [revision, vi, viewType, selectedMonth, selectedYear]);
 
   // Determine active dataset and labels based on viewType
@@ -101,18 +105,22 @@ export function AdminTrafficView({ language }: { language: Language }) {
 
   const maximum = Math.max(1, ...chartItems.map(row => row.count));
   const total = chartItems.reduce((sum, row) => sum + row.count, 0);
+  const tickMagnitude = 10 ** Math.floor(Math.log10(maximum / 4));
+  const tickStep = Math.max(1, Math.ceil(maximum / 4 / tickMagnitude) * tickMagnitude);
+  const axisMaximum = tickStep * 4;
+  const peak = chartItems.reduce<(typeof chartItems)[number] | null>((best, row) => !best || row.count > best.count ? row : best, null);
 
   // Calculate SVG line chart coordinates (viewBox 0 0 900 260)
   const chartWidth = 900;
   const chartHeight = 260;
   const paddingX = 40;
-  const paddingY = 30;
+  const paddingY = 32;
   const graphWidth = chartWidth - paddingX * 2;
   const graphHeight = chartHeight - paddingY * 2;
 
   const points = chartItems.map((row, idx) => {
     const x = chartItems.length > 1 ? paddingX + (idx / (chartItems.length - 1)) * graphWidth : chartWidth / 2;
-    const y = paddingY + graphHeight - (row.count / maximum) * graphHeight;
+    const y = paddingY + graphHeight - (row.count / axisMaximum) * graphHeight;
     return { ...row, x, y };
   });
 
@@ -133,7 +141,7 @@ export function AdminTrafficView({ language }: { language: Language }) {
     : '';
 
   const cards = [
-    { label: vi ? 'Đang trực tuyến' : 'Online now', value: stats?.onlineCount, note: vi ? 'Có hoạt động trong 5 phút gần nhất' : 'Active in the last 5 minutes' },
+    { label: vi ? 'Đang trực tuyến' : 'Online now', value: stats?.onlineCount, note: vi ? 'Có hoạt động trong 5 phút gần nhất' : 'Currently connected sessions' },
     { label: vi ? 'Truy cập hôm nay' : 'Visits today', value: stats?.todayVisits, note: vi ? 'Theo ngày tại Việt Nam' : 'Vietnam calendar day' },
     { label: vi ? 'Truy cập tháng này' : 'Visits this month', value: stats?.monthVisits, note: vi ? 'Từ đầu tháng đến hiện tại' : 'From the start of this month' },
     { label: vi ? 'Tổng lượt truy cập' : 'Total visits', value: stats?.totalVisits, note: vi ? 'Toàn bộ dữ liệu đã ghi nhận' : 'All recorded visits' },
@@ -143,8 +151,7 @@ export function AdminTrafficView({ language }: { language: Language }) {
 
   return <div className="adm-dashboard-view adm-traffic" aria-busy={loading}>
     <div className="adm-page-header">
-      <div><span className="adm-dashboard-eyebrow">{vi ? 'LƯỢNG TRUY CẬP WEBSITE' : 'WEBSITE TRAFFIC'}</span>
-        <h1 className="adm-page-title">{vi ? 'Thống kê truy cập' : 'Visitor analytics'}</h1>
+      <div><h1 className="adm-page-title">{vi ? 'Thống kê truy cập' : 'Visitor analytics'}</h1>
         <p className="adm-page-subtitle">{vi ? 'Theo dõi lượt truy cập thực tế, tự động cập nhật mỗi 30 giây.' : 'Monitor recorded visits, refreshed every 30 seconds.'}</p>
       </div>
       <button className="adm-btn adm-btn-secondary" disabled={loading} onClick={() => setRevision(value => value + 1)}><RefreshCw size={16} />{vi ? 'Làm mới' : 'Refresh'}</button>
@@ -239,6 +246,11 @@ export function AdminTrafficView({ language }: { language: Language }) {
         </div>
       </div>
 
+      <div className="adm-traffic-chart-summary">
+        <span className="adm-traffic-series"><i />{vi ? 'Lượt truy cập' : 'Visits'}</span>
+        <div><span>{vi ? 'Trung bình' : 'Average'}</span><strong>{(chartItems.length ? total / chartItems.length : 0).toLocaleString(locale, { maximumFractionDigits: 1 })}</strong><small>{viewType === 'year_overview' ? (vi ? 'lượt / tháng' : 'visits / month') : (vi ? 'lượt / ngày' : 'visits / day')}</small></div>
+        <div><span>{vi ? 'Cao nhất' : 'Peak'}</span><strong>{(peak?.count ?? 0).toLocaleString(locale)}</strong><small>{peak && peak.count > 0 ? peak.fullLabel : '—'}</small></div>
+      </div>
       {total === 0 && <p role="status" style={{ padding: '2rem 0', textAlign: 'center', color: '#6B7280' }}>{vi ? 'Chưa ghi nhận lượt truy cập trong khoảng thời gian này.' : 'No visits recorded during this period.'}</p>}
       
       {/* Biểu đồ đường (Line Chart SVG) */}
@@ -252,15 +264,15 @@ export function AdminTrafficView({ language }: { language: Language }) {
         >
           <defs>
             <linearGradient id="trafficGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#17382E" stopOpacity="0.28" />
-              <stop offset="100%" stopColor="#17382E" stopOpacity="0.0" />
+              <stop offset="0%" stopColor="#319879" stopOpacity="0.24" />
+              <stop offset="100%" stopColor="#319879" stopOpacity="0.015" />
             </linearGradient>
           </defs>
 
           {/* Đường lưới ngang (Grid lines) */}
           {[0, 0.25, 0.5, 0.75, 1].map((ratio) => {
             const y = paddingY + graphHeight * (1 - ratio);
-            const val = Math.round(maximum * ratio);
+            const val = axisMaximum * ratio;
             return (
               <g key={ratio}>
                 <line
@@ -280,7 +292,7 @@ export function AdminTrafficView({ language }: { language: Language }) {
                   fill="#9CA3AF"
                   fontFamily="sans-serif"
                 >
-                  {val}
+                  {val.toLocaleString(locale)}
                 </text>
               </g>
             );
@@ -288,14 +300,16 @@ export function AdminTrafficView({ language }: { language: Language }) {
 
           {/* Vùng mờ bên dưới đường (Area fill) */}
           {areaD && <path d={areaD} fill="url(#trafficGradient)" />}
+          {hoveredPoint && <line x1={hoveredPoint.x} x2={hoveredPoint.x} y1={paddingY} y2={paddingY + graphHeight} stroke="#70A996" strokeDasharray="4 5" vectorEffect="non-scaling-stroke" />}
 
           {/* Đường biểu đồ chính (Line stroke) */}
           {pathD && (
             <path
               d={pathD}
               fill="none"
-              stroke="#17382E"
-              strokeWidth="2.75"
+              stroke="#23765C"
+              strokeWidth="3"
+              vectorEffect="non-scaling-stroke"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
@@ -310,19 +324,27 @@ export function AdminTrafficView({ language }: { language: Language }) {
                 <circle
                   cx={pt.x}
                   cy={pt.y}
-                  r={isHovered ? 6 : (viewType === 'year_overview' ? 5 : (viewType === 'week' ? 4.5 : 3.5))}
-                  fill={isHovered ? '#B48A3C' : '#FFFFFF'}
-                  stroke="#17382E"
+                  r={isHovered ? 5 : pt.count === maximum && total > 0 ? 4 : 0}
+                  fill={isHovered ? '#23765C' : '#FFFFFF'}
+                  stroke={isHovered ? '#FFFFFF' : '#23765C'}
                   strokeWidth={isHovered ? 3 : 2}
+                  vectorEffect="non-scaling-stroke"
                   style={{ transition: 'all 0.15s ease', cursor: 'pointer' }}
                 />
                 {/* Vùng hover rộng hơn để dễ rê chuột */}
-                <circle
-                  cx={pt.x}
-                  cy={pt.y}
-                  r="14"
+                <rect
+                  x={pt.x - graphWidth / Math.max(points.length - 1, 1) / 2}
+                  y={paddingY}
+                  width={graphWidth / Math.max(points.length - 1, 1)}
+                  height={graphHeight + 6}
                   fill="transparent"
+                  tabIndex={0}
+                  role="img"
+                  aria-label={`${pt.fullLabel}: ${pt.count.toLocaleString(locale)} ${vi ? 'lượt truy cập' : 'visits'}`}
                   style={{ cursor: 'pointer' }}
+                  onFocus={() => setHoveredPoint({ label: pt.fullLabel, count: pt.count, x: pt.x, y: pt.y })}
+                  onBlur={() => setHoveredPoint(null)}
+                  onTouchStart={() => setHoveredPoint({ label: pt.fullLabel, count: pt.count, x: pt.x, y: pt.y })}
                   onMouseEnter={() => setHoveredPoint({ label: pt.fullLabel, count: pt.count, x: pt.x, y: pt.y })}
                   onMouseLeave={() => setHoveredPoint(null)}
                 />
@@ -335,7 +357,7 @@ export function AdminTrafficView({ language }: { language: Language }) {
         <div className="adm-traffic-x-axis">
           {points.map((pt, idx) => {
             // Giảm bớt mật độ hiển thị nhãn nếu là cả tháng để tránh chen chúc
-            const showLabel = viewType === 'week' || viewType === 'year_overview' || idx % 2 === 0 || idx === points.length - 1;
+            const showLabel = viewType === 'week' || viewType === 'year_overview' || idx % 5 === 0 || idx === points.length - 1;
             return (
               <div
                 key={pt.key}
@@ -356,8 +378,8 @@ export function AdminTrafficView({ language }: { language: Language }) {
           <div
             className="adm-traffic-tooltip"
             style={{
-              left: `${(hoveredPoint.x / chartWidth) * 100}%`,
-              top: `${(hoveredPoint.y / chartHeight) * 100}%`,
+              left: `${Math.max(15, Math.min(85, (hoveredPoint.x / chartWidth) * 100))}%`,
+              top: `calc(var(--traffic-chart-height) * ${hoveredPoint.y / chartHeight})`,
             }}
           >
             <div className="adm-traffic-tooltip-date">{hoveredPoint.label}</div>

@@ -1,3 +1,5 @@
+import { useUrlTab } from '../../hooks/useUrlTab';
+import { ListPagination, useListPagination } from '../ui/ListPagination';
 import { confirmModal, notifyModal } from '../../services/notificationModal';
 import { useModalBehavior } from '../../hooks/useModalBehavior';
 import React, { useState } from 'react';
@@ -79,7 +81,7 @@ export const ActivityManagementView: React.FC<ActivityManagementViewProps> = ({
   onRequestProposalSupplement
 }) => {
   const vi = language === 'vi';
-  const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'approved' | 'cancelled'>('all');
+  const [activeTab, setActiveTab] = useUrlTab(['all', 'pending', 'approved', 'cancelled'], 'all', 'section');
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   
@@ -150,6 +152,8 @@ export const ActivityManagementView: React.FC<ActivityManagementViewProps> = ({
     }
     return true;
   });
+
+  const pagination = useListPagination(filteredActivities, `${selectedEventId}:${activeTab}:${typeFilter}:${searchQuery}`, 8);
 
   const handleOpenDetail = (act: ReviewActivity) => {
     setSelectedActivity(act);
@@ -441,7 +445,7 @@ export const ActivityManagementView: React.FC<ActivityManagementViewProps> = ({
           style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px', borderRadius: 8, fontSize: '0.86rem', fontWeight: 600 }}
         >
           <Plus size={16} />
-          <span>{vi ? 'Thêm hoạt động' : 'Add Activity'}</span>
+          <span>{vi ? 'Đăng ký sự kiện mới' : 'Register New Event'}</span>
         </button>
       </div>
 
@@ -544,7 +548,7 @@ export const ActivityManagementView: React.FC<ActivityManagementViewProps> = ({
 
       {/* 4. Activity Cards List */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
-        {filteredActivities.map((act) => (
+        {pagination.items.map((act) => (
           <div
             key={act.id}
             className={`organizer-card org-act-manage-card ${act.hasConflict ? 'has-conflict' : ''}`}
@@ -673,6 +677,15 @@ export const ActivityManagementView: React.FC<ActivityManagementViewProps> = ({
           </div>
         )}
       </div>
+
+      {filteredActivities.length > 0 && (
+        <ListPagination
+          page={pagination.page}
+          totalPages={pagination.totalPages}
+          onChange={pagination.setPage}
+          vi={vi}
+        />
+      )}
 
       {/* ======================================================== */}
       {/* MODAL 1: XEM CHI TIẾT HOẠT ĐỘNG (FORM CHỈ ĐỌC + CHỈNH TRẠNG THÁI) */}

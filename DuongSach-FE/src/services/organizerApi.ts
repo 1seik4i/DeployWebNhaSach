@@ -109,7 +109,11 @@ const mapActivity = (activity: any): OrganizerActivityItem => ({
   eventId: activity.eventId,
   title: activity.title,
   type: activity.kind,
-  dateStr: viDate(activity.startAt),
+  dateStr: viDate(activity.startAt) === viDate(activity.endAt)
+    ? viDate(activity.startAt)
+    : `${viDate(activity.startAt)} – ${viDate(activity.endAt)}`,
+  startAt: activity.startAt,
+  endAt: activity.endAt,
   timeStr: `${viTime(activity.startAt)} – ${viTime(activity.endAt)}`,
   location: activity.location?.name || activity.locationName || '',
   locationId: activity.locationId || activity.location?.id || '',
@@ -126,6 +130,7 @@ const mapActivity = (activity: any): OrganizerActivityItem => ({
 });
 
 export const organizerApi = {
+  registerEvent: (data: unknown) => apiClient.post<{ id: string; status: string }>('/admin/event-registrations', data),
   getVenues: () => apiClient.get<Array<{ id: string; name: string; campus: string; capacity: number }>>('/admin/venues'),
   async getEvents(): Promise<OrganizerEvent[]> {
     return (await apiClient.get<any[]>('/admin/events?limit=100')).map(mapEvent);
@@ -198,7 +203,7 @@ export const organizerApi = {
 
   async getProposals(eventId?: string): Promise<OrganizerActivityProposal[]> {
     const rows = await apiClient.get<any[]>(`/admin/activity-proposals?limit=100${eventId ? `&eventId=${encodeURIComponent(eventId)}` : ''}`);
-    return rows.map(item => {
+    return rows.filter(item => !item.publishedActivityId).map(item => {
       const activeBooth = item.booth || item.organization?.boothAssignments?.find((ba: any) => !ba.eventId || ba.eventId === item.eventId)?.booth || item.organization?.boothAssignments?.[0]?.booth;
       return {
         id: item.id,
@@ -231,6 +236,13 @@ export const organizerApi = {
   requestProposalSupplement: (id: string, note: string) => apiClient.post<void>(`/admin/activity-proposals/${encodeURIComponent(id)}/request-supplement`, { note }),
 
   getReport: (eventId: string) => apiClient.get<any>(`/admin/reports?eventId=${encodeURIComponent(eventId)}`),
-  getFeedbacks: () => apiClient.get<OrganizerFeedback[]>('/admin/feedbacks'),
+  getFeedbacks: async () => {
+    const feedbacks: OrganizerFeedback[] = [];
+    for (let page = 1; ; page++) {
+      const batch = await apiClient.get<OrganizerFeedback[]>(`/admin/feedbacks?page=${page}&limit=100`);
+      feedbacks.push(...batch);
+      if (batch.length < 100) return feedbacks;
+    }
+  },
   updateFeedback: (id: string, data: { status: OrganizerFeedbackStatus; internalNote?: string }) => apiClient.patch<OrganizerFeedback>(`/admin/feedbacks/${encodeURIComponent(id)}/status`, data),
 };

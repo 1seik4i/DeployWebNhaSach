@@ -2,6 +2,8 @@ import { prisma } from '../../config/database.js';
 import { ApiError } from '../../utils/ApiError.js';
 import { getPagination } from '../../utils/pagination.js';
 import { transaction } from '../../utils/contract.js';
+import { withProposalReviewNote } from '../../utils/eventImage.js';
+import { publishIndependentRegistration } from '../event/independent-event.js';
 
 export class ProposalService {
   static async list(query = {}) {
@@ -115,8 +117,10 @@ export class ProposalService {
       const current = await tx.activityProposal.findUnique({ where: { id } });
       if (!current || current.status !== proposal.status) throw ApiError.conflict('Đề xuất đã được xử lý bởi người khác');
       const updateData = { status: 'approved' };
+      const publishedId = await publishIndependentRegistration(tx, current, user);
+      if (publishedId) updateData.publishedActivityId = publishedId;
       if (note) {
-        updateData.managementNotes = note;
+        updateData.managementNotes = withProposalReviewNote(current.managementNotes, note);
       }
 
       const updated = await tx.activityProposal.update({
@@ -177,7 +181,7 @@ export class ProposalService {
         where: { id },
         data: {
           status: 'need_revision',
-          managementNotes: note,
+          managementNotes: withProposalReviewNote(current.managementNotes, note),
         },
         include: {
           event: true,
@@ -234,7 +238,7 @@ export class ProposalService {
         where: { id },
         data: {
           status: 'rejected',
-          managementNotes: note,
+          managementNotes: withProposalReviewNote(current.managementNotes, note),
         },
         include: {
           event: true,

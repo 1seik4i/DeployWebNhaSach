@@ -61,6 +61,23 @@ const body = name => ({ required: true, content: json(ref(name)) });
 const heritage = { tags: ['Quản trị viên - Di sản'], security: [{ BearerAuth: [] }] };
 const feedback = { tags: ['Quản trị viên - Phản hồi'], security: [{ BearerAuth: [] }] };
 export const heritageFeedbackPaths = {
+  '/public/feedbacks': {
+    post: {
+      tags: ['Công khai - Landing page'],
+      summary: 'Gửi góp ý',
+      description: 'contactEmail là trường liên hệ tùy chọn, chấp nhận email hoặc số điện thoại Việt Nam. Cho phép bỏ qua hoặc chuỗi trống. Chuỗi được trim trước khi lưu; số điện thoại có thể dùng khoảng trắng, dấu chấm hoặc dấu gạch ngang. Số di động bắt đầu 03/05/07/08/09 có 10 chữ số, số cố định bắt đầu 02 có 11 chữ số; chấp nhận +84 thay số 0 đầu. Dữ liệu liên hệ sai trả 422 với error.details.field = contactEmail.',
+      requestBody: { required: true, content: json({ type: 'object', required: ['rating'], properties: {
+        rating: { type: 'integer', minimum: 1, maximum: 5 },
+        comments: { type: 'string', maxLength: 10000 },
+        contactEmail: { type: 'string', maxLength: 254, example: '0912345678', description: 'Optional email or Vietnamese phone number; empty string allowed.' },
+      } }) },
+      responses: {
+        200: { description: 'Feedback recorded' },
+        422: { description: 'Invalid input, with field-specific error details', content: json(ref('HeritageFeedbackError')) },
+        429: { description: 'Too many requests' },
+      },
+    },
+  },
   '/admin/heritages': {
     get: { ...heritage, summary: 'List non-deleted heritage', description: 'Search name/nameEn/slug case-insensitively. Sort updatedAt DESC, id DESC.', parameters: [...paging, query('search', { type: 'string', maxLength: 200 }), query('status', heritageStatus)], responses: responses(ref('Heritage'), true) },
     post: { ...heritage, summary: 'Create heritage', requestBody: body('HeritageCreate'), responses: responses(ref('Heritage'), false, 201) },

@@ -56,13 +56,22 @@ export const Footer: React.FC<FooterProps> = ({ language }) => {
       setOnlineCount(liveCount);
     });
 
+    const unsubscribeStats = realtimeWebSocket.subscribeStats(stats => {
+      setOnlineCount(stats.onlineCount);
+      setTodayVisits(stats.todayVisits);
+      setMonthVisits(stats.monthVisits);
+      setTotalVisits(stats.totalVisits);
+      setTrafficError('');
+    });
+
     const recordAndRefresh = () => {
       if (document.visibilityState === 'hidden') return;
       void apiClient.post('/public/visits', { sessionId })
         .then(() => apiClient.get<VisitStats>('/public/visit-stats'))
-        .then(stats => {
+        .then(result => {
+          const stats = realtimeWebSocket.getCurrentStats() ?? result;
           // Chỉ fallback cập nhật onlineCount từ API nếu websocket chưa trả về
-          setOnlineCount(prev => (prev !== null ? prev : stats.onlineCount));
+          setOnlineCount(realtimeWebSocket.getCurrentOnlineCount() ?? stats.onlineCount);
           setTodayVisits(stats.todayVisits);
           setMonthVisits(stats.monthVisits);
           setTotalVisits(stats.totalVisits);
@@ -78,6 +87,7 @@ export const Footer: React.FC<FooterProps> = ({ language }) => {
       .catch(error => setConfigError(error instanceof Error ? error.message : 'Không thể tải thông tin liên hệ'));
     return () => {
       unsubscribeWs();
+      unsubscribeStats();
       window.clearInterval(heartbeat);
       document.removeEventListener('visibilitychange', recordAndRefresh);
     };
@@ -102,7 +112,7 @@ export const Footer: React.FC<FooterProps> = ({ language }) => {
                 <span className="yg-traffic-label">{isVi ? 'Đang trực tuyến' : 'Live Online'}</span>
               </div>
               <span className="yg-traffic-val highlight-green">{onlineCount?.toLocaleString() ?? '—'}</span>
-              <small className="yg-traffic-sub">{isVi ? 'Phiên hoạt động trong 5 phút' : 'Sessions active in 5 minutes'}</small>
+              <small className="yg-traffic-sub">{isVi ? 'Phiên hoạt động trong 5 phút' : 'Currently connected sessions'}</small>
             </div>
 
             {/* Today's Visits */}

@@ -11,6 +11,7 @@ import {
   ExternalLink 
 } from 'lucide-react';
 import { Language, PartnerNotification } from '../../types';
+import { ListPagination, useListPagination } from '../../components/ui/ListPagination';
 import './PartnerPages.css';
 
 interface PartnerNotificationsPageProps {
@@ -33,6 +34,8 @@ export const PartnerNotificationsPage: React.FC<PartnerNotificationsPageProps> =
     if (filterType === 'unread') return !n.isRead;
     return true;
   });
+
+  const pagination = useListPagination(filteredNotifs, filterType, 8);
 
   const getNotifIcon = (type: string) => {
     switch (type) {
@@ -101,44 +104,53 @@ export const PartnerNotificationsPage: React.FC<PartnerNotificationsPageProps> =
             <p>{language === 'vi' ? 'Không có thông báo mới nào.' : 'No notifications found.'}</p>
           </div>
         ) : (
-          filteredNotifs.map((item) => (
-            <div 
-              key={item.id} 
-              className={`notification-row-item ${!item.isRead ? 'unread' : ''}`}
-              onClick={() => {
-                onMarkItemAsRead(item.id);
-                if (item.link) {
-                  navigate(item.link);
-                }
-              }}
-              style={{ cursor: item.link ? 'pointer' : 'default' }}
-            >
-              <div className={`notif-icon-circle ${item.type}`}>
-                {getNotifIcon(item.type)}
-              </div>
-
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '0.9rem', fontWeight: item.isRead ? 500 : 700, color: '#172421', lineHeight: 1.4 }}>
-                  {item.title}
+          <>
+            {pagination.items.map((item) => (
+              <div 
+                key={item.id} 
+                className={`notification-row-item ${!item.isRead ? 'unread' : ''}`}
+                onClick={() => {
+                  onMarkItemAsRead(item.id);
+                  if (item.link) {
+                    navigate(item.link);
+                  }
+                }}
+                style={{ cursor: item.link ? 'pointer' : 'default' }}
+              >
+                <div className={`notif-icon-circle ${item.type}`}>
+                  {getNotifIcon(item.type)}
                 </div>
-                <div style={{ fontSize: '0.76rem', color: '#8C9F9A', marginTop: '0.25rem' }}>
-                  {item.time}
-                </div>
-              </div>
 
-              {item.link && (
-                <Link 
-                  to={item.link} 
-                  className="btn-part-secondary" 
-                  style={{ padding: '0.35rem 0.65rem', fontSize: '0.78rem', gap: '0.3rem' }}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <span>{language === 'vi' ? 'Xem' : 'View'}</span>
-                  <ExternalLink size={13} />
-                </Link>
-              )}
-            </div>
-          ))
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '0.9rem', fontWeight: item.isRead ? 500 : 700, color: '#172421', lineHeight: 1.4 }}>
+                    {item.title}
+                  </div>
+                  <div style={{ fontSize: '0.76rem', color: '#8C9F9A', marginTop: '0.25rem' }}>
+                    {item.time}
+                  </div>
+                </div>
+
+                {item.link && (
+                  <Link 
+                    to={item.link} 
+                    className="btn-part-secondary" 
+                    style={{ padding: '0.35rem 0.65rem', fontSize: '0.78rem', gap: '0.3rem' }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <span>{language === 'vi' ? 'Xem' : 'View'}</span>
+                    <ExternalLink size={13} />
+                  </Link>
+                )}
+              </div>
+            ))}
+
+            <ListPagination
+              page={pagination.page}
+              totalPages={pagination.totalPages}
+              onChange={pagination.setPage}
+              vi={language === 'vi'}
+            />
+          </>
         )}
       </div>
     </div>

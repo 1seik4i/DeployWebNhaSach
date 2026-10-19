@@ -1,3 +1,4 @@
+import { AdminPageHeading } from './AdminPageHeading';
 import React, { useState } from 'react';
 import { 
   Settings, 
@@ -86,7 +87,7 @@ export const AdminSystemSettingsView: React.FC<AdminSystemSettingsViewProps> = (
       {/* Header */}
       <div className="adm-page-header">
         <div>
-          <h1 className="adm-page-title">Cài đặt Hệ thống</h1>
+          <AdminPageHeading section="settings" />
         </div>
         <div className="adm-page-header-actions">
           {hasChanges && (

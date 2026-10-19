@@ -1,5 +1,6 @@
 import { useModalBehavior } from '../../hooks/useModalBehavior';
 import React, { useEffect, useMemo, useState } from 'react';
+import { ListPagination, useListPagination } from '../ui/ListPagination';
 import { 
   CheckCircle2, 
   Clock, 
@@ -70,7 +71,7 @@ export const OrganizerFeedbackView: React.FC<{ language: Language }> = ({ langua
     try {
       setLoading(true);
       const data = await organizerApi.getFeedbacks();
-      if (data && data.length > 0) setFeedbacks(data);
+      setFeedbacks(data || []);
       setError('');
     } catch (err) {
       setError(err instanceof Error ? err.message : (isVi ? 'Không tải được góp ý.' : 'Could not load feedback.'));
@@ -100,6 +101,7 @@ export const OrganizerFeedbackView: React.FC<{ language: Language }> = ({ langua
     ].filter(Boolean).some(value => String(value).toLocaleLowerCase('vi-VN').includes(keyword));
     return matchesFilter && matchesKeyword;
   }), [feedbacks, filter, search]);
+  const pagination = useListPagination(visibleFeedbacks, `${filter}:${search}`);
 
   // Statistics
   const stats = useMemo(() => {
@@ -158,7 +160,7 @@ export const OrganizerFeedbackView: React.FC<{ language: Language }> = ({ langua
         marginBottom: '1.5rem' 
       }}>
         <div>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 10px', background: '#E6F4EA', borderRadius: '20px', color: '#105B48', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.4rem' }}>
+          <div className="feedback-center-label" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 10px', background: '#E6F4EA', borderRadius: '20px', color: '#105B48', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.4rem' }}>
             <MessageSquare size={13} />
             <span>{isVi ? 'Trung tâm tiếp nhận & Phản hồi' : 'Feedback & Inquiry Center'}</span>
           </div>
@@ -408,7 +410,7 @@ export const OrganizerFeedbackView: React.FC<{ language: Language }> = ({ langua
         </div>
       ) : (
         <div style={{ display: 'grid', gap: '0.85rem' }}>
-          {visibleFeedbacks.map(feedback => {
+          {pagination.items.map(feedback => {
             const badge = getStatusBadge(feedback.status, isVi);
             const isProposal = sourceLabel(feedback, isVi) === (isVi ? 'Đề xuất sự kiện' : 'Event Proposal');
             const hasResponse = feedback.internalNote && feedback.internalNote.trim().length > 0;
@@ -580,6 +582,8 @@ export const OrganizerFeedbackView: React.FC<{ language: Language }> = ({ langua
           })}
         </div>
       )}
+
+      {!loading && <ListPagination page={pagination.page} totalPages={pagination.totalPages} onChange={pagination.setPage} vi={isVi} />}
 
       {/* 4. MODAL: Phản hồi & Xử lý Góp ý (Centered Backdrop Modal) */}
       {selected && (

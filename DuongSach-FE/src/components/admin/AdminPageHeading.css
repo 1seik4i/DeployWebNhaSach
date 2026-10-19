@@ -1,0 +1,20 @@
+.system-page-heading { min-width: 0; }
+.system-page-heading > h1.system-page-title {
+  font-family: var(--font-serif, 'Lora', Georgia, serif);
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.4px;
+  color: #14241f;
+  margin: 8px 0;
+}
+.system-page-heading > p.system-page-description {
+  font-family: var(--font-sans, system-ui, sans-serif);
+  font-size: 15px;
+  line-height: 1.6;
+  font-weight: 400;
+  color: #718096;
+  margin: 0;
+  max-width: 650px;
+}
+.system-page-eyebrow { display: block; margin-bottom: 8px; font-family: var(--font-sans, 'Nunito', sans-serif); font-size: 13px; font-weight: 800; line-height: 1.4; letter-spacing: .12em; text-transform: uppercase; color: #b3862a; }

@@ -1,6 +1,7 @@
 import swaggerUi from 'swagger-ui-express';
 import { heritageFeedbackPaths, heritageFeedbackSchemas } from './heritage-feedback.js';
 import { completionPaths } from './completion.js';
+import { eventRegistrationPaths } from './event-registration.js';
 
 const apiResponse = { type: 'object', properties: { success: { type: 'boolean' }, data: {} } };
 const errorResponse = { type: 'object', properties: { success: { type: 'boolean', example: false }, error: { type: 'object' } } };
@@ -45,6 +46,7 @@ export const swaggerDocument = {
   ],
   components: { schemas: heritageFeedbackSchemas, securitySchemes: { BearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' } } },
   paths: {
+    ...eventRegistrationPaths,
     ...heritageFeedbackPaths,
     '/health': { get: { tags: ['Hệ thống'], summary: 'Kiểm tra trạng thái API', responses: success } },
     '/auth/login': { post: { tags: ['Xác thực & phiên'], summary: 'Đăng nhập', requestBody: jsonBody({ email: { type: 'string' }, password: { type: 'string', format: 'password' } }), responses: success } },
@@ -53,7 +55,7 @@ export const swaggerDocument = {
     '/auth/me': { get: { tags: ['Xác thực & phiên'], summary: 'Thông tin phiên', security: bearer, responses: success } },
     '/auth/demo-accounts': { get: { tags: ['Xác thực & phiên'], summary: 'Tài khoản đăng nhập nhanh', responses: success } },
     '/auth/demo-login': { post: { tags: ['Xác thực & phiên'], summary: 'Đăng nhập nhanh theo vai trò', requestBody: jsonBody({ role: { type: 'string', enum: ['partner', 'admin'] } }), responses: success } },
-    '/partner/profile': { get: { tags: ['Đối tác - Hồ sơ cá nhân'], summary: 'Hồ sơ đối tác', security: bearer, responses: success }, patch: { tags: ['Đối tác - Hồ sơ cá nhân'], summary: 'Cập nhật hồ sơ đối tác', security: bearer, requestBody: jsonBody({ fullName: { type: 'string' }, email: { type: 'string' }, phone: { type: 'string' } }), responses: success } },
+    '/partner/profile': { get: { tags: ['Đối tác - Hồ sơ cá nhân'], summary: 'Hồ sơ đối tác', description: 'Email lấy từ tài khoản và chỉ được thay đổi bởi Admin.', security: bearer, responses: success }, patch: { tags: ['Đối tác - Hồ sơ cá nhân'], summary: 'Cập nhật hồ sơ đối tác', description: 'Không gửi email. Nếu có trường email, API trả 403; chỉ Admin được thay đổi email.', security: bearer, requestBody: jsonBody({ fullName: { type: 'string' }, phone: { type: 'string' } }), responses: { ...success, 403: { description: 'Đối tác không được thay đổi email.' } } } },
     '/admin/profile': { get: { tags: ['Quản trị viên - Hồ sơ cá nhân'], summary: 'Hồ sơ quản trị viên', security: bearer, responses: success }, patch: { tags: ['Quản trị viên - Hồ sơ cá nhân'], summary: 'Cập nhật hồ sơ quản trị viên', security: bearer, requestBody: jsonBody({ fullName: { type: 'string' }, email: { type: 'string' }, phone: { type: 'string' } }), responses: success } },
     '/admin/roles': { get: { tags: ['Quản trị viên - Vai trò & phân quyền'], summary: 'Danh sách vai trò và quyền được gán', security: bearer, responses: success } },
     '/admin/permissions': { get: { tags: ['Quản trị viên - Vai trò & phân quyền'], summary: 'Danh sách quyền', security: bearer, responses: success } },

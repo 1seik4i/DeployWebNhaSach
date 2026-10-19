@@ -686,7 +686,6 @@
   text-align: center;
   width: 280px;
   max-width: 100%;
-  cursor: pointer;
   background: transparent;
   padding: 0.5rem;
   border-radius: 20px;
@@ -694,9 +693,6 @@
   outline: none;
 }
 
-.org-tree-card:hover {
-  transform: translateY(-5px);
-}
 
 /* Circular Avatar Frame with Soft Drop Shadow & Clean White Rim */
 .org-tree-avatar-box {
@@ -711,10 +707,6 @@
   flex-shrink: 0;
 }
 
-.org-tree-card:hover .org-tree-avatar-box {
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18), 0 0 0 3px rgba(178, 123, 34, 0.6);
-  transform: scale(1.035);
-}
 
 .org-tree-avatar-box.tier-1-avatar {
   width: 185px;
@@ -740,9 +732,6 @@
   transition: transform 0.4s ease;
 }
 
-.org-tree-card:hover .org-tree-avatar-img {
-  transform: scale(1.06);
-}
 
 /* Clean Typography Underneath Photo */
 .org-tree-info {
@@ -775,9 +764,6 @@
   font-size: 1.15rem;
 }
 
-.org-tree-card:hover .org-tree-name {
-  color: #B27B22;
-}
 
 .org-tree-role {
   font-size: 0.85rem;

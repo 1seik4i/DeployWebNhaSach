@@ -5,6 +5,7 @@ export type { MapLocationPoint };
 // Asset is shipped with the public site.  The API may override it through
 // `public.map.imageUrl`, but an empty setting must never render a broken map.
 export const DEFAULT_MAP_IMAGE = '/assets/maps/duong-sach-nguyen-van-binh.png';
+export const MAX_MAP_IMAGE_MB = 20;
 
 let sharedPoints: MapLocationPoint[] = [];
 let sharedImage = DEFAULT_MAP_IMAGE;
@@ -61,11 +62,16 @@ export async function fetchMapHotspotsFromApi(): Promise<MapLocationPoint[]> {
   return sharedPoints;
 }
 
-export const saveSharedMapPoints = async (points: MapLocationPoint[]): Promise<void> => {
+export const saveSharedMapPoints = async (points: MapLocationPoint[], imageUrl?: string): Promise<void> => {
   await apiClient.put('/admin/map-config', {
     points: points.map(point => ({ id: point.id, x: point.x, y: point.y })),
+    ...(imageUrl !== undefined ? { imageUrl } : {}),
   });
   sharedPoints = points;
+  if (imageUrl !== undefined) {
+    sharedImage = imageUrl;
+    window.dispatchEvent(new CustomEvent('duongsach_map_image_updated', { detail: { imageUrl } }));
+  }
   window.dispatchEvent(new CustomEvent('duongsach_map_updated', { detail: { points } }));
   window.dispatchEvent(new Event('duongsach:data-changed'));
 };

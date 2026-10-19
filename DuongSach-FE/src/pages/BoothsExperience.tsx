@@ -15,6 +15,7 @@ import {
   Store
 } from 'lucide-react';
 import { Booth, Language } from '../types';
+import { ListPagination, useListPagination } from '../components/ui/ListPagination';
 import './ExperienceShell.css';
 import './BoothsExperience.css';
 
@@ -75,6 +76,8 @@ export const BoothsExperience: React.FC<BoothsExperienceProps> = ({
       return matchCat && matchSearch;
     });
   }, [booths, searchQuery, selectedCategory]);
+
+  const pagination = useListPagination(filteredBooths, `${selectedCategory}:${searchQuery}`, 9);
 
   const handleClose = () => {
     navigate('/');
@@ -232,60 +235,68 @@ export const BoothsExperience: React.FC<BoothsExperienceProps> = ({
               </button>
             </div>
           ) : (
-            <div className="heritage-collection-grid">
-              {filteredBooths.map((booth) => (
-                <article
-                  key={booth.id}
-                  className="heritage-collection-card booth-card-enhanced"
-                  onClick={() => setActiveModalBooth(booth)}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter' || event.key === ' ') {
-                      event.preventDefault();
-                      setActiveModalBooth(booth);
-                    }
-                  }}
-                  tabIndex={0}
-                  role="button"
-                  style={{ cursor: 'pointer' }}
-                >
-                  <div className="heritage-card-image">
-                    {booth.image.url && (
-                      <img 
-                        src={booth.image.url || '/duong_sach_logo.png'}
-                        onError={event => { event.currentTarget.onerror = null; event.currentTarget.src = '/duong_sach_logo.png'; }}
-                        alt={booth.image.alt} 
-                        loading="lazy" 
-                      />
-                    )}
-                    <div className="heritage-card-img-gradient" />
-                    <span className="heritage-card-code">{booth.code}</span>
-                    <span className="heritage-card-period">
-                      <Clock size={12} />
-                      <span>{booth.openHours}</span>
-                    </span>
-                  </div>
-
-                  <div className="heritage-card-body">
-                    <span className="heritage-card-cat-badge">
-                      <BookOpen size={11} />
-                      <span>{vi ? booth.categoryLabelVi : booth.categoryLabelEn}</span>
-                    </span>
-
-                    <h3>{vi ? booth.name : booth.nameEn}</h3>
-                    <p>{vi ? booth.tagline : booth.taglineEn}</p>
-
-                    <div className="booth-card-action-bar">
-                      <span className="heritage-card-arrow-text">
-                        {vi ? 'Xem thêm' : 'View more'}
+            <>
+              <div className="heritage-collection-grid">
+                {pagination.items.map((booth) => (
+                  <article
+                    key={booth.id}
+                    className="heritage-collection-card booth-card-enhanced"
+                    onClick={() => setActiveModalBooth(booth)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        setActiveModalBooth(booth);
+                      }
+                    }}
+                    tabIndex={0}
+                    role="button"
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <div className="heritage-card-image">
+                      {booth.image.url && (
+                        <img 
+                          src={booth.image.url || '/duong_sach_logo.png'}
+                          onError={event => { event.currentTarget.onerror = null; event.currentTarget.src = '/duong_sach_logo.png'; }}
+                          alt={booth.image.alt} 
+                          loading="lazy" 
+                        />
+                      )}
+                      <div className="heritage-card-img-gradient" />
+                      <span className="heritage-card-code">{booth.code}</span>
+                      <span className="heritage-card-period">
+                        <Clock size={12} />
+                        <span>{booth.openHours}</span>
                       </span>
-                      <div className="booth-card-arrow-circle">
-                        <ArrowRight size={15} />
+                    </div>
+
+                    <div className="heritage-card-body">
+                      <span className="heritage-card-cat-badge">
+                        <BookOpen size={11} />
+                        <span>{vi ? booth.categoryLabelVi : booth.categoryLabelEn}</span>
+                      </span>
+
+                      <h3>{vi ? booth.name : booth.nameEn}</h3>
+                      <p>{vi ? booth.tagline : booth.taglineEn}</p>
+
+                      <div className="booth-card-action-bar">
+                        <span className="heritage-card-arrow-text">
+                          {vi ? 'Xem thêm' : 'View more'}
+                        </span>
+                        <div className="booth-card-arrow-circle">
+                          <ArrowRight size={15} />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </article>
-              ))}
-            </div>
+                  </article>
+                ))}
+              </div>
+              <ListPagination
+                page={pagination.page}
+                totalPages={pagination.totalPages}
+                onChange={pagination.setPage}
+                vi={vi}
+              />
+            </>
           )}
         </section>
 

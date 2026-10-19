@@ -15,6 +15,7 @@ import {
   uuid,
 } from "../../utils/contract.js";
 import { checkSchedule } from "../event/operations.routes.js";
+import { eventOpenForPartnerParticipation } from '../event/partner-participation.js';
 
 const router = Router(),
   admin = [authenticate, authorize("admin")],
@@ -95,7 +96,7 @@ router.post(
     transaction(async (tx) => {
       const { eventId } = parse(z.object({ eventId: uuid }).strict(), r.body),
         org = await organization(r.user.id, tx);
-      await openEvent(tx, eventId, "partnerApplyDeadline");
+      await eventOpenForPartnerParticipation(tx, eventId);
       const row = await tx.partnerApplication.create({
         data: {
           eventId,

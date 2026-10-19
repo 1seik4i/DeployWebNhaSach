@@ -1,3 +1,4 @@
+import { useUrlTab } from '../../hooks/useUrlTab';
 import { useModalBehavior } from '../../hooks/useModalBehavior';
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
@@ -53,7 +54,7 @@ export const BoothManagementPage: React.FC<BoothManagementPageProps> = ({
 }) => {
   const navigate = useNavigate();
   const [booth, setBooth] = useState<PartnerBooth>(initialBooth);
-  const [activeTab, setActiveTab] = useState<'info' | 'images' | 'documents'>('info');
+  const [activeTab, setActiveTab] = useUrlTab(['info', 'images', 'documents'], 'info');
   const [isEditing, setIsEditing] = useState(false);
   const [modalType, setModalType] = useState<'none' | 'cancel'>('none');
 

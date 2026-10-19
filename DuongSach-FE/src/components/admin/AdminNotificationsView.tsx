@@ -1,3 +1,4 @@
+import { AdminPageHeading } from './AdminPageHeading';
 import React, { useState } from 'react';
 import { 
   Bell, 
@@ -10,6 +11,7 @@ import {
   ArrowRight 
 } from 'lucide-react';
 import { AdminNotificationItem } from '../../types/admin';
+import { ListPagination, useListPagination } from '../ui/ListPagination';
 
 interface AdminNotificationsViewProps {
   notifications: AdminNotificationItem[];
@@ -30,6 +32,8 @@ export const AdminNotificationsView: React.FC<AdminNotificationsViewProps> = ({
     if (activeCategory === 'all') return true;
     return n.category === activeCategory;
   });
+
+  const pagination = useListPagination(filteredNotifs, activeCategory, 8);
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
@@ -69,7 +73,7 @@ export const AdminNotificationsView: React.FC<AdminNotificationsViewProps> = ({
       {/* Header */}
       <div className="adm-page-header">
         <div>
-          <h1 className="adm-page-title">Thông báo Quản trị</h1>
+          <AdminPageHeading section="notifications" />
         </div>
         <div className="adm-page-header-actions">
           {unreadCount > 0 && (
@@ -112,39 +116,48 @@ export const AdminNotificationsView: React.FC<AdminNotificationsViewProps> = ({
             <p>Không có thông báo nào trong danh mục này.</p>
           </div>
         ) : (
-          <div className="adm-notif-list">
-            {filteredNotifs.map((notif) => (
-              <div 
-                key={notif.id}
-                className={`adm-notif-item ${!notif.isRead ? 'unread' : ''}`}
-                onClick={() => handleClickItem(notif)}
-              >
-                <div className="adm-notif-item-icon">
-                  {getCategoryIcon(notif.category)}
-                </div>
-
-                <div className="adm-notif-item-main">
-                  <div className="adm-notif-item-top">
-                    <span className="adm-notif-badge">{getCategoryLabel(notif.category)}</span>
-                    <span className="adm-notif-time">
-                      <Clock size={12} />
-                      {notif.timeAgo}
-                    </span>
-                    {!notif.isRead && <span className="adm-notif-unread-dot"></span>}
+          <>
+            <div className="adm-notif-list">
+              {pagination.items.map((notif) => (
+                <div 
+                  key={notif.id}
+                  className={`adm-notif-item ${!notif.isRead ? 'unread' : ''}`}
+                  onClick={() => handleClickItem(notif)}
+                >
+                  <div className="adm-notif-item-icon">
+                    {getCategoryIcon(notif.category)}
                   </div>
 
-                  <h4 className="adm-notif-title">{notif.title}</h4>
-                  <p className="adm-notif-content">{notif.content}</p>
-                </div>
+                  <div className="adm-notif-item-main">
+                    <div className="adm-notif-item-top">
+                      <span className="adm-notif-badge">{getCategoryLabel(notif.category)}</span>
+                      <span className="adm-notif-time">
+                        <Clock size={12} />
+                        {notif.timeAgo}
+                      </span>
+                      {!notif.isRead && <span className="adm-notif-unread-dot"></span>}
+                    </div>
 
-                {notif.targetTab && (
-                  <div className="adm-notif-arrow">
-                    <ArrowRight size={16} />
+                    <h4 className="adm-notif-title">{notif.title}</h4>
+                    <p className="adm-notif-content">{notif.content}</p>
                   </div>
-                )}
-              </div>
-            ))}
-          </div>
+
+                  {notif.targetTab && (
+                    <div className="adm-notif-arrow">
+                      <ArrowRight size={16} />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <ListPagination
+              page={pagination.page}
+              totalPages={pagination.totalPages}
+              onChange={pagination.setPage}
+              vi={true}
+            />
+          </>
         )}
       </div>
     </div>

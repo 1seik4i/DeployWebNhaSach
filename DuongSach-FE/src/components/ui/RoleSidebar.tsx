@@ -186,33 +186,6 @@ export function RoleSidebar({
 
         {userProfile && (
           <div className="role-sidebar-user-block">
-            <div 
-              className={`role-sidebar-user-info ${userProfile.onProfileClick ? 'is-clickable' : ''}`}
-              onClick={() => {
-                if (userProfile.onProfileClick) {
-                  userProfile.onProfileClick();
-                  onCloseMobile?.();
-                }
-              }}
-              role={userProfile.onProfileClick ? 'button' : undefined}
-              tabIndex={userProfile.onProfileClick ? 0 : undefined}
-              title={userProfile.name}
-            >
-              <div className="role-sidebar-user-avatar">
-                {userProfile.avatar ? (
-                  <img src={userProfile.avatar} alt={userProfile.name} />
-                ) : (
-                  <span>
-                    {userProfile.name.split(/\s+/).filter(Boolean).map(part => part[0]).join('').slice(0, 2).toUpperCase() || 'AD'}
-                  </span>
-                )}
-              </div>
-              <div className="role-sidebar-user-details">
-                <span className="role-sidebar-user-name">{userProfile.name}</span>
-                {userProfile.subtitle && <span className="role-sidebar-user-sub">{userProfile.subtitle}</span>}
-              </div>
-            </div>
-
             {userProfile.onLogout && (
               <button
                 type="button"

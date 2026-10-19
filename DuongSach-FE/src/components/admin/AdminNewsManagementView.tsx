@@ -1,3 +1,5 @@
+import { AdminPageHeading } from './AdminPageHeading';
+import { ListPagination, useListPagination } from '../ui/ListPagination';
 import { confirmModal, notifyModal } from '../../services/notificationModal';
 import { useModalBehavior } from '../../hooks/useModalBehavior';
 import React, { useState, useMemo, useRef, useEffect } from 'react';
@@ -176,6 +178,8 @@ export const AdminNewsManagementView: React.FC<AdminNewsManagementViewProps> = (
       return matchCat && matchSearch;
     });
   }, [newsList, selectedCategory, searchTerm]);
+
+  const pagination = useListPagination(filteredArticles, `${selectedCategory}:${searchTerm}`, 8);
 
   // Quick stats
   const totalViews = useMemo(() => {
@@ -557,20 +561,8 @@ export const AdminNewsManagementView: React.FC<AdminNewsManagementViewProps> = (
       <div className="adm-page-header">
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.35rem' }}>
-            <span
-              style={{
-                display: 'inline-flex',
-                padding: '6px',
-                borderRadius: '8px',
-                background: 'rgba(233, 188, 99, 0.18)',
-                color: '#8C6519'
-              }}
-            >
-              <Newspaper size={20} />
-            </span>
-            <h1 className="adm-page-title" style={{ margin: 0 }}>
-              {isVi ? 'Quản lý & Đăng Tải Bài Viết' : 'News & Articles Publishing'}
-            </h1>
+            
+            <AdminPageHeading section="news" language={language} />
           </div>
         </div>
 
@@ -737,7 +729,7 @@ export const AdminNewsManagementView: React.FC<AdminNewsManagementViewProps> = (
         </div>
       ) : viewMode === 'grid' ? (
         <div className="admin-news-grid">
-          {filteredArticles.map(article => (
+          {pagination.items.map(article => (
             <article
               key={article.id}
               className={`admin-article-card ${article.featured ? 'is-featured' : ''}`}
@@ -859,7 +851,7 @@ export const AdminNewsManagementView: React.FC<AdminNewsManagementViewProps> = (
               </tr>
             </thead>
             <tbody>
-              {filteredArticles.map(article => (
+              {pagination.items.map(article => (
                 <tr key={article.id}>
                   <td>
                     <div className="admin-table-article-info">
@@ -933,6 +925,15 @@ export const AdminNewsManagementView: React.FC<AdminNewsManagementViewProps> = (
             </tbody>
           </table>
         </div>
+      )}
+
+      {filteredArticles.length > 0 && (
+        <ListPagination
+          page={pagination.page}
+          totalPages={pagination.totalPages}
+          onChange={pagination.setPage}
+          vi={isVi}
+        />
       )}
 
       {/* 5. USER-FRIENDLY ARTICLE COMPOSER MODAL */}

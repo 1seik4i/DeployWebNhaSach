@@ -1,3 +1,5 @@
+import { useUrlTab } from '../../hooks/useUrlTab';
+import { ListPagination, useListPagination } from '../../components/ui/ListPagination';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { 
   AlertCircle,
@@ -24,7 +26,6 @@ import type { Book, BookCategory, BookInput, BookSubmission, Language, PartnerBo
 import { libraryApi } from '../../services/libraryApi';
 import './PartnerBookSalesPage.css';
 
-type MainSubTab = 'inventory' | 'submissions';
 type ModalMode = 'add' | 'edit' | 'view' | 'resubmit';
 type FormState = { 
   isbn: string; 
@@ -112,7 +113,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
     name: booth?.name || 'Gian hàng A02' 
   };
 
-  const [activeSubTab, setActiveSubTab] = useState<MainSubTab>('inventory');
+  const [activeSubTab, setActiveSubTab] = useUrlTab(['inventory', 'submissions'], 'inventory');
   const [records, setRecords] = useState<StallBookRecord[]>([]);
   const [submissions, setSubmissions] = useState<BookSubmission[]>([]);
   const [categories, setCategories] = useState<BookCategory[]>([]);
@@ -160,6 +161,9 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
       .filter(sub => !query || `${sub.proposedData.title || ''} ${sub.proposedData.author || ''} ${sub.proposedData.isbn || ''}`.toLocaleLowerCase('vi').includes(query.toLocaleLowerCase('vi'))),
     [submissions, submissionStatusFilter, query]
   );
+
+  const recordsPagination = useListPagination(visibleRecords, query, 10);
+  const submissionsPagination = useListPagination(visibleSubmissions, `${submissionStatusFilter}:${query}`, 10);
 
   const pending = submissions.filter(item => item.status === 'PENDING').length;
   const rejected = submissions.filter(item => item.status === 'REJECTED').length;
@@ -469,7 +473,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
                 </tr>
               </thead>
               <tbody>
-                {visibleRecords.map(row => (
+                {recordsPagination.items.map(row => (
                   <tr key={row.stall.id}>
                     <td 
                       className="partner-col-cover is-clickable"
@@ -528,7 +532,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
 
           {/* Mobile Card View for Tab 1 (Inventory) */}
           <div className="partner-books-mobile-cards">
-            {visibleRecords.map(row => (
+            {recordsPagination.items.map(row => (
               <div key={row.stall.id} className="partner-book-mobile-card">
                 <div 
                   className="book-mobile-card-cover-wrap" 
@@ -586,6 +590,13 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
               </div>
             )}
           </div>
+
+          <ListPagination
+            page={recordsPagination.page}
+            totalPages={recordsPagination.totalPages}
+            onChange={recordsPagination.setPage}
+            vi={language === 'vi'}
+          />
         </section>
       )}
 
@@ -627,7 +638,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
                 </tr>
               </thead>
               <tbody>
-                {visibleSubmissions.map(sub => (
+                {submissionsPagination.items.map(sub => (
                   <tr key={sub.id}>
                     <td>
                       <img src={sub.proposedData.coverUrl || '/duong_sach_logo.png'} alt=""/>
@@ -698,7 +709,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
 
           {/* Mobile Card View for Tab 2 (Submissions) */}
           <div className="partner-books-mobile-cards">
-            {visibleSubmissions.map(sub => (
+            {submissionsPagination.items.map(sub => (
               <div key={sub.id} className="partner-book-mobile-card">
                 <div 
                   className="book-mobile-card-cover-wrap" 
@@ -775,6 +786,13 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
               </div>
             )}
           </div>
+
+          <ListPagination
+            page={submissionsPagination.page}
+            totalPages={submissionsPagination.totalPages}
+            onChange={submissionsPagination.setPage}
+            vi={language === 'vi'}
+          />
         </section>
       )}
 

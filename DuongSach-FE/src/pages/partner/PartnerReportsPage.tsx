@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ListPagination, useListPagination } from '../../components/ui/ListPagination';
 import { 
   BarChart3, 
   Users, 
@@ -22,6 +23,7 @@ export const PartnerReportsPage: React.FC<PartnerReportsPageProps> = ({
   reportStats,
 }) => {
   const [selectedEvent, setSelectedEvent] = useState(reportStats.eventId);
+  const pagination = useListPagination(reportStats.feedbacks || [], reportStats.eventId);
   const exportReport = () => {
     const rows = [['Sự kiện', reportStats.eventName], ['Tổng lượt tham gia', reportStats.totalParticipants], ['Hoạt động', reportStats.totalActivities], ['Tỷ lệ tham dự', `${Number(reportStats.attendanceRate || 0).toFixed(2)}%`], ['Đánh giá trung bình', Number(reportStats.averageRating || 0).toFixed(1)], [], ['Hoạt động', 'Lượt tham gia'], ...reportStats.activityStats.map(item => [item.name, item.count]), [], ['Thời gian', 'Người đánh giá', 'Điểm', 'Phạm vi', 'Ý kiến'], ...(reportStats.feedbacks || []).map(item => [new Date(item.createdAt).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }), item.authorName || 'Ẩn danh', item.rating, item.activityName || 'Toàn sự kiện', item.comment || ''])];
     const csv = '\uFEFF' + rows.map(row => row.map(value => `"${String(value ?? '').replace(/"/g, '""')}"`).join(',')).join('\n');
@@ -292,7 +294,7 @@ export const PartnerReportsPage: React.FC<PartnerReportsPageProps> = ({
         </p>
         {(reportStats.feedbacks || []).length ? (
           <div style={{ display: 'grid', gap: '0.75rem' }}>
-            {(reportStats.feedbacks || []).map(item => (
+            {pagination.items.map(item => (
               <article key={`${item.source}-${item.id}`} style={{ border: '1px solid #E2E8F0', borderRadius: 10, padding: '0.9rem 1rem', background: '#FAFCFB' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
                   <strong>{item.authorName || (language === 'vi' ? 'Người dùng ẩn danh' : 'Anonymous user')}</strong>
@@ -306,6 +308,7 @@ export const PartnerReportsPage: React.FC<PartnerReportsPageProps> = ({
             ))}
           </div>
         ) : <p style={{ color: '#71827D' }}>{language === 'vi' ? 'Chưa có đánh giá thực tế cho sự kiện này.' : 'No reviews for this event yet.'}</p>}
+        <ListPagination page={pagination.page} totalPages={pagination.totalPages} onChange={pagination.setPage} vi={language === 'vi'} />
       </section>
     </div>
   );

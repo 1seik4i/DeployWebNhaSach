@@ -1,5 +1,8 @@
+import { AdminPageHeading } from '../admin/AdminPageHeading';
+import { useUrlTab } from '../../hooks/useUrlTab';
 import { notifyModal } from '../../services/notificationModal';
 import { useModalBehavior } from '../../hooks/useModalBehavior';
+import { ListPagination } from '../ui/ListPagination';
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Plus, 
@@ -26,7 +29,7 @@ import { notifyBoothsChanged } from '../../services/booths';
 import {
   saveSharedMapPoints,
   getSharedMapImage, 
-  saveSharedMapImage,
+  MAX_MAP_IMAGE_MB,
   fetchMapHotspotsFromApi,
 } from '../../services/mapService';
 
@@ -74,6 +77,10 @@ export const BoothMapView: React.FC<BoothMapViewProps> = ({
   const [selectedVenuePoint, setSelectedVenuePoint] = useState<MapLocationPoint | null>(null);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [mapImageUrl, setMapImageUrl] = useState<string>(() => getSharedMapImage());
+  const pendingMapImage = useRef<string | null>(null);
+  const [hasPendingImage, setHasPendingImage] = useState(false);
+  const [isReadingImage, setIsReadingImage] = useState(false);
+  const [isSavingMap, setIsSavingMap] = useState(false);
   const [draggingMarkerId, setDraggingMarkerId] = useState<string | null>(null);
   const dragInfoRef = useRef<{
     markerId: string | null;
@@ -92,7 +99,7 @@ export const BoothMapView: React.FC<BoothMapViewProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Table filter and pagination states
-  const [activeTab, setActiveTab] = useState<'all' | 'assigned' | 'available'>('all');
+  const [activeTab, setActiveTab] = useUrlTab(['all', 'assigned', 'available'], 'all', 'section');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
@@ -122,7 +129,7 @@ export const BoothMapView: React.FC<BoothMapViewProps> = ({
           openHours: point.openHours,
         })));
         setVenuePoints(points.filter(point => point.category !== 'booth'));
-        setMapImageUrl(getSharedMapImage());
+        if (!pendingMapImage.current) setMapImageUrl(getSharedMapImage());
       }).catch((error) => {
         console.error('Không thể tải cấu hình sơ đồ', error);
       });
@@ -309,7 +316,7 @@ export const BoothMapView: React.FC<BoothMapViewProps> = ({
   // Keep the map image synchronized after the server confirms an update.
   useEffect(() => {
     const handleImageUpdate = (e: any) => {
-      if (e.detail?.imageUrl) {
+      if (e.detail?.imageUrl && !pendingMapImage.current) {
         setMapImageUrl(e.detail.imageUrl);
       }
     };
@@ -428,6 +435,8 @@ export const BoothMapView: React.FC<BoothMapViewProps> = ({
   };
 
   const handleSaveMap = async () => {
+    if (isSavingMap || isReadingImage) return;
+    setIsSavingMap(true);
     try {
       const boothPoints = localBooths.filter(b => b.x != null && b.y != null).map(b => ({
         id: b.id, code: b.code, name: b.name, nameEn: b.nameEn, orgName: b.orgName,
@@ -435,25 +444,46 @@ export const BoothMapView: React.FC<BoothMapViewProps> = ({
         dimensions: b.dimensions, status: b.status, statusLabelVi: b.statusLabelVi,
         x: b.x!, y: b.y!, shortDesc: b.shortDesc, imageUrl: b.imageUrl, openHours: b.openHours,
       }));
-      await saveSharedMapPoints([...boothPoints, ...venuePoints]);
+      await saveSharedMapPoints([...boothPoints, ...venuePoints], pendingMapImage.current ?? undefined);
+      pendingMapImage.current = null;
+      setHasPendingImage(false);
       setIsSaved(true);
       setTimeout(() => setIsSaved(false), 2000);
     } catch (error) {
       void notifyModal(error instanceof Error ? error.message : 'Không thể lưu sơ đồ');
+    } finally {
+      setIsSavingMap(false);
     }
   };
 
   const handleMapUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    e.target.value = '';
+    if (isSavingMap || isReadingImage) return;
     if (file) {
+      if (!file.type.startsWith('image/')) {
+        void notifyModal(language === 'vi' ? 'Vui lòng chọn một tệp ảnh.' : 'Please select an image file.');
+        return;
+      }
+      if (file.size > MAX_MAP_IMAGE_MB * 1024 * 1024) {
+        void notifyModal(language === 'vi' ? `Ảnh bản đồ tối đa ${MAX_MAP_IMAGE_MB} MB.` : `Map images must be ${MAX_MAP_IMAGE_MB} MB or smaller.`);
+        return;
+      }
+      setIsReadingImage(true);
       const reader = new FileReader();
       reader.onload = (event) => {
         const result = event.target?.result as string;
         if (result) {
-          void saveSharedMapImage(result)
-            .then(() => setMapImageUrl(result))
-            .catch(error => notifyModal(error instanceof Error ? error.message : 'Không thể lưu ảnh sơ đồ'));
+          pendingMapImage.current = result;
+          setMapImageUrl(result);
+          setHasPendingImage(true);
+          setIsSaved(false);
         }
+        setIsReadingImage(false);
+      };
+      reader.onerror = () => {
+        setIsReadingImage(false);
+        void notifyModal(language === 'vi' ? 'Không thể đọc ảnh. Vui lòng chọn lại tệp.' : 'Unable to read image. Please select it again.');
       };
       reader.readAsDataURL(file);
     }
@@ -504,9 +534,7 @@ export const BoothMapView: React.FC<BoothMapViewProps> = ({
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
           <div>
-            <h1 className="organizer-view-title" style={{ fontSize: '1.4rem' }}>
-              {language === 'vi' ? 'Sơ đồ & Quản lý vị trí gian hàng' : 'Booth Map & Layout Management'}
-            </h1>
+            <AdminPageHeading section="map" language={language} />
           </div>
         </div>
 
@@ -542,11 +570,13 @@ export const BoothMapView: React.FC<BoothMapViewProps> = ({
             accept="image/*" 
             ref={fileInputRef} 
             onChange={handleMapUpload} 
+            disabled={isSavingMap || isReadingImage}
             style={{ display: 'none' }} 
           />
           <button
             type="button"
             className="booth-map-btn-secondary"
+            disabled={isSavingMap || isReadingImage}
             onClick={() => fileInputRef.current?.click()}
           >
             <Upload size={14} />
@@ -557,10 +587,16 @@ export const BoothMapView: React.FC<BoothMapViewProps> = ({
             type="button"
             className={`booth-map-btn-save ${isSaved ? 'is-saved' : ''}`}
             onClick={handleSaveMap}
+            disabled={isSavingMap || isReadingImage}
           >
             {isSaved ? <CheckCircle size={14} /> : <Save size={14} />}
             <span>{isSaved ? (language === 'vi' ? 'Đã lưu!' : 'Saved!') : (language === 'vi' ? 'Lưu sơ đồ' : 'Save Map')}</span>
           </button>
+          <small role="status">
+            {hasPendingImage
+              ? (language === 'vi' ? 'Ảnh xem trước chưa lưu. Bấm “Lưu sơ đồ” để áp dụng.' : 'Unsaved preview. Click “Save Map” to apply.')
+              : (language === 'vi' ? `Ảnh tối đa ${MAX_MAP_IMAGE_MB} MB` : `Images up to ${MAX_MAP_IMAGE_MB} MB`)}
+          </small>
         </div>
       </div>
 
@@ -1189,32 +1225,13 @@ export const BoothMapView: React.FC<BoothMapViewProps> = ({
         </div>
 
         {/* Pagination when showing all */}
-        {!selectedBooth && totalPages > 1 && (
-          <div className="booth-map-pagination" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
-            <span style={{ fontSize: '0.8rem', color: '#6B7280' }}>
-              Hiển thị {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, filteredBooths.length)} trong tổng số {filteredBooths.length} gian hàng
-            </span>
-            <div style={{ display: 'flex', gap: '0.35rem' }}>
-              <button
-                type="button"
-                className="organizer-icon-button"
-                style={{ width: '28px', height: '28px' }}
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-              >
-                <ChevronLeft size={14} />
-              </button>
-              <button
-                type="button"
-                className="organizer-icon-button"
-                style={{ width: '28px', height: '28px' }}
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-              >
-                <ChevronRight size={14} />
-              </button>
-            </div>
-          </div>
+        {!selectedBooth && (
+          <ListPagination
+            page={currentPage}
+            totalPages={totalPages}
+            onChange={setCurrentPage}
+            vi={language === 'vi'}
+          />
         )}
       </div>
 

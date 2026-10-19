@@ -24,7 +24,7 @@ describe('admin visit statistics endpoint', () => {
   it('returns counters and fills every day of a leap month with real counts or zero', async () => {
     const response = await request(app).get('/api/admin/visit-stats?year=2024&month=2').set('Authorization', 'admin');
     expect(response.status).toBe(200);
-    expect(response.body.data).toMatchObject({ onlineCount: 3, todayVisits: 3, monthVisits: 3, totalVisits: 3 });
+    expect(response.body.data).toMatchObject({ onlineCount: 0, todayVisits: 3, monthVisits: 3, totalVisits: 3 });
     expect(response.body.data.dailyVisits).toHaveLength(29);
     expect(response.body.data.dailyVisits[0]).toEqual({ date: '2024-02-01', count: 0 });
     expect(response.body.data.dailyVisits[28]).toEqual({ date: '2024-02-29', count: 2 });
@@ -38,6 +38,17 @@ describe('admin visit statistics endpoint', () => {
     expect(response.body.data.dailyVisits).toHaveLength(366);
     const invalid = await request(app).get('/api/admin/visit-stats?month=13').set('Authorization', 'admin');
     expect(invalid.status).toBe(422);
+  });
+
+  it('keeps public and admin counters equal, including authoritative zero online', async () => {
+    const publicResult = await request(app).get('/api/public/visit-stats');
+    const adminResult = await request(app).get('/api/admin/visit-stats').set('Authorization', 'admin');
+    expect(publicResult.status).toBe(200);
+    expect(adminResult.status).toBe(200);
+    for (const key of ['onlineCount', 'todayVisits', 'monthVisits', 'totalVisits']) {
+      expect(publicResult.body.data[key]).toBe(adminResult.body.data[key]);
+    }
+    expect(publicResult.body.data.onlineCount).toBe(0);
   });
 
   it('requires administrator access before querying statistics', async () => {

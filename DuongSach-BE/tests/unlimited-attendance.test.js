@@ -18,6 +18,12 @@ describe('unlimited attendance', () => {
     expect((await checkSchedule(tx, input)).startAt).toEqual(new Date(input.startAt));
     expect(tx.activity.findFirst).not.toHaveBeenCalled();
   });
+  it('allows schedules overlapping an activity belonging to another event', async () => {
+    const tx = database();
+    tx.activity.findFirst.mockResolvedValue({ id: 'existing', eventId: 'different-event', locationId: input.locationId, startAt: new Date(input.startAt), endAt: new Date(input.endAt) });
+    expect((await checkSchedule(tx, input)).startAt).toEqual(new Date(input.startAt));
+    expect(tx.activity.findFirst).not.toHaveBeenCalled();
+  });
   it('allows a multi-day range with an earlier clock time on the last day', async () => {
     const range = { ...input, endAt: '2026-10-13T08:00:00+07:00' };
     const tx = database(); tx.event.findFirst.mockResolvedValue({ id: 'event', startAt: new Date('2026-10-12T00:00:00+07:00'), endAt: new Date('2026-10-14T00:00:00+07:00') });

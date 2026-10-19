@@ -62,7 +62,9 @@ for (const router of [
                               },
                             },
                           }
-                        : { type: "object" },
+                        : path === "/admin/users/{id}/password"
+                          ? { type: "object", additionalProperties: false, required: ["newPassword"], properties: { newPassword: { type: "string", format: "password", minLength: 8, maxLength: 72, description: "Theo chính sách mật khẩu hệ thống; tối đa 72 byte UTF-8." } } }
+                          : { type: "object" },
                   },
                 },
               },

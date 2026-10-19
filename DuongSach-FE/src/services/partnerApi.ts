@@ -79,6 +79,7 @@ export function resolvePartnerNotificationLink(item: {
 }
 
 export const partnerApi = {
+  registerEvent: (data: unknown) => apiClient.post<{ id: string; registrationId: string; status: string }>('/partner/event-registrations', data),
   async getProfile(): Promise<PartnerOrganization | null> {
     const organization = await apiClient.get<Record<string, unknown> | null>('/partner/profile');
     return organization ? mapOrganization(organization) : null;

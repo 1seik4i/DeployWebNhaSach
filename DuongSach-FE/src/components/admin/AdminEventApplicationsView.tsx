@@ -1,4 +1,5 @@
 import { useModalBehavior } from '../../hooks/useModalBehavior';
+import { ListPagination, useListPagination } from '../ui/ListPagination';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Check,
@@ -82,6 +83,8 @@ export function AdminEventApplicationsView({ language }: { language: Language })
     (status === 'all' || (status === 'pending' ? pending(row) : row.status === status)) &&
     [row.orgName, row.rep, row.email, row.phone, row.eventTitle].some(value => value?.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()))
   );
+
+  const pagination = useListPagination(visible, `${eventId}:${status}:${query}`, 8);
 
   const pendingCount = rows.filter(r => pending(r)).length;
   const approvedCount = rows.filter(r => r.status === 'approved').length;
@@ -287,7 +290,7 @@ export function AdminEventApplicationsView({ language }: { language: Language })
           </div>
         ) : (
           <div className="adm-applications-grid">
-            {visible.map(row => {
+            {pagination.items.map(row => {
               const isPending = pending(row);
               return (
                 <article key={row.id} className={`adm-application-card ${isPending ? 'is-pending-card' : ''}`}>
@@ -403,6 +406,15 @@ export function AdminEventApplicationsView({ language }: { language: Language })
               );
             })}
           </div>
+        )}
+
+        {visible.length > 0 && (
+          <ListPagination
+            page={pagination.page}
+            totalPages={pagination.totalPages}
+            onChange={pagination.setPage}
+            vi={vi}
+          />
         )}
       </section>
 

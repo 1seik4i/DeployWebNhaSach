@@ -25,30 +25,8 @@ import { Language } from '../../types';
 import { AdminProfile } from '../../types/admin';
 import { RoleSidebar, RoleSidebarItem } from '../ui/RoleSidebar';
 
-export type AdminTab =
-  | 'dashboard'
-  | 'traffic'
-  | 'landing-editor'
-  | 'landing-journey'
-  | 'landing-news'
-  | 'landing-org'
-  | 'events'
-  | 'event-applications'
-  | 'event-suggestions'
-  | 'activities'
-  | 'booth-map'
-  | 'booths'
-  | 'venues'
-  | 'assets'
-  | 'library'
-  | 'reports'
-  | 'feedback'
-  | 'users'
-  | 'roles'
-  | 'audit'
-  | 'settings'
-  | 'notifications'
-  | 'profile';
+import type { AdminTab } from '../../utils/adminNavigation';
+export type { AdminTab } from '../../utils/adminNavigation';
 
 export interface AdminSidebarProps {
   language: Language;

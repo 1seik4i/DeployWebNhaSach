@@ -3,9 +3,28 @@
  * Manages WebSocket connection, handles auto-reconnect, and distributes live online count
  */
 
+export interface VisitStatsSnapshot {
+  onlineCount: number;
+  todayVisits: number;
+  monthVisits: number;
+  totalVisits: number;
+  generatedAt: string;
+}
+
 type OnlineCountListener = (count: number) => void;
 
 class RealtimeWebSocketService {
+  private statsListeners = new Set<(stats: VisitStatsSnapshot) => void>();
+  private currentStats: VisitStatsSnapshot | null = null;
+
+  public subscribeStats(listener: (stats: VisitStatsSnapshot) => void): () => void {
+    this.statsListeners.add(listener);
+    if (this.currentStats) listener(this.currentStats);
+    return () => { this.statsListeners.delete(listener); };
+  }
+
+  public getCurrentStats() { return this.currentStats; }
+
   private socket: WebSocket | null = null;
   private listeners = new Set<OnlineCountListener>();
   private currentOnlineCount: number | null = null;
@@ -31,9 +50,10 @@ class RealtimeWebSocketService {
     const customWs = import.meta.env.VITE_WS_URL;
     if (customWs) return customWs;
 
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const apiUrl = new URL(import.meta.env.VITE_API_BASE_URL || '/api', window.location.href);
+    const protocol = apiUrl.protocol === 'https:' ? 'wss:' : 'ws:';
     // If in dev with different port, fallback through Vite proxy at /ws or direct to 4000
-    return `${protocol}//${window.location.host}/ws`;
+    return `${protocol}//${apiUrl.host}/ws`;
   }
 
   public init() {
@@ -59,7 +79,11 @@ class RealtimeWebSocketService {
 
         // Send session identifier
         const sessionKey = 'duongsach_visit_session';
-        const sessionId = sessionStorage.getItem(sessionKey);
+        let sessionId = sessionStorage.getItem(sessionKey);
+        if (!sessionId) {
+          sessionId = crypto.randomUUID();
+          sessionStorage.setItem(sessionKey, sessionId);
+        }
         if (sessionId && this.socket && this.socket.readyState === WebSocket.OPEN) {
           this.socket.send(JSON.stringify({ type: 'IDENTIFY', sessionId }));
         }
@@ -76,7 +100,16 @@ class RealtimeWebSocketService {
       this.socket.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
+          if (data.type === 'VISIT_STATS' && data.stats &&
+              ['onlineCount', 'todayVisits', 'monthVisits', 'totalVisits'].every(key =>
+                Number.isFinite(data.stats[key]) && data.stats[key] >= 0)) {
+            this.currentStats = data.stats;
+            this.currentOnlineCount = data.stats.onlineCount;
+            this.notifyListeners(data.stats.onlineCount);
+            this.statsListeners.forEach(listener => listener(data.stats));
+          }
           if (data.type === 'ONLINE_COUNT' && typeof data.onlineCount === 'number') {
+            if (this.currentStats) this.currentStats = { ...this.currentStats, onlineCount: data.onlineCount };
             this.currentOnlineCount = data.onlineCount;
             this.notifyListeners(data.onlineCount);
           }
@@ -86,6 +119,8 @@ class RealtimeWebSocketService {
       };
 
       this.socket.onclose = () => {
+        this.currentStats = null;
+        this.currentOnlineCount = null;
         this.cleanupSocket();
         if (!this.isExplicitlyClosed) {
           this.scheduleReconnect();

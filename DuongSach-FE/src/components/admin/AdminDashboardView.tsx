@@ -1,9 +1,10 @@
 import React from 'react';
-import { Activity, ArrowRight, Calendar, CheckCircle2, Clock3, LockKeyhole, ShieldAlert, Sparkles, Store, UserPlus, Users } from 'lucide-react';
+import { Activity, ArrowRight, Calendar, CheckCircle2, Clock3, LockKeyhole, ShieldAlert, Store, UserPlus, Users } from 'lucide-react';
 import { AdminAuditLogItem, AdminUserAccount } from '../../types/admin';
 import type { AdminDashboardStats } from '../../services/adminApi';
 
 interface AdminDashboardViewProps {
+  adminName?: string;
   onNavigateTab: (tab: string) => void;
   auditLogs: AdminAuditLogItem[];
   users: AdminUserAccount[];
@@ -28,7 +29,7 @@ const getActivityIcon = (action: string) => {
   return <Activity size={16} />;
 };
 
-export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({ onNavigateTab, auditLogs, users, stats, onOpenAddUser }) => {
+export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({ adminName, onNavigateTab, auditLogs, users, stats, onOpenAddUser }) => {
   const lockedUsersCount = users.filter(user => user.status === 'locked').length;
   const pendingUsersCount = users.filter(user => user.status === 'pending_verification').length;
 
@@ -77,7 +78,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({ onNaviga
     <div className="adm-dashboard-view adm-dashboard-refined">
       <div className="adm-page-header">
         <div>
-          <span className="adm-dashboard-eyebrow">TRUNG TÂM ĐIỀU HÀNH</span>
+          <span className="adm-dashboard-eyebrow">Xin chào, {adminName || 'Quản trị viên'}</span>
           <h1 className="adm-page-title">Tổng quan Quản trị Hệ thống</h1>
           <p className="adm-page-subtitle">Theo dõi vận hành, tài khoản và hoạt động tại Đường Sách TP.HCM.</p>
         </div>
@@ -92,7 +93,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({ onNaviga
           { label: 'Tổng tài khoản', value: stats.userCount, note: `${lockedUsersCount} tài khoản đang khóa`, icon: <Users size={20} />, cls: 'icon-emerald' },
           { label: 'Sự kiện nền tảng', value: stats.eventCount, note: `${stats.openEventCount} sự kiện đang công bố hoặc diễn ra`, icon: <Calendar size={20} />, cls: 'icon-blue' },
           { label: 'Gian hàng', value: stats.boothCount, note: 'Gian hàng đang có trong hệ thống', icon: <Store size={20} />, cls: 'icon-amber' },
-          { label: 'Hoạt động hôm nay', value: stats.todayActivityCount, note: `${stats.activityCount} hoạt động đã ghi nhận`, icon: <Sparkles size={20} />, cls: 'icon-purple' },
+          { label: 'Hoạt động hôm nay', value: stats.todayActivityCount, note: `${stats.activityCount} hoạt động đã ghi nhận`, icon: <Clock3 size={20} />, cls: 'icon-purple' },
         ].map(card => (
           <div className="adm-kpi-card" key={card.label}>
             <div className="adm-kpi-top"><span className="adm-kpi-label">{card.label}</span><div className={`adm-kpi-icon-wrap ${card.cls}`}>{card.icon}</div></div>

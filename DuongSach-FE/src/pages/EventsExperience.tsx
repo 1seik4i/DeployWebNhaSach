@@ -13,6 +13,7 @@ import {
 import { EventFeedbackModal } from '../components/EventFeedbackModal';
 import { EventRegistrationModal } from '../components/EventRegistrationModal';
 import { EventItem, Language } from '../types';
+import { ListPagination, useListPagination } from '../components/ui/ListPagination';
 import './ExperienceShell.css';
 import './EventsExperience.css';
 
@@ -72,6 +73,8 @@ export const EventsExperience: React.FC<EventsExperienceProps> = ({
       return matchType && matchSearch;
     });
   }, [events, searchQuery, selectedType]);
+
+  const pagination = useListPagination(filteredEvents, `${selectedType}:${searchQuery}`, 6);
 
   const handleClose = () => {
     navigate('/');
@@ -227,48 +230,56 @@ export const EventsExperience: React.FC<EventsExperienceProps> = ({
               </button>
             </div>
           ) : (
-            <div className="events-collection-grid">
-              {filteredEvents.map((evt) => {
-                const isToday = Boolean(evt.isOngoingToday || evt.status === 'happening');
-                return (
-                  <article 
-                    key={evt.id} 
-                    className="event-card-item"
-                    onClick={() => setActiveModalEvent(evt)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <div className="event-card-image">
-                      <img src={evt.image.url} alt={evt.title} />
-                      {isToday && (
-                        <span className="event-card-today-badge">
-                          {vi ? 'Hôm nay' : 'Today'}
-                        </span>
-                      )}
-                      <span className="event-datetime-badge">{evt.dateRange || evt.dateStr}</span>
-                    </div>
-                    <div className="event-card-body">
-                      <div className="event-badge-row">
-                        <span className="heritage-card-cat">
-                          {vi ? evt.typeLabelVi : evt.typeLabelEn}
-                        </span>
-                        {evt.boothName && (
-                          <span className="event-booth-pill">{evt.boothName}</span>
+            <>
+              <div className="events-collection-grid">
+                {pagination.items.map((evt) => {
+                  const isToday = Boolean(evt.isOngoingToday || evt.status === 'happening');
+                  return (
+                    <article 
+                      key={evt.id} 
+                      className="event-card-item"
+                      onClick={() => setActiveModalEvent(evt)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <div className="event-card-image">
+                        <img src={evt.image.url} alt={evt.title} />
+                        {isToday && (
+                          <span className="event-card-today-badge">
+                            {vi ? 'Hôm nay' : 'Today'}
+                          </span>
                         )}
+                        <span className="event-datetime-badge">{evt.dateRange || evt.dateStr}</span>
                       </div>
-                      <h3 className="event-card-title">{vi ? evt.title : evt.titleEn}</h3>
-                      <p className="heritage-card-loc">📍 {vi ? evt.location : evt.locationEn}</p>
-                      <p className="heritage-card-summary">{vi ? evt.summary : evt.summaryEn}</p>
-                      <div className="event-card-footer">
-                        <span className="heritage-card-arrow-text">
-                          {vi ? 'Xem chi tiết' : 'View details'}
-                        </span>
-                        <ArrowRight size={16} />
+                      <div className="event-card-body">
+                        <div className="event-badge-row">
+                          <span className="heritage-card-cat">
+                            {vi ? evt.typeLabelVi : evt.typeLabelEn}
+                          </span>
+                          {evt.boothName && (
+                            <span className="event-booth-pill">{evt.boothName}</span>
+                          )}
+                        </div>
+                        <h3 className="event-card-title">{vi ? evt.title : evt.titleEn}</h3>
+                        <p className="heritage-card-loc">📍 {vi ? evt.location : evt.locationEn}</p>
+                        <p className="heritage-card-summary">{vi ? evt.summary : evt.summaryEn}</p>
+                        <div className="event-card-footer">
+                          <span className="heritage-card-arrow-text">
+                            {vi ? 'Xem chi tiết' : 'View details'}
+                          </span>
+                          <ArrowRight size={16} />
+                        </div>
                       </div>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
+                    </article>
+                  );
+                })}
+              </div>
+              <ListPagination
+                page={pagination.page}
+                totalPages={pagination.totalPages}
+                onChange={pagination.setPage}
+                vi={vi}
+              />
+            </>
           )}
         </section>
 

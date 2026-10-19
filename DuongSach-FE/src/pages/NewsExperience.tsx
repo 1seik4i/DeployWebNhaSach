@@ -19,6 +19,7 @@ import {
   BookOpen
 } from 'lucide-react';
 import { Language } from '../types';
+import { ListPagination, useListPagination } from '../components/ui/ListPagination';
 import './ExperienceShell.css';
 import './NewsExperience.css';
 
@@ -155,6 +156,8 @@ export const NewsExperience: React.FC<NewsExperienceProps> = ({ language, open }
         return 0;
       });
   }, [searchQuery, selectedCategory, articles]);
+
+  const pagination = useListPagination(filteredArticles, `${selectedCategory}:${searchQuery}`, 6);
 
   const relatedArticles = useMemo(() => {
     if (!activeArticle) return [];
@@ -479,74 +482,82 @@ export const NewsExperience: React.FC<NewsExperienceProps> = ({ language, open }
                   </button>
                 </div>
               ) : (
-                /* Baomoi-style News Cards Grid - Các bài viết Tiêu Điểm sẽ to ra chiếm trọn chiều rộng */
-                <div className="news-baomoi-grid">
-                  {filteredArticles.map((article) => (
-                    <article
-                      key={article.id}
-                      id={article.id}
-                      className={`news-baomoi-card ${article.featured ? 'news-baomoi-card-featured' : ''}`}
-                      onClick={() => navigate(`/tin-tuc/${article.id}`)}
-                      role="button"
-                      tabIndex={0}
-                    >
-                      <div className="news-baomoi-thumb-wrap">
-                        <img src={article.imageUrl} alt={article.titleVi} className="news-baomoi-thumb-img" loading="lazy" />
-                        <span className="news-baomoi-cat-pill">{vi ? article.categoryLabelVi : article.categoryLabelEn}</span>
-                        {article.featured && (
-                          <span className="news-baomoi-featured-pill">
-                            <Flame size={12} />
-                            <span>{vi ? 'TIÊU ĐIỂM' : 'FEATURED'}</span>
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="news-baomoi-content">
-                        <h3 className="news-baomoi-title">
-                          {vi ? article.titleVi : article.titleEn}
-                        </h3>
-
-                        <p className="news-baomoi-snippet">
-                          {vi ? article.summaryVi : article.summaryEn}
-                        </p>
-
-                        <div className="news-baomoi-meta-row">
-                          <div className="news-baomoi-source-group">
-                            <span className="news-baomoi-source-name">{article.author}</span>
-                            <span className="news-baomoi-dot dot-author">•</span>
-                            <span className="news-baomoi-time news-baomoi-date">{article.publishedDate}</span>
-                            <span className="news-baomoi-dot">•</span>
-                            <span className="news-baomoi-time news-baomoi-read">{article.readTime}</span>
-                          </div>
-
-                          <div className="news-baomoi-right-meta">
-                            {article.featured && (
-                              <span className="news-featured-read-btn">
-                                <span>{vi ? 'Đọc bài viết' : 'Read Story'}</span>
-                                <ArrowRight size={14} />
-                              </span>
-                            )}
-                            <span className="news-meta-dim">
-                              <Eye size={12} />
-                              {article.views.toLocaleString()}
+                <>
+                  {/* Baomoi-style News Cards Grid - Các bài viết Tiêu Điểm sẽ to ra chiếm trọn chiều rộng */}
+                  <div className="news-baomoi-grid">
+                    {pagination.items.map((article) => (
+                      <article
+                        key={article.id}
+                        id={article.id}
+                        className={`news-baomoi-card ${article.featured ? 'news-baomoi-card-featured' : ''}`}
+                        onClick={() => navigate(`/tin-tuc/${article.id}`)}
+                        role="button"
+                        tabIndex={0}
+                      >
+                        <div className="news-baomoi-thumb-wrap">
+                          <img src={article.imageUrl} alt={article.titleVi} className="news-baomoi-thumb-img" loading="lazy" />
+                          <span className="news-baomoi-cat-pill">{vi ? article.categoryLabelVi : article.categoryLabelEn}</span>
+                          {article.featured && (
+                            <span className="news-baomoi-featured-pill">
+                              <Flame size={12} />
+                              <span>{vi ? 'TIÊU ĐIỂM' : 'FEATURED'}</span>
                             </span>
-                            <button
-                              type="button"
-                              className="news-baomoi-share-btn"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleCopyLink(article);
-                              }}
-                              title={vi ? 'Chia sẻ bài viết' : 'Share article'}
-                            >
-                              <Share2 size={13} />
-                            </button>
+                          )}
+                        </div>
+
+                        <div className="news-baomoi-content">
+                          <h3 className="news-baomoi-title">
+                            {vi ? article.titleVi : article.titleEn}
+                          </h3>
+
+                          <p className="news-baomoi-snippet">
+                            {vi ? article.summaryVi : article.summaryEn}
+                          </p>
+
+                          <div className="news-baomoi-meta-row">
+                            <div className="news-baomoi-source-group">
+                              <span className="news-baomoi-source-name">{article.author}</span>
+                              <span className="news-baomoi-dot dot-author">•</span>
+                              <span className="news-baomoi-time news-baomoi-date">{article.publishedDate}</span>
+                              <span className="news-baomoi-dot">•</span>
+                              <span className="news-baomoi-time news-baomoi-read">{article.readTime}</span>
+                            </div>
+
+                            <div className="news-baomoi-right-meta">
+                              {article.featured && (
+                                <span className="news-featured-read-btn">
+                                  <span>{vi ? 'Đọc bài viết' : 'Read Story'}</span>
+                                  <ArrowRight size={14} />
+                                </span>
+                              )}
+                              <span className="news-meta-dim">
+                                <Eye size={12} />
+                                {article.views.toLocaleString()}
+                              </span>
+                              <button
+                                type="button"
+                                className="news-baomoi-share-btn"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleCopyLink(article);
+                                }}
+                                title={vi ? 'Chia sẻ bài viết' : 'Share article'}
+                              >
+                                <Share2 size={13} />
+                              </button>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </article>
-                  ))}
-                </div>
+                      </article>
+                    ))}
+                  </div>
+                  <ListPagination
+                    page={pagination.page}
+                    totalPages={pagination.totalPages}
+                    onChange={pagination.setPage}
+                    vi={vi}
+                  />
+                </>
               )}
             </section>
           </>

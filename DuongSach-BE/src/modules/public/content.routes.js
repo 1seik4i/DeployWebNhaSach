@@ -6,12 +6,13 @@ import { authorize } from "../../middlewares/rbac.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { ApiResponse } from "../../utils/ApiResponse.js";
 import { ApiError } from "../../utils/ApiError.js";
+import { isFeedbackContact } from "../../utils/feedbackContact.js";
 import { audit, parse, text, transaction, uuid } from "../../utils/contract.js";
 import {
   decorateContentWithReadCounts,
   recordNewsArticleRead,
 } from "./content-analytics.service.js";
-import { getLiveOnlineCount } from "../../services/websocket.service.js";
+import { getLiveOnlineCount, setVisitStatsProvider, broadcastVisitStats } from "../../services/websocket.service.js";
 
 const router = Router(),
   admin = [authenticate, authorize("admin")];
@@ -60,7 +61,9 @@ router.post(
       z.object({
         rating: z.number().int().min(1).max(5),
         comments: z.string().max(10000).optional(),
-        contactEmail: z.string().email().or(z.literal("")).optional(),
+        contactEmail: z.string().trim().max(254).refine(isFeedbackContact, {
+          message: 'Vui lòng nhập email hợp lệ hoặc số điện thoại Việt Nam đúng định dạng (ví dụ: 0912345678 hoặc +84912345678).',
+        }).optional(),
         targetScope: z
           .enum(["entire", "heritage", "booth", "facility"])
           .default("entire"),
@@ -175,37 +178,14 @@ router.post(
       create: { sessionId, day, lastSeenAt: now },
       update: { lastSeenAt: now },
     });
+    void broadcastVisitStats();
     return { recorded: true };
   }),
 );
 router.get(
   "/public/visit-stats",
   run(async () => {
-    const now = new Date();
-    const current = vietnamDateParts(now);
-    const today = databaseDate(current.year, current.month, current.day);
-    const monthStart = databaseDate(current.year, current.month);
-    const nextMonthStart = databaseDate(current.year, current.month + 1);
-    const onlineSince = new Date(now.getTime() - ONLINE_WINDOW_MS);
-    const [onlineSessions, todayVisits, monthVisits, totalVisits] = await Promise.all([
-      prisma.siteVisit.groupBy({
-        by: ["sessionId"],
-        where: { lastSeenAt: { gte: onlineSince } },
-      }),
-      prisma.siteVisit.count({ where: { day: today } }),
-      prisma.siteVisit.count({ where: { day: { gte: monthStart, lt: nextMonthStart } } }),
-      prisma.siteVisit.count(),
-    ]);
-    const liveWsCount = getLiveOnlineCount();
-    return {
-      onlineCount: liveWsCount > 0 ? liveWsCount : onlineSessions.length,
-      todayVisits,
-      monthVisits,
-      totalVisits,
-      onlineWindowSeconds: ONLINE_WINDOW_MS / 1000,
-      generatedAt: now.toISOString(),
-      definition: "one-session-per-Vietnam-calendar-day",
-    };
+    return getPublicVisitStats();
   }),
 );
 router.get(
@@ -222,8 +202,7 @@ router.get(
     const month = query.month;
     const start = month ? databaseDate(year, month) : query.year ? databaseDate(year, 1) : databaseDate(current.year, current.month, current.day - 29);
     const end = month ? databaseDate(year, month + 1) : query.year ? databaseDate(year + 1, 1) : databaseDate(current.year, current.month, current.day + 1);
-    const [onlineSessions, todayVisits, monthVisits, totalVisits, daily, monthly] = await Promise.all([
-      prisma.siteVisit.groupBy({ by: ['sessionId'], where: { lastSeenAt: { gte: new Date(now.getTime() - ONLINE_WINDOW_MS) } } }),
+    const [todayVisits, monthVisits, totalVisits, daily, monthly] = await Promise.all([
       prisma.siteVisit.count({ where: { day: databaseDate(current.year, current.month, current.day) } }),
       prisma.siteVisit.count({ where: { day: { gte: databaseDate(current.year, current.month), lt: databaseDate(current.year, current.month + 1) } } }),
       prisma.siteVisit.count(),
@@ -239,7 +218,7 @@ router.get(
     const monthlyStats = Array.from({ length: 12 }, (_, index) => ({ month: index + 1, year, count: 0 }));
     for (const row of monthly) monthlyStats[row.day.getUTCMonth()].count += row._count;
     const liveAdminWsCount = getLiveOnlineCount();
-    return { onlineCount: liveAdminWsCount > 0 ? liveAdminWsCount : onlineSessions.length, todayVisits, monthVisits, totalVisits, generatedAt: now.toISOString(), dailyVisits, monthlyStats, selectedMonth: month ?? null, selectedYear: year, onlineWindowSeconds: ONLINE_WINDOW_MS / 1000, definition: 'one-session-per-Vietnam-calendar-day' };
+    return { onlineCount: liveAdminWsCount, todayVisits, monthVisits, totalVisits, generatedAt: now.toISOString(), dailyVisits, monthlyStats, selectedMonth: month ?? null, selectedYear: year, onlineWindowSeconds: ONLINE_WINDOW_MS / 1000, definition: 'one-session-per-Vietnam-calendar-day' };
   }),
 );
 router.get(
@@ -519,3 +498,28 @@ router.patch(
   ),
 );
 export default router;
+
+async function getPublicVisitStats() {
+  const now = new Date();
+  const current = vietnamDateParts(now);
+  const today = databaseDate(current.year, current.month, current.day);
+  const monthStart = databaseDate(current.year, current.month);
+  const nextMonthStart = databaseDate(current.year, current.month + 1);
+  const [todayVisits, monthVisits, totalVisits] = await Promise.all([
+    prisma.siteVisit.count({ where: { day: today } }),
+    prisma.siteVisit.count({ where: { day: { gte: monthStart, lt: nextMonthStart } } }),
+    prisma.siteVisit.count(),
+  ]);
+  const liveWsCount = getLiveOnlineCount();
+  return {
+    onlineCount: liveWsCount,
+    todayVisits,
+    monthVisits,
+    totalVisits,
+    onlineWindowSeconds: ONLINE_WINDOW_MS / 1000,
+    generatedAt: now.toISOString(),
+    definition: "one-session-per-Vietnam-calendar-day",
+  };
+}
+
+setVisitStatsProvider(getPublicVisitStats);

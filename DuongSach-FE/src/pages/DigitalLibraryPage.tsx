@@ -8,6 +8,7 @@ import { libraryApi } from '../services/libraryApi';
 import { BookCard } from '../components/library/BookCard';
 import { BookCover } from '../components/library/BookCover';
 import { BookStallAvailability } from '../components/library/BookStallAvailability';
+import { getPaginationRange } from '../components/ui/ListPagination';
 import '../components/library/DigitalLibrary.css';
 
 type DiscoveryMode = 'shelves' | 'bestseller' | 'weekly_hot' | 'category' | 'all_books';
@@ -113,13 +114,16 @@ function BookListView({ title, books, bookStalls, language, onOpen }: { title: s
   const [currentPage, setCurrentPage] = useState(1);
   const listRef = useRef<HTMLElement>(null);
   const totalPages = Math.max(1, Math.ceil(books.length / BOOKS_PER_PAGE));
-  const pageStart = (currentPage - 1) * BOOKS_PER_PAGE;
+  const safePage = Math.min(Math.max(currentPage, 1), totalPages);
+  const pageStart = (safePage - 1) * BOOKS_PER_PAGE;
   const pageBooks = books.slice(pageStart, pageStart + BOOKS_PER_PAGE);
 
   const goToPage = (page: number) => {
     setCurrentPage(Math.min(Math.max(page, 1), totalPages));
     listRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
+
+  const paginationRange = useMemo(() => getPaginationRange(safePage, totalPages), [safePage, totalPages]);
 
   return <section ref={listRef} className="library-list-view" aria-labelledby="library-list-title">
     <header className="library-list-heading">
@@ -158,21 +162,26 @@ function BookListView({ title, books, bookStalls, language, onOpen }: { title: s
       })}
       {!books.length && <p className="library-empty">{language === 'vi' ? 'Chưa có sách phù hợp với bộ lọc này.' : 'No books match these filters.'}</p>}
     </div>
-    {totalPages > 1 && <nav className="library-pagination" aria-label={language === 'vi' ? 'Phân trang danh sách sách' : 'Book list pagination'}>
-      <p>{language === 'vi' ? `Hiển thị ${pageStart + 1}–${Math.min(pageStart + BOOKS_PER_PAGE, books.length)} trong ${books.length} tựa sách` : `Showing ${pageStart + 1}–${Math.min(pageStart + BOOKS_PER_PAGE, books.length)} of ${books.length} books`}</p>
+    <nav className="library-pagination" aria-label={language === 'vi' ? 'Phân trang danh sách sách' : 'Book list pagination'}>
+      <p>{language === 'vi' ? `Hiển thị ${books.length > 0 ? pageStart + 1 : 0}–${Math.min(pageStart + BOOKS_PER_PAGE, books.length)} trong ${books.length} tựa sách` : `Showing ${books.length > 0 ? pageStart + 1 : 0}–${Math.min(pageStart + BOOKS_PER_PAGE, books.length)} of ${books.length} books`}</p>
       <div>
-        <button type="button" className="library-pagination-arrow" disabled={currentPage === 1} onClick={() => goToPage(currentPage - 1)} aria-label={language === 'vi' ? 'Trang trước' : 'Previous page'}><ArrowLeft size={16} /></button>
-        {Array.from({ length: totalPages }, (_, index) => index + 1).map(page => <button
-          type="button"
-          key={page}
-          className={page === currentPage ? 'is-active' : ''}
-          aria-current={page === currentPage ? 'page' : undefined}
-          aria-label={`${language === 'vi' ? 'Trang' : 'Page'} ${page}`}
-          onClick={() => goToPage(page)}
-        >{page}</button>)}
-        <button type="button" className="library-pagination-arrow" disabled={currentPage === totalPages} onClick={() => goToPage(currentPage + 1)} aria-label={language === 'vi' ? 'Trang tiếp theo' : 'Next page'}><ArrowRight size={16} /></button>
+        <button type="button" className="library-pagination-arrow" disabled={safePage <= 1} onClick={() => goToPage(safePage - 1)} aria-label={language === 'vi' ? 'Trang trước' : 'Previous page'}><ArrowLeft size={16} /></button>
+        {paginationRange.map((item, index) => {
+          if (item === 'ellipsis') {
+            return <span key={`ellipsis-${index}`} className="list-pagination-ellipsis" style={{ padding: '0 6px', color: '#6f7d77', fontWeight: 700 }} aria-hidden="true">…</span>;
+          }
+          return <button
+            type="button"
+            key={item}
+            className={item === safePage ? 'is-active' : ''}
+            aria-current={item === safePage ? 'page' : undefined}
+            aria-label={`${language === 'vi' ? 'Trang' : 'Page'} ${item}`}
+            onClick={() => goToPage(item)}
+          >{item}</button>;
+        })}
+        <button type="button" className="library-pagination-arrow" disabled={safePage >= totalPages} onClick={() => goToPage(safePage + 1)} aria-label={language === 'vi' ? 'Trang tiếp theo' : 'Next page'}><ArrowRight size={16} /></button>
       </div>
-    </nav>}
+    </nav>
   </section>;
 }
 

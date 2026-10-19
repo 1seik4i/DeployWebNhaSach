@@ -1,18 +1,7 @@
-import { useModalBehavior } from '../hooks/useModalBehavior';
 import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { landingContentService, OrganizationLeader } from '../services/landingContentService';
-import {
-  ArrowLeft,
-  Mail,
-  Building,
-  ChevronRight,
-  Crown,
-  ShieldCheck,
-  Award,
-  Users,
-  X
-} from 'lucide-react';
+import { landingContentService } from '../services/landingContentService';
+import { ArrowLeft, ChevronRight } from 'lucide-react';
 import { Language } from '../types';
 import './OrganizationExperience.css';
 
@@ -25,9 +14,7 @@ export const OrganizationExperience: React.FC<OrganizationExperienceProps> = ({ 
   const vi = language === 'vi';
   const navigate = useNavigate();
   const panelRef = useRef<HTMLDivElement>(null);
-  const [selectedLeader, setSelectedLeader] = useState<OrganizationLeader | null>(null);
 
-  useModalBehavior(Boolean(selectedLeader), () => setSelectedLeader(null));
 
   // Lock body scroll when sheet is open
   useLayoutEffect(() => {
@@ -175,10 +162,6 @@ export const OrganizationExperience: React.FC<OrganizationExperienceProps> = ({ 
                       <div
                         key={leader.id}
                         className="org-tree-card tier-1-card"
-                        onClick={() => setSelectedLeader(leader)}
-                        role="button"
-                        tabIndex={0}
-                        title={vi ? 'Bấm để xem chi tiết thông tin cán bộ' : 'Click to view details'}
                       >
                         <div className="org-tree-avatar-box tier-1-avatar">
                           <img
@@ -209,10 +192,6 @@ export const OrganizationExperience: React.FC<OrganizationExperienceProps> = ({ 
                       <div
                         key={leader.id}
                         className="org-tree-card tier-2-card"
-                        onClick={() => setSelectedLeader(leader)}
-                        role="button"
-                        tabIndex={0}
-                        title={vi ? 'Bấm để xem chi tiết thông tin cán bộ' : 'Click to view details'}
                       >
                         <div className="org-tree-avatar-box tier-2-avatar">
                           <img
@@ -243,10 +222,6 @@ export const OrganizationExperience: React.FC<OrganizationExperienceProps> = ({ 
                       <div
                         key={leader.id}
                         className="org-tree-card tier-3-card"
-                        onClick={() => setSelectedLeader(leader)}
-                        role="button"
-                        tabIndex={0}
-                        title={vi ? 'Bấm để xem chi tiết thông tin cán bộ' : 'Click to view details'}
                       >
                         <div className="org-tree-avatar-box tier-3-avatar">
                           <img
@@ -270,62 +245,6 @@ export const OrganizationExperience: React.FC<OrganizationExperienceProps> = ({ 
             </div>
           </div>
         </section>
-
-        {/* Modal for Leader Details */}
-        {selectedLeader && (
-          <div className="org-leader-modal-backdrop" onClick={() => setSelectedLeader(null)}>
-            <div className="org-leader-modal-content" onClick={(e) => e.stopPropagation()}>
-              <button
-                type="button"
-                className="org-leader-modal-close"
-                onClick={() => setSelectedLeader(null)}
-                aria-label="Đóng"
-              >
-                <X size={18} />
-              </button>
-
-              <div className="org-leader-modal-grid">
-                <div className="org-leader-modal-photo-box">
-                  <img
-                    src={selectedLeader.imageUrl}
-                    alt={selectedLeader.nameVi}
-                    className="org-leader-modal-img"
-                  />
-                </div>
-
-                <div className="org-leader-modal-info">
-                  <span className="org-leader-modal-badge">{selectedLeader.badgeVi}</span>
-                  <h3 className="org-leader-modal-name">{selectedLeader.nameVi}</h3>
-                  <p className="org-leader-modal-role">{selectedLeader.roleVi}</p>
-                  
-                  {selectedLeader.subVi && (
-                    <p className="org-leader-modal-sub">
-                      <Building size={14} />
-                      <span>{selectedLeader.subVi}</span>
-                    </p>
-                  )}
-
-                  <div className="org-leader-modal-bio-box">
-                    <p>{selectedLeader.bioVi}</p>
-                  </div>
-
-                  <div className="org-leader-modal-tags">
-                    {(selectedLeader.tagsVi || []).map((tag, tIdx) => (
-                      <span key={tIdx} className="org-leader-modal-tag">#{tag}</span>
-                    ))}
-                  </div>
-
-                  {selectedLeader.contactEmail && (
-                    <div className="org-leader-modal-email">
-                      <Mail size={14} />
-                      <a href={`mailto:${selectedLeader.contactEmail}`}>{selectedLeader.contactEmail}</a>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* 3. Core Operating Principles Section */}
         <section className="org-principles-section">

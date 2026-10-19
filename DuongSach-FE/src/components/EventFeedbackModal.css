@@ -327,3 +327,13 @@
   max-width: 440px;
   margin: 0 auto 1.5rem;
 }
+.feedback-contact-error {
+  margin: 0.4rem 0 0;
+  color: #b42318;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.feedback-text-input[aria-invalid="true"] {
+  border-color: #b42318;
+}

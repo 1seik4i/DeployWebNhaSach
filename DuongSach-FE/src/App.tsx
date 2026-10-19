@@ -64,8 +64,8 @@ export function App() {
   const isOrganization = /^\/bo-may-to-chuc(?:\/|$)/.test(location.pathname);
   const isContact = /^\/lien-he(?:\/|$)/.test(location.pathname);
   const isLibrary = /^\/thu-vien-so(?:\/|$)/.test(location.pathname);
-  const isAdminRoute = location.pathname.startsWith('/admin');
-  const isPartnerRoute = location.pathname.startsWith('/partner');
+  const isAdminRoute = /^\/admin(?:\/|$)/.test(location.pathname);
+  const isPartnerRoute = /^\/partner(?:\/|$)/.test(location.pathname);
   const isSlidePageOpen = isBooths || isEvents || isNews || isJourney || isOrganization || isContact;
   const isPortalRoute = location.pathname === '/portal' || location.pathname === '/organizer';
   const isParticipantRoute = location.pathname.startsWith('/participant');
@@ -217,7 +217,7 @@ export function App() {
         const [booths, locations, activities, reports] = await Promise.all([
           eventId ? partnerApi.getBooths(eventId) : Promise.resolve([]),
           eventId ? partnerApi.getEventLocations(eventId) : Promise.resolve([]),
-          eventId ? partnerApi.getActivityProposals(eventId) : Promise.resolve([]),
+          partnerApi.getActivityProposals(),
           eventId ? partnerApi.getReports(eventId) : Promise.resolve(null),
         ]);
         if (cancelled) return;
@@ -424,7 +424,7 @@ export function App() {
               todos={partnerTodos}
               totalEngagementCount={partnerReports?.totalParticipants || 0}
               onOpenAttendanceModal={() => setActiveAttendanceActivityId(partnerActivities[0]?.id || '')}
-            /> : <div className="partner-page"><p className="app-loading-state">Tổ chức chưa có hồ sơ sự kiện. Hãy mở “Sự kiện của tôi” để chọn và đăng ký sự kiện.</p></div>
+            /> : <div className="partner-page"><p className="app-loading-state">Mở “Lịch sự kiện” để đăng ký sự kiện mới độc lập. Bạn không cần tham gia một sự kiện khác trước đó.</p></div>
           } />
           <Route path="/partner/events" element={
             <EventApplicationPage
@@ -503,6 +503,7 @@ export function App() {
               onUpdateOrg={async (updated) => setPartnerOrg(await partnerApi.updateProfile(updated))}
             />
           } />
+          <Route path="*" element={<Navigate to="/partner" replace />} />
         </Routes>
 
         {activeAttendanceActivityId && attendanceModalActivity && (

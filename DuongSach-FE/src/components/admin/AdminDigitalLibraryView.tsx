@@ -1,3 +1,5 @@
+import { useUrlTab } from '../../hooks/useUrlTab';
+import { ListPagination, useListPagination } from '../ui/ListPagination';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { 
   AlertCircle,
@@ -75,7 +77,7 @@ function CategoryBadge({ name, status }: { name?: string; status?: string }) {
 export function AdminDigitalLibraryView({ language }: {
     language: Language;
 }) {
-    const [tab, setTab] = useState<Tab>('books');
+    const [tab, setTab] = useUrlTab(['books', 'moderation', 'taxonomy', 'stalls', 'rankings'], 'books', 'section');
     const [books, setBooks] = useState<Book[]>([]);
     const [categories, setCategories] = useState<BookCategory[]>([]);
     const [labels, setLabels] = useState<BookLabel[]>([]);
@@ -851,6 +853,10 @@ export function AdminDigitalLibraryView({ language }: {
         [inventory, activeStallIds, stallId, stockStatus, query]
     );
 
+    const booksPagination = useListPagination(visibleBooks, `${selectedCategoryId}:${selectedStallId}:${selectedStatus}:${query}`, 10);
+    const submissionsPagination = useListPagination(visibleSubmissions, `${requestStatus}:${requestType}:${requestDate}:${query}`, 10);
+    const stallRowsPagination = useListPagination(stallRows, `${stallId}:${stockStatus}:${query}`, 10);
+
     const tabs: {
         id: Tab;
         vi: string;
@@ -865,7 +871,6 @@ export function AdminDigitalLibraryView({ language }: {
     return <div className="admin-library-view">
         <header className="admin-library-header">
             <div>
-                <span className="admin-library-eyebrow"><BookOpen size={16}/>{language === 'vi' ? 'THƯ VIỆN SỐ' : 'DIGITAL LIBRARY'}</span>
                 <h1>{language === 'vi' ? 'Quản lý thư viện số' : 'Digital Library Management'}</h1>
                 <p>{language === 'vi' ? 'Quản lý sách, kiểm duyệt, phân loại và dữ liệu theo từng gian hàng.' : 'Manage books, moderation, taxonomy and stall-level data.'}</p>
             </div>
@@ -970,7 +975,7 @@ export function AdminDigitalLibraryView({ language }: {
                             </tr>
                         </thead>
                         <tbody>
-                            {visibleBooks.map(book => {
+                            {booksPagination.items.map(book => {
                                 const bookStallList = getBookStalls(book);
                                 const hasRank = Boolean(book.bestsellerRank || book.weeklyRank);
                                 return (
@@ -1120,7 +1125,7 @@ export function AdminDigitalLibraryView({ language }: {
 
                 {/* Mobile Cards for All-Books */}
                 <div className="admin-book-mobile-cards">
-                    {visibleBooks.map(book => {
+                    {booksPagination.items.map(book => {
                         const bookStallList = getBookStalls(book);
                         const hasRank = Boolean(book.bestsellerRank || book.weeklyRank);
                         return (
@@ -1276,6 +1281,13 @@ export function AdminDigitalLibraryView({ language }: {
                         </div>
                     )}
                 </div>
+
+                <ListPagination 
+                    page={booksPagination.page} 
+                    totalPages={booksPagination.totalPages} 
+                    onChange={booksPagination.setPage} 
+                    vi={language === 'vi'} 
+                />
             </section>
         )}
 
@@ -1322,7 +1334,7 @@ export function AdminDigitalLibraryView({ language }: {
                             </tr>
                         </thead>
                         <tbody>
-                            {visibleSubmissions.map(item => (
+                            {submissionsPagination.items.map(item => (
                                 <tr key={item.id}>
                                     <td style={{ textAlign: 'left' }}>
                                         <strong>{item.stallName}</strong>
@@ -1366,7 +1378,7 @@ export function AdminDigitalLibraryView({ language }: {
 
                 {/* Mobile Cards for Moderation */}
                 <div className="admin-moderation-mobile-cards">
-                    {visibleSubmissions.map(item => (
+                    {submissionsPagination.items.map(item => (
                         <div key={item.id} className="admin-mod-mobile-card">
                             <div className="admin-mod-header">
                                 <div className="admin-mod-stall">
@@ -1419,6 +1431,13 @@ export function AdminDigitalLibraryView({ language }: {
                         </div>
                     )}
                 </div>
+
+                <ListPagination 
+                    page={submissionsPagination.page} 
+                    totalPages={submissionsPagination.totalPages} 
+                    onChange={submissionsPagination.setPage} 
+                    vi={language === 'vi'} 
+                />
             </section>
         )}
 
@@ -1582,7 +1601,7 @@ export function AdminDigitalLibraryView({ language }: {
                             </tr>
                         </thead>
                         <tbody>
-                            {stallRows.map(row => {
+                            {stallRowsPagination.items.map(row => {
                                 const submission = latestStallSubmission(row.stall.stallId, row.book.id);
                                 const status = submission?.status || 'APPROVED';
                                 return (
@@ -1659,7 +1678,7 @@ export function AdminDigitalLibraryView({ language }: {
 
                 {/* Mobile Cards for Stalls */}
                 <div className="admin-stall-mobile-cards">
-                    {stallRows.map(row => {
+                    {stallRowsPagination.items.map(row => {
                         const submission = latestStallSubmission(row.stall.stallId, row.book.id);
                         const status = submission?.status || 'APPROVED';
                         return (
@@ -1726,6 +1745,13 @@ export function AdminDigitalLibraryView({ language }: {
                         </div>
                     )}
                 </div>
+
+                <ListPagination 
+                    page={stallRowsPagination.page} 
+                    totalPages={stallRowsPagination.totalPages} 
+                    onChange={stallRowsPagination.setPage} 
+                    vi={language === 'vi'} 
+                />
             </section>
         )}
 

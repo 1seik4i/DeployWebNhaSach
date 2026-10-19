@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { ListPagination, useListPagination } from '../ui/ListPagination';
 import { 
   Star, 
   Users, 
@@ -53,6 +54,7 @@ export const OrganizerReportsView: React.FC<OrganizerReportsViewProps> = ({
   const [report, setReport] = useState<OrganizerReport | null>(null);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const pagination = useListPagination(report?.feedbacks || [], effectiveEventId);
 
   useEffect(() => {
     setError('');
@@ -579,7 +581,7 @@ export const OrganizerReportsView: React.FC<OrganizerReportsViewProps> = ({
               <span style={{ fontSize: '0.76rem', color: '#64748B', fontWeight: 700 }}>{report.ratingCount} {vi ? 'đánh giá' : 'reviews'}</span>
             </div>
             {(report.feedbacks || []).length ? <div style={{ display: 'grid', gap: '0.75rem' }}>
-              {(report.feedbacks || []).map(item => (
+              {pagination.items.map(item => (
                 <article key={`${item.source}-${item.id}`} style={{ border: '1px solid #E2E8F0', borderRadius: 10, padding: '0.9rem 1rem', background: '#F8FAFC' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
                     <strong style={{ color: '#1E293B' }}>{item.authorName || (vi ? 'Người dùng ẩn danh' : 'Anonymous user')}</strong>
@@ -592,6 +594,7 @@ export const OrganizerReportsView: React.FC<OrganizerReportsViewProps> = ({
                 </article>
               ))}
             </div> : <p style={{ margin: 0, color: '#64748B' }}>{vi ? 'Chưa có đánh giá thực tế cho sự kiện này.' : 'No reviews for this event yet.'}</p>}
+            <ListPagination page={pagination.page} totalPages={pagination.totalPages} onChange={pagination.setPage} vi={vi} />
           </section>
         </>
       )}

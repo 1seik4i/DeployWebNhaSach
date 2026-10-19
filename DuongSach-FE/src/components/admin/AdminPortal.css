@@ -5,19 +5,22 @@
    ========================================================================== */
 
 .admin-app-shell {
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   background-color: #F8FAF9;
   font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
   color: #172421;
   width: 100%;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 /* 1. TOP HEADER (FULL-WIDTH 64PX) */
 .admin-topbar {
   height: 64px;
+  flex-shrink: 0;
   background: #14241F;
   border-bottom: 1px solid rgba(233, 188, 99, 0.22);
   padding: 0 2rem;
@@ -214,7 +217,8 @@
 .admin-body-container {
   display: flex;
   flex: 1;
-  min-height: calc(100vh - 64px);
+  min-height: 0;
+  overflow: hidden;
   width: 100%;
   max-width: 100%;
   overflow-x: hidden;
@@ -313,10 +317,12 @@
 /* 3. MAIN VIEWPORT & GENERIC CARDS */
 .admin-main-viewport {
   flex: 1;
+  min-width: 0;
+  min-height: 0;
   padding: 2.25rem 3rem 4rem;
   overflow-y: auto;
-  max-width: 1440px;
-  margin: 0 auto;
+  max-width: none;
+  margin: 0;
   width: 100%;
   box-sizing: border-box;
 }
@@ -1278,6 +1284,8 @@
 .adm-user-code { font-size: 0.72rem; color: #9CA3AF; margin-top: 2px; white-space: nowrap; }
 
 .adm-contact-cell { 
+  min-width: 0;
+  max-width: 260px;
   display: flex; 
   flex-direction: column; 
   gap: 3px; 
@@ -1285,6 +1293,8 @@
 }
 
 .adm-contact-item { 
+  min-width: 0;
+  max-width: 100%;
   display: inline-flex; 
   align-items: center; 
   gap: 6px; 
@@ -1296,6 +1306,13 @@
 .adm-contact-icon {
   color: #9CA3AF;
   flex-shrink: 0;
+}
+
+.adm-contact-item > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .adm-badge-role {
@@ -2618,7 +2635,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.9rem 1.4rem;
+  padding: 0.85rem 1.25rem;
   background: #F8FAF9;
   border-bottom: 1.5px solid #E2EAE5;
   font-size: 0.82rem;
@@ -2636,14 +2653,20 @@
 }
 
 .adm-pagesize-select {
-  padding: 0.25rem 0.5rem;
+  padding: 0.3rem 0.65rem;
   border: 1px solid #D1D5DB;
   border-radius: 6px;
   font-size: 0.78rem;
+  font-weight: 600;
   background: #FFFFFF;
-  color: #374151;
+  color: #172421;
   outline: none;
   cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.adm-pagesize-select:focus {
+  border-color: #17382E;
 }
 
 .adm-audit-table {
@@ -2652,14 +2675,15 @@
 }
 
 .adm-audit-table thead th {
-  padding: 0.85rem 1.2rem;
+  padding: 0.8rem 0.85rem;
   background: #FAFBFB;
-  color: #556B65;
+  color: #4B635B;
   font-weight: 750;
-  font-size: 0.76rem;
+  font-size: 0.74rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  border-bottom: 1px solid #E2EAE5;
+  border-bottom: 1.5px solid #E2EAE5;
+  white-space: nowrap;
 }
 
 .adm-audit-table tbody tr {
@@ -2677,7 +2701,7 @@
 }
 
 .adm-audit-table td {
-  padding: 0.95rem 1.2rem;
+  padding: 0.8rem 0.85rem;
   vertical-align: middle;
 }
 
@@ -2686,8 +2710,9 @@
   align-items: center;
   gap: 0.45rem;
   font-size: 0.8rem;
-  color: #374151;
-  font-weight: 550;
+  color: #2C3E38;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .adm-log-actor-cell {
@@ -2713,17 +2738,26 @@
 .actor-info-box {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .actor-name {
   font-size: 0.82rem;
   font-weight: 700;
   color: #1F2937;
+  max-width: 170px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .actor-email {
   font-size: 0.72rem;
   color: #6B7280;
+  max-width: 170px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .adm-action-pill {
@@ -2788,7 +2822,7 @@
 .adm-log-details-preview {
   font-size: 0.8rem;
   color: #4B5563;
-  max-width: 380px;
+  max-width: 280px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3112,7 +3146,37 @@
 
 /* --- Audit Log Responsive Helper Classes --- */
 .adm-audit-desktop-table {
-  display: block;
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.adm-audit-pagination-bar {
+  padding: 0.85rem 1.25rem;
+  background: #FAFBFB;
+  border-top: 1px solid #E2EAE5;
+}
+
+.adm-audit-pagination-bar .list-pagination {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 0.75rem;
+}
+
+.adm-audit-pagination-bar .list-pagination .list-pagination-info {
+  order: -1;
+  margin-left: 0;
+  font-size: 0.82rem;
+  color: #556B65;
+  font-weight: 600;
+}
+
+.adm-audit-desktop-table:focus-visible {
+  outline: 2px solid #648a7d;
+  outline-offset: -2px;
 }
 .adm-audit-mobile-cards {
   display: none;
@@ -3525,6 +3589,28 @@
 }
 
 /* User Management Desktop vs Mobile */
+.adm-users-view { min-width: 0; max-width: 100%; }
+.adm-user-desktop-table { overflow-x: hidden; }
+.adm-user-desktop-table .adm-table { table-layout: fixed; min-width: 0; }
+.adm-user-desktop-table .adm-table th,
+.adm-user-desktop-table .adm-table td { padding: 0.85rem 0.6rem; white-space: normal; overflow-wrap: anywhere; }
+.adm-user-desktop-table th:nth-child(1) { width: 24%; }
+.adm-user-desktop-table th:nth-child(2) { width: 23%; }
+.adm-user-desktop-table th:nth-child(3) { width: 15%; }
+.adm-user-desktop-table th:nth-child(4) { width: 12%; }
+.adm-user-desktop-table th:nth-child(5) { width: 14%; }
+.adm-user-desktop-table th:nth-child(6) { width: 12%; }
+.adm-user-desktop-table .adm-user-cell { min-width: 0; max-width: 100%; gap: 0.5rem; }
+.adm-user-desktop-table .adm-user-cell > div:last-child { min-width: 0; }
+.adm-user-desktop-table .adm-user-code { white-space: normal; overflow-wrap: anywhere; }
+.adm-user-desktop-table .adm-contact-cell { width: 100%; max-width: 100%; }
+.adm-user-desktop-table .adm-badge-role,
+.adm-user-desktop-table .adm-badge-status { max-width: 100%; white-space: normal; }
+.adm-user-desktop-table .adm-time-cell { min-width: 0; white-space: normal; align-items: flex-start; }
+.adm-user-desktop-table .adm-time-cell svg { flex-shrink: 0; }
+.adm-user-desktop-table .adm-action-buttons { flex-wrap: wrap; }
+.adm-user-table-card { margin-bottom: 0; }
+
 .adm-user-mobile-cards {
   display: none;
 }
@@ -3631,3 +3717,52 @@
 }
 
 
+
+/* Shared admin page heading typography, matching the dashboard. */
+.admin-main-viewport h1 {
+  font-family: var(--font-serif, 'Lora', Georgia, serif) !important;
+  font-size: 26px !important;
+  font-weight: 700 !important;
+  line-height: 1.3 !important;
+  letter-spacing: -.4px !important;
+  color: #14241f !important;
+  margin: 0 0 8px !important;
+}
+.admin-main-viewport :is(.adm-dashboard-eyebrow, .system-page-eyebrow, .facility-heading .facility-eyebrow, .es-heading .es-eyebrow, .admin-library-header .admin-library-eyebrow) {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-sans, 'Nunito', sans-serif);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.4;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: #b3862a;
+  margin: 0 0 8px;
+}
+.admin-main-viewport h1 + p {
+  font-family: var(--font-sans, 'Nunito', sans-serif);
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.6;
+  color: #718096;
+  margin: 0;
+  max-width: 760px;
+}
+
+@media (max-width: 767px) {
+  .admin-main-viewport h1 { font-size: 23px !important; }
+  .admin-main-viewport h1 + p { font-size: 13px; }
+}
+
+/* Let the main viewport establish the same heading origin as Overview. */
+.admin-main-viewport > :is(.event-mgmt-view, .adm-event-applications, .event-suggestions, .admin-library-view, .organizer-content, .admin-profile-page, .adm-dashboard-refined) {
+  padding: 0 !important;
+  margin: 0 !important;
+  max-width: none !important;
+  width: 100%;
+  box-sizing: border-box;
+}
+.admin-main-viewport :is(.event-mgmt-header, .es-heading, .admin-library-header, .adm-page-header) { align-items: flex-start; }
+.admin-main-viewport .feedback-center-label { display: none !important; }

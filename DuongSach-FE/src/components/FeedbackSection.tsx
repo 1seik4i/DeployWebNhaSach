@@ -24,6 +24,7 @@ import {
 import { Language, Booth } from '../types';
 import { publicApi } from '../services/publicApi';
 import { apiClient } from '../services/apiClient';
+import { feedbackContactError } from '../utils/feedbackContact';
 import './FeedbackSection.css';
 
 interface FeedbackSectionProps {
@@ -46,6 +47,7 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
   const [rating, setRating] = useState<number>(5);
   const [comments, setComments] = useState('');
   const [contact, setContact] = useState('');
+  const contactError = feedbackContactError(contact, language);
 
   // Event Proposal Form State
   const [proposalData, setProposalData] = useState({
@@ -133,13 +135,13 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
 
   const handleFeedbackSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!comments.trim()) return;
+    if (!comments.trim() || contactError || isSubmitting) return;
     setIsSubmitting(true);
     try {
       await publicApi.submitFeedback({
         rating,
         comments,
-        contactEmail: contact || undefined,
+        contactEmail: contact.trim() || undefined,
         targetName: getSelectedLabel(),
         source: 'web_landing',
         targetScope: targetType.startsWith('booth:') ? 'booth' : 'entire',
@@ -508,18 +510,21 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
                         <input
                           id="feedback-contact-input"
                           type="text"
+                          aria-invalid={Boolean(contactError)}
+                          aria-describedby={contactError ? 'feedback-contact-error' : undefined}
                           value={contact}
                           onChange={(e) => setContact(e.target.value)}
                           placeholder={language === 'vi' ? 'Để Ban Quản Lý có thể phản hồi cho bạn' : 'For management follow-up'}
                           className="sk05-text-input"
                         />
+                        {contactError && <p id="feedback-contact-error" className="feedback-contact-error" role="alert">{contactError}</p>}
                       </div>
 
                       {/* Row 5: Action submit */}
                       <div className="sk05-action-row">
                         <button
                           type="submit"
-                          disabled={isSubmitting || !comments.trim()}
+                          disabled={isSubmitting || !comments.trim() || Boolean(contactError)}
                           className="sk05-submit-btn"
                         >
                           {isSubmitting ? (

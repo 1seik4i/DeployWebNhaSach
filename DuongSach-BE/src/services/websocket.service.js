@@ -3,6 +3,32 @@ import { logger } from '../config/logger.js';
 
 let wss = null;
 let heartbeatInterval = null;
+let visitStatsProvider = null;
+let statsPending = false;
+let statsDirty = false;
+
+export function setVisitStatsProvider(provider) {
+  visitStatsProvider = provider;
+}
+
+// Coalesce concurrent writes while ensuring a write during a query gets a fresh snapshot.
+export async function broadcastVisitStats() {
+  if (!wss || !visitStatsProvider) return;
+  statsDirty = true;
+  if (statsPending) return;
+  statsPending = true;
+  try {
+    while (statsDirty && wss) {
+      statsDirty = false;
+      const stats = await visitStatsProvider();
+      broadcastToAll({ type: 'VISIT_STATS', stats });
+    }
+  } catch (error) {
+    logger.warn(`[WebSocket] Visit statistics unavailable: ${error.message}`);
+  } finally {
+    statsPending = false;
+  }
+}
 const clients = new Map(); // ws -> { sessionId, isAlive, connectedAt }
 
 /**
@@ -51,6 +77,7 @@ export function broadcastToAll(payload) {
  * Phát cập nhật số người online theo thời gian thực
  */
 export function broadcastOnlineCount() {
+  void broadcastVisitStats();
   const count = getLiveOnlineCount();
   broadcastToAll({
     type: 'ONLINE_COUNT',
@@ -133,6 +160,7 @@ export function initWebSocketServer(server) {
   // Heartbeat ping định kỳ 25 giây một lần để phát hiện client ngắt kết nối
   heartbeatInterval = setInterval(() => {
     if (!wss) return;
+    void broadcastVisitStats();
     for (const [ws, data] of clients.entries()) {
       if (!data.isAlive) {
         logger.info('[WebSocket] Terminating inactive client socket');

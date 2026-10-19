@@ -124,7 +124,8 @@ router.put(
     const input = parse(
       z
         .object({
-          imageUrl: z.string().max(3000000).optional(),
+          // 20 MiB image encoded as base64, plus the data URL prefix.
+          imageUrl: z.string().max(4 * Math.ceil(20 * 1024 * 1024 / 3) + 1024, 'Ảnh bản đồ tối đa 20 MB.').optional(),
           points: z
             .array(
               z.object({

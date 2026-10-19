@@ -186,7 +186,7 @@ export const adminApi = {
   createUser: (data: { fullName: string; email: string; phone?: string; role: AdminRoleType; status: string; password?: string }) => apiClient.post('/admin/users', data),
   updateUser: (id: string, data: unknown) => apiClient.patch(`/admin/users/${encodeURIComponent(id)}`, data),
   updateUserStatus: (userId: string, status: string, reason?: string) => apiClient.patch(`/admin/users/${encodeURIComponent(userId)}/status`, { status, reason }),
-  resetPassword: (userId: string) => apiClient.post<{ resetToken: string; expiresInMinutes: number }>(`/admin/users/${encodeURIComponent(userId)}/reset-password`, {}),
+  resetPassword: (userId: string, newPassword: string) => apiClient.post<{ success: boolean }>(`/admin/users/${encodeURIComponent(userId)}/password`, { newPassword }),
 
   async getRoles(): Promise<Record<AdminRoleType, AdminRolePermissionConfig>> {
     const roles = await apiClient.get<any[]>('/admin/roles');

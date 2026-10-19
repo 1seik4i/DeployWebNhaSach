@@ -66,6 +66,7 @@ production use.
 2. Set the project root directory to `.` and deploy with the detected Vite preset.
 3. Add these production variables from `.env.production.example`:
    - `VITE_API_BASE_URL=/api`
+   - `VITE_WS_URL=wss://<your-render-backend>/ws` (optional when matching the backend in `vercel.json`)
    - `VITE_PUBLIC_SITE_URL=https://<your-vercel-project>.vercel.app`
 4. In `vercel.json`, replace `https://duongsach-backend.onrender.com` if your
    Render backend uses a different service URL, then redeploy.

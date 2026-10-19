@@ -1,4 +1,5 @@
-import { notifyModal } from '../../services/notificationModal';
+import { EventRegistrationModal, EventRegistrationData } from '../../components/portal/EventRegistrationModal';
+import { eventRegistrationPayload } from '../../services/eventRegistration';
 import { useModalBehavior } from '../../hooks/useModalBehavior';
 import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -94,34 +95,18 @@ export const EventApplicationPage: React.FC<EventApplicationPageProps> = ({
 
   // Proposal/Organizing Registration Modal State
   const [isOrganizeModalOpen, setIsOrganizeModalOpen] = useState(false);
+  const [registrationLocations, setRegistrationLocations] = useState(locations);
+  useEffect(() => {
+    if (!isOrganizeModalOpen) return;
+    let active = true;
+    void partnerApi.getEventLocations().then(items => { if (active) setRegistrationLocations(items); }).catch(error => setScheduleError(error instanceof Error ? error.message : 'Không thể tải địa điểm tổ chức.'));
+    return () => { active = false; };
+  }, [isOrganizeModalOpen]);
 
   useModalBehavior(Boolean(detailModalEvent), () => setDetailModalEvent(null));
   useModalBehavior(Boolean(dayOverviewModal), () => setDayOverviewModal(null));
-  useModalBehavior(isOrganizeModalOpen, () => setIsOrganizeModalOpen(false));
 
-  // --- FORM STATE: ĐĂNG KÝ TỔ CHỨC SỰ KIỆN MỚI ---
-  // 1. Đơn vị tổ chức
-  const [orgName, setOrgName] = useState(organization.name);
-  const [repName, setRepName] = useState(organization.representativeName);
-  const [email, setEmail] = useState(organization.email);
-  const [phone, setPhone] = useState(organization.phone);
-
-  // 2. Thông tin sự kiện đề xuất tổ chức
-  const [eventTitle, setEventTitle] = useState('');
-  const [eventCategory, setEventCategory] = useState('Workshop');
-  const [targetDate, setTargetDate] = useState(todayKey);
-  const [targetEndDate, setTargetEndDate] = useState(todayKey);
-  const [startTime, setStartTime] = useState('09:00');
-  const [endTime, setEndTime] = useState('11:30');
-  const [locationId, setLocationId] = useState('');
-  const [speakerInfo, setSpeakerInfo] = useState('');
-  const [expectedAttendees, setExpectedAttendees] = useState('');
-  const [eventDescription, setEventDescription] = useState('');
-  const [eventImage, setEventImage] = useState('');
-  
-  // 3. Yêu cầu kỹ thuật, thiết bị & hỗ trợ
-  const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
-  const [agreedTerms, setAgreedTerms] = useState(false);
+  const [registrationDate, setRegistrationDate] = useState(todayKey);
 
   // Success Notification
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -166,6 +151,10 @@ export const EventApplicationPage: React.FC<EventApplicationPageProps> = ({
   const applyToPublishedEvent = async (item: ScheduledEventItem) => {
     if (!item.id.startsWith('event:')) {
       showToast(language === 'vi' ? 'Đây là một hoạt động trong lịch; hãy chọn sự kiện chính để đăng ký tham gia.' : 'Select the parent event to apply.');
+      return;
+    }
+    if (item.status !== 'happening' && item.status !== 'upcoming') {
+      showToast(language === 'vi' ? 'Chỉ được đăng ký tham gia sự kiện đang diễn ra hoặc sắp diễn ra.' : 'Only ongoing or upcoming events accept applications.');
       return;
     }
     try {
@@ -290,94 +279,16 @@ export const EventApplicationPage: React.FC<EventApplicationPageProps> = ({
   };
 
   const handleOpenOrganizeModal = (presetDate?: string) => {
-    const candidateDate = presetDate || selectedDateStr;
-    if (candidateDate && candidateDate >= todayKey) {
-      setTargetDate(candidateDate);
-      setTargetEndDate(candidateDate);
-    } else {
-      setTargetDate(todayKey);
-      setTargetEndDate(todayKey);
-    }
+    const date = presetDate || selectedDateStr;
+    setRegistrationDate(date >= todayKey ? date : todayKey);
     setIsOrganizeModalOpen(true);
   };
 
-  const toggleEquipment = (eq: string) => {
-    setSelectedEquipment(prev => 
-      prev.includes(eq) ? prev.filter(x => x !== eq) : [...prev, eq]
-    );
-  };
-
-  // Submit Handler: Tạo đề xuất tổ chức sự kiện mới trên Đường Sách
-  const handleSubmitOrganizeEvent = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!eventTitle.trim()) {
-      void notifyModal(language === 'vi' ? 'Vui lòng nhập tên sự kiện muốn tổ chức.' : 'Please enter event title.');
-      return;
-    }
-    if (targetDate < todayKey) {
-      void notifyModal(language === 'vi' ? 'Không thể đăng ký tổ chức sự kiện vào ngày đã diễn ra.' : 'Cannot register event on a past date.');
-      return;
-    }
-    const proposedStart = `${targetDate}T${startTime}:00+07:00`;
-    const proposedEnd = `${targetEndDate}T${endTime}:00+07:00`;
-    if (!Number.isFinite(Date.parse(proposedStart)) || !Number.isFinite(Date.parse(proposedEnd)) || new Date(proposedEnd) <= new Date(proposedStart)) {
-      void notifyModal(language === 'vi' ? 'Ngày và giờ kết thúc phải sau ngày và giờ bắt đầu.' : 'End date and time must be after start date and time.');
-      return;
-    }
-    if (!agreedTerms) {
-      void notifyModal(language === 'vi' ? 'Vui lòng xác nhận cam kết tuân thủ quy chế tổ chức sự kiện tại Đường Sách.' : 'Please agree to the terms.');
-      return;
-    }
-
-    if (!activeApplication || activeApplication.status !== 'approved') {
-      void notifyModal(language === 'vi' ? 'Tổ chức cần có hồ sơ tham gia sự kiện đã được duyệt trước khi gửi đề xuất hoạt động.' : 'An approved event application is required first.');
-      return;
-    }
-    const linkedEvent = scheduledEvents.find(e => e.id === activeApplication.eventId) || null;
-    if (linkedEvent && linkedEvent.startDate && linkedEvent.endDate) {
-      if (targetDate < linkedEvent.startDate || targetEndDate > linkedEvent.endDate) {
-        void notifyModal(
-          language === 'vi'
-            ? `Thời gian hoạt động (${targetDate} đến ${targetEndDate}) phải nằm trong thời gian của sự kiện "${linkedEvent.title}" (từ ${linkedEvent.startDate} đến ${linkedEvent.endDate}).`
-            : `Activity dates must be within event dates (${linkedEvent.startDate} to ${linkedEvent.endDate}).`
-        );
-        return;
-      }
-    }
-    if (!locationId) {
-      void notifyModal(language === 'vi' ? 'Vui lòng chọn địa điểm thuộc sự kiện.' : 'Please select an event location.');
-      return;
-    }
-    const resolvedCapacity = Number(expectedAttendees) || 50;
-
-    const kindByCategory: Record<string, string> = { Workshop: 'workshop', 'Tọa đàm': 'talkshow', 'Ra mắt sách': 'launch', 'Giao lưu tác giả': 'signing', 'Triển lãm': 'exhibition', 'Giao lưu văn nghệ': 'talkshow', 'Lễ hội sách': 'minigame' };
-    try {
-      await partnerApi.submitActivityProposal({
-        eventId: activeApplication.eventId, title: eventTitle.trim(), kind: kindByCategory[eventCategory] || 'workshop',
-        locationId, startAt: proposedStart, endAt: proposedEnd,
-        capacity: resolvedCapacity,
-        description: eventDescription, speaker: speakerInfo, contactPerson: repName, contactPhone: phone,
-        imageUrl: eventImage || undefined,
-        devices: selectedEquipment.map(name => ({ name, quantity: 1 })),
-      });
-      window.dispatchEvent(new Event('duongsach:data-changed'));
-    } catch (error) {
-      void notifyModal(error instanceof Error ? error.message : 'Không thể gửi đề xuất hoạt động');
-      return;
-    }
-
-    showToast(
-      language === 'vi' 
-        ? `Đã gửi đề xuất hoạt động "${eventTitle}" lên Ban Quản Lý thành công!` 
-        : `Activity proposal "${eventTitle}" submitted successfully!`
-    );
-
-    setIsOrganizeModalOpen(false);
-    // Reset form
-    setEventTitle('');
-    setSpeakerInfo('');
-    setEventDescription('');
-    setEventImage('');
+  const handleRegisterEvent = async (registration: EventRegistrationData) => {
+    await partnerApi.registerEvent(eventRegistrationPayload(registration));
+    window.dispatchEvent(new Event('duongsach:data-changed'));
+    fetchSchedule();
+    showToast(language === 'vi' ? 'Đã gửi đăng ký sự kiện đến Ban Quản Lý phê duyệt.' : 'Event registration submitted for approval.');
   };
 
   return (
@@ -429,28 +340,6 @@ export const EventApplicationPage: React.FC<EventApplicationPageProps> = ({
         </div>
 
         <div className="partner-page-header-actions">
-          <button
-            type="button"
-            className="btn-part-secondary"
-            onClick={() => {
-              const currentTodayKey = vietnamDateKey();
-              const today = new Date(`${currentTodayKey}T00:00:00+07:00`);
-              setCurrentYear(today.getFullYear());
-              setCurrentMonth(today.getMonth());
-              setSelectedDateStr(currentTodayKey);
-              setFilterCategory('all');
-              const todayEvents = scheduledEvents.filter(item => item.startDate <= currentTodayKey && item.endDate >= currentTodayKey);
-              setSelectedEvent(todayEvents[0] || null);
-              if (todayEvents.length > 0) {
-                setDayOverviewModal({ dateStr: currentTodayKey, day: today.getDate(), events: todayEvents });
-              } else {
-                void notifyModal(language === 'vi' ? 'Hôm nay không có sự kiện nào trong lịch.' : 'No events scheduled for today.');
-              }
-            }}
-          >
-            <Clock size={15} />
-            <span>{language === 'vi' ? 'Sự kiện hôm nay' : 'Today'}</span>
-          </button>
           
           <button
             type="button"
@@ -468,7 +357,7 @@ export const EventApplicationPage: React.FC<EventApplicationPageProps> = ({
             }}
           >
             <Plus size={16} />
-            <span>{language === 'vi' ? 'Đề xuất hoạt động' : 'Propose Activity'}</span>
+            <span>{language === 'vi' ? 'Đăng ký sự kiện mới' : 'Register New Event'}</span>
           </button>
         </div>
       </div>
@@ -898,7 +787,7 @@ export const EventApplicationPage: React.FC<EventApplicationPageProps> = ({
                     onClick={() => handleOpenOrganizeModal(selectedDateStr)}
                   >
                     <Plus size={14} />
-                    <span>{language === 'vi' ? 'Đăng ký tổ chức hoạt động vào ngày này' : 'Propose activity for this date'}</span>
+                    <span>{language === 'vi' ? 'Đăng ký sự kiện mới vào ngày này' : 'Register new event for this date'}</span>
                   </button>
                 )}
               </div>
@@ -1075,6 +964,8 @@ export const EventApplicationPage: React.FC<EventApplicationPageProps> = ({
                   type="button"
                   className="btn-part-primary"
                   onClick={() => void applyToPublishedEvent(detailModalEvent)}
+                  disabled={!detailModalEvent.id.startsWith('event:') || (detailModalEvent.status !== 'happening' && detailModalEvent.status !== 'upcoming')}
+                  title={language === 'vi' ? 'Sự kiện đang diễn ra hoặc sắp diễn ra luôn nhận đăng ký tham gia, không áp dụng hạn đăng ký.' : 'Ongoing and upcoming events accept applications without a registration deadline.'}
                   style={{
                     boxShadow: '0 4px 14px rgba(23, 56, 46, 0.22)'
                   }}
@@ -1225,7 +1116,7 @@ export const EventApplicationPage: React.FC<EventApplicationPageProps> = ({
                       style={{ width: '100%', justifyContent: 'center' }}
                     >
                       <PlusCircle size={16} />
-                      <span>{language === 'vi' ? 'Đăng ký tổ chức sự kiện vào ngày này' : 'Register event for this date'}</span>
+                      <span>{language === 'vi' ? 'Đăng ký sự kiện mới vào ngày này' : 'Register new event for this date'}</span>
                     </button>
                   </div>
                 );
@@ -1235,498 +1126,17 @@ export const EventApplicationPage: React.FC<EventApplicationPageProps> = ({
         </div>
       )}
 
-      {/* 5. MODAL: FORM ĐĂNG KÝ TỔ CHỨC SỰ KIỆN MỚI */}
-      {isOrganizeModalOpen && (
-        <div 
-          className="attendance-modal-overlay" 
-          onClick={() => setIsOrganizeModalOpen(false)}
-          style={{ zIndex: 9999 }}
-        >
-          <div 
-            className="attendance-modal-content" 
-            onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: '820px', maxHeight: '90vh', overflowY: 'auto', borderRadius: '20px' }}
-          >
-            {/* Modal Header */}
-            <div className="attendance-modal-header" style={{
-              background: '#FAFCFB',
-              borderBottom: '1px solid #EEF2F0',
-              padding: '1.25rem 1.5rem',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              position: 'sticky',
-              top: 0,
-              zIndex: 10
-            }}>
-              <div>
-                <h3 style={{
-                  margin: '0 0 0.2rem 0',
-                  fontSize: '1.3rem',
-                  fontFamily: 'var(--font-serif)',
-                  fontWeight: 800,
-                  color: '#172421'
-                }}>
-                  {language === 'vi' ? 'Gửi đề xuất hoạt động cho sự kiện' : 'Propose an Event Activity'}
-                </h3>
-                <p style={{ margin: 0, fontSize: '0.83rem', color: '#556B65' }}>
-                  {language === 'vi' 
-                    ? 'Điền đầy đủ thông tin chương trình để gửi Ban Quản Lý Đường Sách phê duyệt lịch và địa điểm.' 
-                    : 'Submit event proposal for Book Street management board approval.'}
-                </p>
-              </div>
+      {isOrganizeModalOpen && <EventRegistrationModal
+        language={language}
+        isOpen
+        onClose={() => setIsOrganizeModalOpen(false)}
+        onRegister={handleRegisterEvent}
+        locations={registrationLocations}
+        initialDate={registrationDate}
+        organization={organization}
+        assets={assets}
+      />}
 
-              <button
-                type="button"
-                onClick={() => setIsOrganizeModalOpen(false)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#637771' }}
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            {/* Modal Form Body */}
-            <form onSubmit={handleSubmitOrganizeEvent} style={{ padding: '1.5rem' }}>
-              {/* Card Tóm tắt Đơn vị Đăng ký (Tự động lấy thông tin từ Gian hàng) */}
-              <div style={{
-                background: '#FAF8F3',
-                border: '1px solid #EFE8D8',
-                borderRadius: '12px',
-                padding: '0.85rem 1.15rem',
-                marginBottom: '1.25rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                gap: '0.75rem'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <div style={{
-                    width: '38px',
-                    height: '38px',
-                    borderRadius: '10px',
-                    background: '#17382E',
-                    color: '#E9BC63',
-                    display: 'grid',
-                    placeItems: 'center',
-                    fontWeight: 800,
-                    fontSize: '1rem'
-                  }}>
-                    🏢
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '0.94rem', fontWeight: 800, color: '#172421' }}>
-                      {organization.name || orgName}
-                    </div>
-                    <div style={{ fontSize: '0.78rem', color: '#637771' }}>
-                      Đại diện: <strong>{organization.representativeName || repName}</strong> • SĐT: <strong>{organization.phone || phone}</strong> • Email: <strong>{organization.email || email}</strong>
-                    </div>
-                  </div>
-                </div>
-
-                <span style={{
-                  fontSize: '0.75rem',
-                  fontWeight: 700,
-                  color: '#065F46',
-                  background: '#E8F5EF',
-                  padding: '3px 9px',
-                  borderRadius: '12px',
-                  border: '1px solid #A7F3D0'
-                }}>
-                  ✓ Thông tin gian hàng đã xác thực
-                </span>
-              </div>
-
-              {/* PHẦN 1: CHI TIẾT SỰ KIỆN ĐỀ XUẤT */}
-              <div style={{
-                background: '#FFFFFF',
-                border: '1px solid #E2EAE5',
-                borderRadius: '14px',
-                padding: '1.25rem',
-                marginBottom: '1.25rem'
-              }}>
-                <h4 style={{
-                  fontSize: '1.02rem',
-                  fontWeight: 800,
-                  color: '#172421',
-                  margin: '0 0 1rem 0',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem'
-                }}>
-                  <span>📅</span>
-                  <span>{language === 'vi' ? '1. Thông tin Sự kiện đề xuất tổ chức' : '1. Event Details & Scheduling'}</span>
-                </h4>
-
-                {/* Banner sự kiện liên kết */}
-                {(() => {
-                  const linkedEvt = scheduledEvents.find(e => e.id === activeApplication?.eventId);
-                  return (
-                    <div style={{
-                      background: '#F0FDF4',
-                      border: '1px solid #BBF7D0',
-                      borderRadius: '10px',
-                      padding: '0.75rem 1rem',
-                      marginBottom: '1.15rem',
-                      fontSize: '0.84rem',
-                      color: '#166534'
-                    }}>
-                      📌 {language === 'vi' ? 'Đề xuất hoạt động gắn với sự kiện:' : 'Proposing activity under event:'}{' '}
-                      <strong>{activeApplication?.eventTitle || linkedEvt?.title || 'Sự kiện Đường Sách'}</strong>
-                      {linkedEvt && (
-                        <div style={{ fontSize: '0.78rem', marginTop: '4px', color: '#15803D' }}>
-                          ⏱ Thời gian diễn ra sự kiện: <strong>{linkedEvt.startDate}</strong> đến <strong>{linkedEvt.endDate}</strong>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })()}
-
-                <div className="form-field-group">
-                  <label>{language === 'vi' ? 'Tên sự kiện / Tiêu đề chương trình *' : 'Event Title *'}</label>
-                  <input 
-                    type="text"
-                    required
-                    value={eventTitle}
-                    onChange={(e) => setEventTitle(e.target.value)}
-                    placeholder="Ví dụ: Tọa đàm 'Hành trình ra mắt tác phẩm mới' & Ký tặng sách"
-                  />
-                </div>
-
-                <div className="form-row-2col">
-                  <div className="form-field-group">
-                    <label>{language === 'vi' ? 'Hình thức / Thể loại sự kiện *' : 'Event Category *'}</label>
-                    <select 
-                      value={eventCategory} 
-                      onChange={(e) => setEventCategory(e.target.value)}
-                    >
-                      <option value="Workshop">Workshop & Trải nghiệm thực hành</option>
-                      <option value="Tọa đàm">Tọa đàm & Diễn đàn thảo luận</option>
-                      <option value="Ra mắt sách">Lễ ra mắt sách & Giới thiệu tác phẩm mới</option>
-                      <option value="Giao lưu tác giả">Giao lưu tác giả & Ký tặng sách</option>
-                      <option value="Triển lãm">Triển lãm chuyên đề & Trưng bày nghệ thuật</option>
-                      <option value="Giao lưu văn nghệ">Giao lưu nghệ thuật, Acoustic & Ngâm thơ</option>
-                      <option value="Lễ hội sách">Hoạt động tương tác / Minigame cộng đồng</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="form-row-2col">
-                  {(() => {
-                    const linkedEvt = scheduledEvents.find(e => e.id === activeApplication?.eventId);
-                    const calcMin = linkedEvt?.startDate && linkedEvt.startDate > todayKey ? linkedEvt.startDate : todayKey;
-                    const calcMax = linkedEvt?.endDate || undefined;
-                    return (
-                      <>
-                        <div className="form-field-group">
-                          <label htmlFor="proposal-start-date">{language === 'vi' ? 'Ngày bắt đầu *' : 'Start Date *'}</label>
-                          <input 
-                            id="proposal-start-date"
-                            type="date"
-                            required
-                            min={calcMin}
-                            max={calcMax}
-                            value={targetDate}
-                            onChange={(e) => { setTargetDate(e.target.value); if (targetEndDate < e.target.value) setTargetEndDate(e.target.value); }}
-                          />
-                        </div>
-                        <div className="form-field-group">
-                          <label htmlFor="proposal-end-date">{language === 'vi' ? 'Ngày kết thúc *' : 'End Date *'}</label>
-                          <input 
-                            id="proposal-end-date" 
-                            type="date" 
-                            required 
-                            min={targetDate || calcMin} 
-                            max={calcMax}
-                            value={targetEndDate} 
-                            onChange={event => setTargetEndDate(event.target.value)} 
-                          />
-                        </div>
-                      </>
-                    );
-                  })()}
-                </div>
-
-                <div className="form-row-2col">
-                  <div className="form-field-group">
-                    <label>{language === 'vi' ? 'Giờ bắt đầu *' : 'Start Time *'}</label>
-                    <input 
-                      type="time"
-                      required
-                      value={startTime}
-                      onChange={(e) => setStartTime(e.target.value)}
-                    />
-                  </div>
-                  <div className="form-field-group">
-                    <label>{language === 'vi' ? 'Giờ kết thúc *' : 'End Time *'}</label>
-                    <input 
-                      type="time"
-                      required
-                      value={endTime}
-                      onChange={(e) => setEndTime(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <div className="form-row-2col">
-                  <div className="form-field-group">
-                    <label>{language === 'vi' ? 'Địa điểm / Không gian mong muốn *' : 'Venue / Stage Location *'}</label>
-                    <select 
-                      required
-                      value={locationId}
-                      onChange={(e) => setLocationId(e.target.value)}
-                    >
-                      <option value="">{language === 'vi' ? 'Chọn địa điểm' : 'Select a location'}</option>
-                      {locations.map(location => <option key={location.id} value={location.id}>{location.name} ({location.capacity})</option>)}
-                    </select>
-                  </div>
-
-                  <div className="form-field-group">
-                    <label>{language === 'vi' ? 'Diễn giả / Khách mời / Tác giả tham dự (nếu có)' : 'Guest Speakers / Authors'}</label>
-                    <input 
-                      type="text"
-                      value={speakerInfo}
-                      onChange={(e) => setSpeakerInfo(e.target.value)}
-                      placeholder="Ví dụ: Tác giả Nguyễn Văn A, Nhà báo B, MC C..."
-                    />
-                  </div>
-                </div>
-
-                <div className="form-field-group">
-                  <label>{language === 'vi' ? 'Tóm tắt nội dung & Mục tiêu chương trình *' : 'Event Description & Agenda *'}</label>
-                  <textarea 
-                    rows={3}
-                    required
-                    value={eventDescription}
-                    onChange={(e) => setEventDescription(e.target.value)}
-                    placeholder="Mô tả tóm tắt kịch bản chương trình, ý nghĩa sự kiện và đối tượng độc giả hướng tới..."
-                  />
-                </div>
-
-                {/* Hình ảnh sự kiện / Poster chương trình */}
-                <div className="form-field-group">
-                  <label>{language === 'vi' ? 'Hình ảnh / Poster sự kiện (tùy chọn)' : 'Event Banner / Poster (optional)'}</label>
-                  <div style={{
-                    border: '1.5px dashed #D1DDD8',
-                    borderRadius: '10px',
-                    padding: '0.85rem 1rem',
-                    background: '#FAFBFB',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.65rem'
-                  }}>
-                    {eventImage ? (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-                        <img 
-                          src={eventImage} 
-                          alt="Poster Preview" 
-                          style={{ width: '90px', height: '60px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #D1D5DB' }}
-                        />
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <p style={{ margin: '0 0 0.25rem 0', fontSize: '0.8rem', fontWeight: 600, color: '#166534' }}>
-                            ✓ {language === 'vi' ? 'Đã tải ảnh lên thành công' : 'Image loaded successfully'}
-                          </p>
-                          <button
-                            type="button"
-                            onClick={() => setEventImage('')}
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                              background: '#FEE2E2',
-                              border: 'none',
-                              color: '#B91C1C',
-                              padding: '0.25rem 0.55rem',
-                              borderRadius: '5px',
-                              fontSize: '0.74rem',
-                              fontWeight: 600,
-                              cursor: 'pointer'
-                            }}
-                          >
-                            <Trash2 size={12} />
-                            <span>{language === 'vi' ? 'Xóa ảnh' : 'Remove'}</span>
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
-                        <label style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '0.4rem',
-                          padding: '0.45rem 0.85rem',
-                          background: '#17382E',
-                          color: '#FFFFFF',
-                          borderRadius: '7px',
-                          fontSize: '0.8rem',
-                          fontWeight: 650,
-                          cursor: 'pointer',
-                          transition: 'background 0.15s ease'
-                        }}>
-                          <Upload size={14} />
-                          <span>{language === 'vi' ? 'Tải ảnh từ máy' : 'Upload image'}</span>
-                          <input 
-                            type="file" 
-                            accept="image/*" 
-                            style={{ display: 'none' }}
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                const reader = new FileReader();
-                                reader.onload = (ev) => {
-                                  if (typeof ev.target?.result === 'string') {
-                                    setEventImage(ev.target.result);
-                                  }
-                                };
-                                reader.readAsDataURL(file);
-                              }
-                              e.target.value = '';
-                            }}
-                          />
-                        </label>
-                        <span style={{ fontSize: '0.76rem', color: '#6B7280' }}>
-                          {language === 'vi' ? 'hoặc dán đường dẫn URL:' : 'or enter URL:'}
-                        </span>
-                      </div>
-                    )}
-
-                    <input 
-                      type="text"
-                      value={eventImage}
-                      onChange={(e) => setEventImage(e.target.value)}
-                      placeholder="https://... (URL hình ảnh poster)"
-                      style={{
-                        width: '100%',
-                        height: '34px',
-                        padding: '0 0.65rem',
-                        borderRadius: '6px',
-                        border: '1px solid #D1D5DB',
-                        background: '#FFFFFF',
-                        fontSize: '0.8rem',
-                        color: '#111827',
-                        boxSizing: 'border-box'
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* PHẦN 2: YÊU CẦU THIẾT BỊ & GHI CHÚ CỦA GIAN HÀNG */}
-              <div style={{
-                background: '#FAF8F3',
-                border: '1px solid #EFE8D8',
-                borderRadius: '14px',
-                padding: '1.25rem',
-                marginBottom: '1.25rem'
-              }}>
-                <h4 style={{
-                  fontSize: '1.02rem',
-                  fontWeight: 800,
-                  color: '#172421',
-                  margin: '0 0 0.85rem 0',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem'
-                }}>
-                  <span>⚡</span>
-                  <span>{language === 'vi' ? '2. Yêu cầu Thiết bị & Kỹ thuật từ Ban Quản Lý' : '2. Technical & Equipment Support'}</span>
-                </h4>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.5rem', marginBottom: '1rem' }}>
-                  {assets.map((asset) => (
-                    <label 
-                      key={asset.id}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        fontSize: '0.82rem',
-                        cursor: 'pointer',
-                        background: '#FFFFFF',
-                        padding: '0.6rem 0.75rem',
-                        borderRadius: '8px',
-                        border: '1px solid #E2EAE5'
-                      }}
-                    >
-                      <input 
-                        type="checkbox"
-                        checked={selectedEquipment.includes(asset.name)}
-                        onChange={() => toggleEquipment(asset.name)}
-                      />
-                      <span>{asset.name} ({asset.totalQuantity})</span>
-                    </label>
-                  ))}
-                  {assets.length === 0 && <p>{language === 'vi' ? 'Chưa có thiết bị khả dụng trong hệ thống.' : 'No equipment is currently available.'}</p>}
-                </div>
-
-                {/* Ô ĐỂ GIAN HÀNG GHI THÊM Ý KIẾN / YÊU CẦU BỔ SUNG */}
-                <div className="form-field-group">
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                    <span>📝</span>
-                    <span>{language === 'vi' ? 'Ghi chú & Ý kiến yêu cầu thêm của gian hàng' : 'Additional Requests / Notes from Booth'}</span>
-                  </label>
-                  <textarea 
-                    rows={2}
-                    value={eventDescription.includes('[Yêu cầu bổ sung:') ? '' : undefined}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      // Store in speaker or description custom tags if needed
-                    }}
-                    placeholder={language === 'vi' 
-                      ? 'Nhập các yêu cầu riêng về thời gian dàn dựng sân khấu, nguồn điện công suất lớn, tiếp đón khách VIP, gửi xe cho diễn giả...' 
-                      : 'Special setup times, high power supply, VIP reception, speaker parking...'}
-                    style={{ background: '#FFFFFF' }}
-                  />
-                </div>
-              </div>
-
-              {/* Agreement */}
-              <div style={{
-                background: '#FAFCFB',
-                border: '1px solid #E2EAE5',
-                borderRadius: '10px',
-                padding: '0.85rem 1rem',
-                marginBottom: '1.5rem',
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: '0.65rem'
-              }}>
-                <input 
-                  type="checkbox" 
-                  id="modalAgreeTerms"
-                  checked={agreedTerms}
-                  onChange={(e) => setAgreedTerms(e.target.checked)}
-                  style={{ marginTop: '0.2rem', cursor: 'pointer' }}
-                />
-                <label htmlFor="modalAgreeTerms" style={{ fontSize: '0.83rem', color: '#445752', cursor: 'pointer', lineHeight: 1.5 }}>
-                  {language === 'vi'
-                    ? 'Tôi cam kết nội dung chương trình tuân thủ đúng Luật Xuất bản, các quy định pháp luật hiện hành và quy chế tổ chức sự kiện tại Đường Sách TP.HCM.'
-                    : 'I certify that the proposed program complies with the Publication Law and HCMC Book Street event regulations.'}
-                </label>
-              </div>
-
-              {/* Form Action Buttons */}
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
-                <button
-                  type="button"
-                  className="btn-part-secondary"
-                  onClick={() => setIsOrganizeModalOpen(false)}
-                >
-                  {language === 'vi' ? 'Hủy' : 'Cancel'}
-                </button>
-                <button 
-                  type="submit" 
-                  className="btn-part-primary"
-                  style={{ padding: '0.7rem 1.45rem', fontWeight: 750 }}
-                >
-                  <Send size={16} />
-                  <span>{language === 'vi' ? 'Gửi đề xuất hoạt động' : 'Submit Activity Proposal'}</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

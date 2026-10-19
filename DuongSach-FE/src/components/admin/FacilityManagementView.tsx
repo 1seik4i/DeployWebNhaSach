@@ -1,4 +1,5 @@
 import { EntityQrButton } from '../ui/EntityQrButton';
+import { ListPagination, useListPagination } from '../ui/ListPagination';
 import { promptModal } from '../../services/notificationModal';
 import { useModalBehavior } from '../../hooks/useModalBehavior';
 import { useEffect, useRef, useState } from 'react';
@@ -32,6 +33,7 @@ export function FacilityManagementView({ kind }: { kind: FacilityKind }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const asset = kind === 'assets';
   const location = kind === 'locations';
+  const pagination = useListPagination(rows, `${kind}:${search}:${campus}:${revision}`, 10);
   const Icon = asset ? Package : kind === 'venues' || location ? Building2 : Store;
 
   useEffect(() => {
@@ -132,7 +134,7 @@ export function FacilityManagementView({ kind }: { kind: FacilityKind }) {
 
   return <section className="facility-page">
     <header className="facility-heading">
-      <div><span className="facility-eyebrow">GIAN HÀNG & CƠ SỞ VẬT CHẤT</span><h1>{titles[kind]}</h1>
+      <div><h1>{titles[kind]}</h1>
         <p>{asset ? 'Theo dõi danh mục và tổng số lượng thiết bị phục vụ hoạt động.' : kind === 'booths' ? 'Quản lý toàn bộ danh mục gian hàng, cập nhật trạng thái và thông tin gian hàng.' : 'Quản lý không gian và cơ sở phục vụ các hoạt động tại Đường Sách.'}</p></div>
       {kind !== 'locations' && kind !== 'booths' && <button className="facility-button primary" onClick={() => open('new')}><Plus size={18} />Thêm {labels[kind]}</button>}
     </header>
@@ -162,7 +164,7 @@ export function FacilityManagementView({ kind }: { kind: FacilityKind }) {
                 </tr>
               </thead>
               <tbody>
-                {rows.map(row => (
+                {pagination.items.map(row => (
                   <tr key={row.id}>
                     <td>
                       <div className="facility-name">
@@ -198,7 +200,7 @@ export function FacilityManagementView({ kind }: { kind: FacilityKind }) {
           </div>
 
           <div className="facility-mobile-cards">
-            {rows.map(row => (
+            {pagination.items.map(row => (
               <div key={row.id} className="facility-mobile-card">
                 <div className="facility-mobile-card-top">
                   <div className="facility-name">
@@ -233,8 +235,15 @@ export function FacilityManagementView({ kind }: { kind: FacilityKind }) {
               </div>
             ))}
           </div>
+          {rows.length > 0 && (
+            <ListPagination
+              page={pagination.page}
+              totalPages={pagination.totalPages}
+              onChange={pagination.setPage}
+              vi
+            />
+          )}
         </>}
-      {!loading && !error && <footer className="facility-table-footer">Hiển thị {rows.length} {labels[kind]}{campus && kind !== 'booths' ? ` · ${campus}` : ''}</footer>}
     </div>
     <dialog ref={dialog} className="facility-dialog" aria-labelledby="facility-dialog-title" onCancel={event => { event.preventDefault(); close(); }}>
       <form onSubmit={save}>

@@ -382,18 +382,6 @@ export const Header: React.FC<HeaderProps> = ({
                       <span>{language === 'vi' ? 'Không gian Đường Sách' : 'Hero & Welcome'}</span>
                     </Link>
                     <Link
-                      to="/#gioi-thieu"
-                      className="ticket-subnav-item"
-                      role="menuitem"
-                      onClick={() => {
-                        setHomeDropdownOpen(false);
-                        const el = document.getElementById('gioi-thieu');
-                        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                      }}
-                    >
-                      <span>{language === 'vi' ? 'Giá trị cốt lõi' : 'Core Values'}</span>
-                    </Link>
-                    <Link
                       to="/#gian-hang"
                       className="ticket-subnav-item"
                       role="menuitem"

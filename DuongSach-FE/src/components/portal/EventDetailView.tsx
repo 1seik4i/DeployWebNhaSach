@@ -1,3 +1,4 @@
+import { useUrlTab } from '../../hooks/useUrlTab';
 import { promptModal, notifyModal } from '../../services/notificationModal';
 import React, { useEffect, useState } from 'react';
 import { 
@@ -86,7 +87,7 @@ export const EventDetailView: React.FC<EventDetailViewProps> = ({
   onBroadcastEvent
 }) => {
   const isPub = event.isPublished ?? (event.status !== 'draft');
-  const [activeTab, setActiveTab] = useState<'overview' | 'partners' | 'schedule' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useUrlTab(['overview', 'partners', 'schedule', 'settings'], 'overview', 'section');
   const [currentImageUrl, setCurrentImageUrl] = useState(event.imageUrl || '');
   const [uploadingImage, setUploadingImage] = useState(false);
 
