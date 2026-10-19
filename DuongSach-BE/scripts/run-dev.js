@@ -1,4 +1,7 @@
 import { spawn } from 'node:child_process';
+import { ensureUserDepartment } from './ensureUserDepartment.js';
+
+await ensureUserDepartment();
 
 // Windows terminals can inherit a legacy code page, which renders Vietnamese
 // API messages as mojibake. Switch only the development shell to UTF-8 before
