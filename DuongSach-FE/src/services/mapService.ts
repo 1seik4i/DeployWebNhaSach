@@ -4,7 +4,7 @@ import { apiClient } from './apiClient';
 export type { MapLocationPoint };
 // Asset is shipped with the public site.  The API may override it through
 // `public.map.imageUrl`, but an empty setting must never render a broken map.
-export const DEFAULT_MAP_IMAGE = '/assets/maps/duong-sach-nguyen-van-binh.png';
+export const DEFAULT_MAP_IMAGE = '/assets/maps/duong-sach-map-20261019.png';
 export const MAX_MAP_IMAGE_MB = 50;
 
 let sharedPoints: MapLocationPoint[] = [];

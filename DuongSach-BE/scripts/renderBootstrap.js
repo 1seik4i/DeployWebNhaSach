@@ -1,6 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import { PrismaClient } from '@prisma/client';
 import { applyApiCompletion } from './applyApiCompletion.js';
+import { installBundledMap } from './installBundledMap.js';
 
 const command = (name) => (process.platform === 'win32' ? `${name}.cmd` : name);
 
@@ -32,6 +33,7 @@ export async function bootstrapDatabase() {
 
   if (await hasSeedData()) {
     await applyApiCompletion();
+    await installBundledMap();
     console.log('Database already contains data; demo seed is skipped.');
     return;
   }
@@ -39,6 +41,7 @@ export async function bootstrapDatabase() {
   console.log('Database is empty; loading demo data once...');
   run('npm', ['run', 'seed']);
   await applyApiCompletion();
+  await installBundledMap();
 }
 
 if (process.argv[1]?.endsWith('renderBootstrap.js')) {
