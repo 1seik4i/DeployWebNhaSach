@@ -1,10 +1,11 @@
 import { z } from 'zod';
+import { imageSourceFor } from './input.validation.js';
 
 export const MAX_EVENT_IMAGE_MB = 20;
 export const eventImageInput = z.string().max(
   4 * Math.ceil(MAX_EVENT_IMAGE_MB * 1024 * 1024 / 3) + 1024,
   `Ảnh sự kiện tối đa ${MAX_EVENT_IMAGE_MB} MB.`,
-).optional();
+).pipe(imageSourceFor(4 * Math.ceil(MAX_EVENT_IMAGE_MB * 1024 * 1024 / 3) + 1024)).optional();
 
 export function proposalMetadata(notes) {
   try {

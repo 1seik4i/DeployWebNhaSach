@@ -64,7 +64,7 @@ export const BoothsExperience: React.FC<BoothsExperienceProps> = ({
   const filteredBooths = useMemo(() => {
     return booths.filter((booth) => {
       const matchCat = selectedCategory === 'all' || booth.category === selectedCategory;
-      const q = searchQuery.toLowerCase().trim();
+      const q = searchQuery.trim().normalize('NFC').toLocaleLowerCase('vi-VN');
       const matchSearch =
         !q ||
         booth.name.toLowerCase().includes(q) ||
@@ -186,7 +186,7 @@ export const BoothsExperience: React.FC<BoothsExperienceProps> = ({
             </div>
             <div className="heritage-search">
               <Search size={16} />
-              <input
+              <input maxLength={200}
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}

@@ -67,7 +67,7 @@ export function AdminEventSuggestionsView({ language }: { language: Language }) 
     finally { setSaving(false); }
   };
   const visible = rows.filter(row => (filter === 'all' || row.status === filter) &&
-    `${row.fullName} ${row.phone} ${row.content}`.toLocaleLowerCase('vi').includes(query.trim().toLocaleLowerCase('vi')));
+    `${row.fullName} ${row.phone} ${row.content}`.normalize('NFC').toLocaleLowerCase('vi-VN').includes(query.trim().normalize('NFC').toLocaleLowerCase('vi-VN')));
   const pagination = useListPagination(visible, `${filter}:${query}`, 8);
   const label = (value: string) => statuses[value]?.[vi ? 0 : 1] || value;
   const date = (value?: string) => value ? new Date(value).toLocaleDateString(vi ? 'vi-VN' : 'en-GB') : '—';
@@ -92,7 +92,7 @@ export function AdminEventSuggestionsView({ language }: { language: Language }) 
     {notice && <p className="es-notice" role="status">{notice}</p>}
     <section className="es-list" aria-label={vi ? 'Danh sách đề xuất' : 'Suggestions'}>
       <div className="es-toolbar">
-        <label className="es-search"><Search size={17}/><input aria-label={vi ? 'Tìm đề xuất' : 'Search suggestions'} placeholder={vi ? 'Tìm tên sự kiện, người gửi, số điện thoại…' : 'Search event, contributor or phone…'} value={query} onChange={e => setQuery(e.target.value)}/></label>
+        <label className="es-search"><Search size={17}/><input maxLength={200} aria-label={vi ? 'Tìm đề xuất' : 'Search suggestions'} placeholder={vi ? 'Tìm tên sự kiện, người gửi, số điện thoại…' : 'Search event, contributor or phone…'} value={query} onChange={e => setQuery(e.target.value)}/></label>
         <select aria-label={vi ? 'Lọc trạng thái' : 'Filter status'} value={filter} onChange={e => setFilter(e.target.value)}>
           <option value="all">{vi ? 'Tất cả trạng thái' : 'All statuses'}</option>
           {Object.keys(statuses).map(value => <option key={value} value={value}>{label(value)}</option>)}

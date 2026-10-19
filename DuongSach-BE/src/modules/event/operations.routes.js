@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { supportPhone } from '../../utils/input.validation.js';
 import { z } from "zod";
 import crypto from "node:crypto";
 import { prisma } from "../../config/database.js";
@@ -665,7 +666,7 @@ router.get(
 const proposalInput = activityInput.extend({
   targetAudience: z.string().max(2000).optional(),
   contactPerson: text.optional(),
-  contactPhone: z.string().max(20).optional(),
+  contactPhone: supportPhone.optional(),
   devices: z
     .array(
       z.object({ assetId: uuid.optional(), name: text, quantity: quantity }),

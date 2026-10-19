@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { HeritageStatus } from '@prisma/client';
+import { searchText } from '../../utils/input.validation.js';
 
 export const idParams = z.object({ id: z.string().uuid() });
 export const paginationFields = {
@@ -28,7 +29,7 @@ const content = z.object({
 });
 export const heritageListSchema = z.object({ query: z.object({
   ...paginationFields,
-  search: z.string().trim().max(200).optional(),
+  search: searchText.optional(),
   status: z.nativeEnum(HeritageStatus).optional(),
 }) });
 export const heritageIdSchema = z.object({ params: idParams });

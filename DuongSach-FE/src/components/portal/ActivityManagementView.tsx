@@ -147,8 +147,8 @@ export const ActivityManagementView: React.FC<ActivityManagementViewProps> = ({
     if (activeTab === 'cancelled' && !isCancelledLike(act.status)) return false;
     if (typeFilter !== 'all' && act.type !== typeFilter) return false;
     if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      return act.title.toLowerCase().includes(q) || (act.speaker && act.speaker.toLowerCase().includes(q)) || (act.location && act.location.toLowerCase().includes(q));
+      const q = searchQuery.trim().normalize('NFC').toLowerCase();
+      return act.title.normalize('NFC').toLowerCase().includes(q) || (act.speaker && act.speaker.normalize('NFC').toLowerCase().includes(q)) || (act.location && act.location.normalize('NFC').toLowerCase().includes(q));
     }
     return true;
   });
@@ -485,7 +485,7 @@ export const ActivityManagementView: React.FC<ActivityManagementViewProps> = ({
         <div className="org-toolbar-left org-toolbar-controls">
           <div className="organizer-search-box">
             <Search size={15} />
-            <input
+            <input maxLength={200}
               type="text"
               placeholder={vi ? 'Tìm kiếm hoạt động...' : 'Search activity...'}
               value={searchQuery}
@@ -1066,7 +1066,7 @@ export const ActivityManagementView: React.FC<ActivityManagementViewProps> = ({
                         ? (vi ? 'Ghi chú cần chỉnh sửa (gửi cho đối tác, đề xuất sẽ không duyệt):' : 'Revision notes for partner; proposal will be rejected:') 
                         : (vi ? 'Lý do từ chối / Góp ý (gửi cho đối tác):' : 'Rejection reason / feedback for partner:')}
                     </label>
-                    <textarea
+                    <textarea maxLength={2000}
                       rows={3}
                       value={modalNote}
                       onChange={e => setModalNote(e.target.value)}
@@ -1169,7 +1169,7 @@ export const ActivityManagementView: React.FC<ActivityManagementViewProps> = ({
                 <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#374151', marginBottom: 4 }}>
                   {vi ? 'Góp ý / Lý do không duyệt (Không bắt buộc):' : 'Feedback / Rejection Reason (Optional):'}
                 </label>
-                <textarea 
+                <textarea maxLength={2000}
                   value={rejectFeedbackNote} 
                   onChange={event => setRejectFeedbackNote(event.target.value)} 
                   rows={4} 

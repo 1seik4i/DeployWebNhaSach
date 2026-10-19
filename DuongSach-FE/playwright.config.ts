@@ -13,7 +13,7 @@ export default defineConfig({
   timeout: 90_000,
   expect: { timeout: 12_000 },
   use: {
-    baseURL: 'http://127.0.0.1:4173',
+    baseURL: process.env.E2E_BASE_URL || 'http://127.0.0.1:4173',
     locale: 'vi-VN',
     timezoneId: 'Asia/Ho_Chi_Minh',
     trace: 'retain-on-failure',
@@ -35,7 +35,7 @@ export default defineConfig({
       },
     },
   ],
-  webServer: {
+  webServer: process.env.E2E_BASE_URL ? undefined : {
     command: 'npm run dev -- --host 127.0.0.1 --port 4173',
     url: 'http://127.0.0.1:4173',
     reuseExistingServer: !process.env.CI,

@@ -14,6 +14,7 @@ import {
   Info
 } from 'lucide-react';
 import { AdminSystemSettings } from '../../types/admin';
+import { isSupportPhone, normalizePhone } from '../../utils/inputValidation';
 
 interface AdminSystemSettingsViewProps {
   settings: AdminSystemSettings;
@@ -34,6 +35,8 @@ export const AdminSystemSettingsView: React.FC<AdminSystemSettingsViewProps> = (
 
   const [hasChanges, setHasChanges] = useState(false);
   const [saveToast, setSaveToast] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const [saving, setSaving] = useState(false);
 
   const handleGeneralChange = (key: keyof AdminSystemSettings['general'], value: any) => {
     setFormData(prev => ({
@@ -64,7 +67,15 @@ export const AdminSystemSettingsView: React.FC<AdminSystemSettingsViewProps> = (
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    try { await onSaveSettings(formData); } catch { return; }
+    if (saving) return;
+    setSaveError('');
+    if (!formData.general.systemName.trim() || !isSupportPhone(formData.general.supportPhone)) {
+      setSaveError('Tên hệ thống hoặc số điện thoại hỗ trợ không hợp lệ.'); return;
+    }
+    setSaving(true);
+    try { await onSaveSettings({ ...formData, general: { ...formData.general, systemName: formData.general.systemName.trim(), supportEmail: formData.general.supportEmail.trim(), supportPhone: normalizePhone(formData.general.supportPhone) } }); }
+    catch (error) { setSaveError(error instanceof Error ? error.message : 'Không thể lưu cài đặt.'); return; }
+    finally { setSaving(false); }
     setHasChanges(false);
     setSaveToast(true);
     setTimeout(() => {
@@ -101,10 +112,10 @@ export const AdminSystemSettingsView: React.FC<AdminSystemSettingsViewProps> = (
             </button>
           )}
           <button 
-            type="button"
+            type="submit"
+            form="admin-system-settings"
             className="adm-btn adm-btn-primary"
-            onClick={handleSubmit}
-            disabled={!hasChanges}
+            disabled={!hasChanges || saving}
           >
             <Save size={16} />
             <span>Lưu cài đặt</span>
@@ -119,7 +130,8 @@ export const AdminSystemSettingsView: React.FC<AdminSystemSettingsViewProps> = (
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="adm-settings-form">
+      {saveError && <p role="alert">{saveError}</p>}
+      <form id="admin-system-settings" onSubmit={handleSubmit} className="adm-settings-form">
         {/* Section 1: General Branding */}
         <div className="adm-card adm-settings-card">
           <div className="adm-card-header">
@@ -136,7 +148,7 @@ export const AdminSystemSettingsView: React.FC<AdminSystemSettingsViewProps> = (
             <div className="adm-form-row">
               <div className="adm-form-group">
                 <label className="adm-form-label">Tên hệ thống</label>
-                <input 
+                <input maxLength={200} required
                   type="text"
                   className="adm-form-input"
                   value={formData.general.systemName}
@@ -145,7 +157,7 @@ export const AdminSystemSettingsView: React.FC<AdminSystemSettingsViewProps> = (
               </div>
               <div className="adm-form-group">
                 <label className="adm-form-label">Khẩu hiệu / Slogan</label>
-                <input 
+                <input maxLength={500}
                   type="text"
                   className="adm-form-input"
                   value={formData.general.slogan}
@@ -157,7 +169,7 @@ export const AdminSystemSettingsView: React.FC<AdminSystemSettingsViewProps> = (
             <div className="adm-form-row">
               <div className="adm-form-group">
                 <label className="adm-form-label">Email hỗ trợ kỹ thuật</label>
-                <input 
+                <input maxLength={254}
                   type="email"
                   className="adm-form-input"
                   value={formData.general.supportEmail}
@@ -166,7 +178,7 @@ export const AdminSystemSettingsView: React.FC<AdminSystemSettingsViewProps> = (
               </div>
               <div className="adm-form-group">
                 <label className="adm-form-label">Đường dây nóng (Hotline)</label>
-                <input 
+                <input maxLength={40}
                   type="text"
                   className="adm-form-input"
                   value={formData.general.supportPhone}
@@ -177,7 +189,7 @@ export const AdminSystemSettingsView: React.FC<AdminSystemSettingsViewProps> = (
 
             <div className="adm-form-group">
               <label className="adm-form-label">Địa chỉ trụ sở điều hành</label>
-              <input 
+              <input maxLength={500}
                 type="text"
                 className="adm-form-input"
                 value={formData.general.physicalAddress}
@@ -203,24 +215,26 @@ export const AdminSystemSettingsView: React.FC<AdminSystemSettingsViewProps> = (
             <div className="adm-form-row">
               <div className="adm-form-group">
                 <label className="adm-form-label">Độ dài mật khẩu tối thiểu (ký tự)</label>
-                <input 
+                <input maxLength={128} step={1}
                   type="number"
-                  min={6}
-                  max={32}
+                  min={8}
+                  max={64}
+                  required
                   className="adm-form-input"
                   value={formData.security.minPasswordLength}
-                  onChange={(e) => handleSecurityChange('minPasswordLength', parseInt(e.target.value) || 8)}
+                  onChange={(e) => handleSecurityChange('minPasswordLength', e.target.value === '' ? '' : Number(e.target.value))}
                 />
               </div>
               <div className="adm-form-group">
                 <label className="adm-form-label">Giới hạn đăng nhập sai trước khi tự khóa</label>
-                <input 
+                <input step={1}
                   type="number"
                   min={3}
-                  max={10}
+                  max={20}
+                  required
                   className="adm-form-input"
                   value={formData.security.maxFailedAttempts}
-                  onChange={(e) => handleSecurityChange('maxFailedAttempts', parseInt(e.target.value) || 5)}
+                  onChange={(e) => handleSecurityChange('maxFailedAttempts', e.target.value === '' ? '' : Number(e.target.value))}
                 />
               </div>
             </div>
@@ -230,12 +244,13 @@ export const AdminSystemSettingsView: React.FC<AdminSystemSettingsViewProps> = (
                 <label className="adm-form-label">Thời gian hết hạn phiên làm việc (Phút)</label>
                 <input 
                   type="number"
-                  min={15}
-                  max={480}
-                  step={15}
+                  min={5}
+                  max={120}
+                  step={1}
+                  required
                   className="adm-form-input"
                   value={formData.security.sessionTimeoutMinutes}
-                  onChange={(e) => handleSecurityChange('sessionTimeoutMinutes', parseInt(e.target.value) || 60)}
+                  onChange={(e) => handleSecurityChange('sessionTimeoutMinutes', e.target.value === '' ? '' : Number(e.target.value))}
                 />
               </div>
               <div className="adm-form-group">

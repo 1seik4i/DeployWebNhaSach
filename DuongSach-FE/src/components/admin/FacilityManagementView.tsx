@@ -52,6 +52,7 @@ export function FacilityManagementView({ kind }: { kind: FacilityKind }) {
     const query = new URLSearchParams({ search, campus });
     facilityRequest<{ data: Facility[]; campuses: string[] }>(`${kind}?${query}`, { signal: controller.signal })
       .then(result => {
+        if (controller.signal.aborted) return;
         if (result?.data) setRows(result.data);
         if (result?.campuses?.length) setCampuses(result.campuses);
       })
@@ -145,7 +146,7 @@ export function FacilityManagementView({ kind }: { kind: FacilityKind }) {
     {notice && <div className="facility-notice" role="status">{notice}</div>}
     <div className="facility-panel">
       <div className="facility-toolbar">
-        <label className="facility-search"><Search size={18} /><input aria-label={`Tìm tên ${labels[kind]}`} placeholder={`Tìm theo tên ${labels[kind]}…`} value={search} onChange={e => setSearch(e.target.value)} /></label>
+        <label className="facility-search"><Search size={18} /><input maxLength={200} aria-label={`Tìm tên ${labels[kind]}`} placeholder={`Tìm theo tên ${labels[kind]}…`} value={search} onChange={e => setSearch(e.target.value)} /></label>
         {!asset && <label className="facility-filter"><MapPin size={17} /><select aria-label="Lọc theo cơ sở" value={campus} onChange={e => setCampus(e.target.value)}><option value="">Tất cả cơ sở</option>{campuses.map(value => <option key={value}>{value}</option>)}</select></label>}
         <button className="facility-button" disabled={loading} onClick={() => setRevision(value => value + 1)} aria-label="Tải lại danh sách"><RefreshCw size={17} /></button>
       </div>

@@ -1,12 +1,12 @@
 import { z } from 'zod';
+import { paginationFields, searchText, imageSource } from '../../utils/input.validation.js';
 
-const isValidDateString = (val) => typeof val === 'string' && val.trim().length > 0 && !isNaN(Date.parse(val));
+const isValidDateString = (val) => z.string().datetime({ offset: true }).safeParse(val).success;
 
 export const listEventSchema = z.object({
   query: z.object({
-    page: z.string().optional(),
-    limit: z.string().optional(),
-    search: z.string().optional(),
+    ...paginationFields,
+    search: searchText.optional(),
     priorityLevel: z.enum(['regular', 'medium', 'high'], {
       errorMap: () => ({ message: 'Độ ưu tiên chỉ được là regular, medium hoặc high' }),
     }).optional(),
@@ -26,7 +26,7 @@ export const createEventSchema = z.object({
   body: z.object({
     visibility: z.enum(['public','internal']).optional(),
     publicUntil: z.string().datetime({offset:true}).nullable().optional(),
-    coverImageUrl: z.string().nullable().optional(),
+    coverImageUrl: imageSource.nullable().optional(),
     summary: z.string().max(5000).nullable().optional(),
     title: z.string({ required_error: 'Tiêu đề là bắt buộc' })
       .trim()
@@ -37,7 +37,7 @@ export const createEventSchema = z.object({
     endAt: z.string({ required_error: 'Thời gian kết thúc là bắt buộc' })
       .refine(isValidDateString, 'Thời gian kết thúc không hợp lệ'),
     venueId: z.string().uuid('ID địa điểm không hợp lệ').nullable().optional(),
-    description: z.string().nullable().optional(),
+    description: z.string().max(20000).nullable().optional(),
     priorityLevel: z.enum(['regular', 'medium', 'high'], {
       errorMap: () => ({ message: 'Độ ưu tiên chỉ được là regular, medium hoặc high' }),
     }).default('regular'),
@@ -55,13 +55,13 @@ export const updateEventSchema = z.object({
   body: z.object({
     visibility: z.enum(['public','internal']).optional(),
     publicUntil: z.string().datetime({offset:true}).nullable().optional(),
-    coverImageUrl: z.string().nullable().optional(),
+    coverImageUrl: imageSource.nullable().optional(),
     summary: z.string().max(5000).nullable().optional(),
     title: z.string().trim().min(1, 'Tiêu đề không được để trống').max(200, 'Tiêu đề không được vượt quá 200 ký tự').optional(),
     startAt: z.string().refine(isValidDateString, 'Thời gian bắt đầu không hợp lệ').optional(),
     endAt: z.string().refine(isValidDateString, 'Thời gian kết thúc không hợp lệ').optional(),
     venueId: z.string().uuid('ID địa điểm không hợp lệ').nullable().optional(),
-    description: z.string().nullable().optional(),
+    description: z.string().max(20000).nullable().optional(),
     priorityLevel: z.enum(['regular', 'medium', 'high'], {
       errorMap: () => ({ message: 'Độ ưu tiên chỉ được là regular, medium hoặc high' }),
     }).optional(),

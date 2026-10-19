@@ -32,7 +32,7 @@ export const Hero: React.FC<HeroProps> = ({
 
   // Gợi ý thông minh tức thì theo từ khóa nhập vào
   const suggestions = useMemo(() => {
-    const q = searchTerm.toLowerCase().trim();
+    const q = searchTerm.trim().normalize('NFC').toLocaleLowerCase('vi-VN');
     if (!q || q.length < 1) return [];
 
     const results: Array<{
@@ -155,7 +155,7 @@ export const Hero: React.FC<HeroProps> = ({
               <Search size={20} className="hero-search-icon" />
             </div>
 
-            <input 
+            <input maxLength={200}
               type="text"
               className="hero-search-input"
               value={searchTerm}

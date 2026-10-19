@@ -62,6 +62,7 @@ export interface AdminSystemSettings {
 
 export interface AdminAuditLogItem {
   id: string;
+  createdAt?: string;
   timestamp: string;
   actorName: string;
   actorEmail: string;

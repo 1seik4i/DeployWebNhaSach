@@ -1,6 +1,7 @@
 import { useUrlTab } from '../../hooks/useUrlTab';
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
+import { matchesSearch } from '../../utils/inputValidation';
 import { Calendar, Clock, MapPin, Users, Eye, Edit3, AlertCircle, Mic } from 'lucide-react';
 import { Language, PartnerActivityProposal } from '../../types';
 import './PartnerPages.css';
@@ -19,6 +20,9 @@ export const ActivityProposalPage: React.FC<ActivityProposalPageProps> = ({
   activities,
 }) => {
   const [activeTab, setActiveTab] = useUrlTab(['all', 'pending', 'approved', 'need_changes', 'rejected', 'withdrawn'], 'all');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const rawSearch = (searchParams.get('search') || '').slice(0, 200);
+  const query = rawSearch.normalize('NFC').trim();
   const pendingCount = activities.filter(a => a.status === 'pending').length;
   const approvedCount = activities.filter(a => a.status === 'approved').length;
   const needChangesCount = activities.filter(a => a.status === 'need_changes').length;
@@ -26,12 +30,14 @@ export const ActivityProposalPage: React.FC<ActivityProposalPageProps> = ({
   const withdrawnCount = activities.filter(a => a.status === 'withdrawn').length;
 
   const filteredActivities = activities.filter(a => {
+    if (!matchesSearch(query, a.title, a.speaker, a.location)) return false;
     if (activeTab === 'all') return true;
     return a.status === activeTab;
   });
 
   return (
     <div className="activity-proposal-page">
+      {query && <p role="status">{language === 'vi' ? 'Kết quả tìm kiếm' : 'Search results'}: {query} <button type="button" onClick={() => { const params = new URLSearchParams(searchParams); params.delete('search'); setSearchParams(params); }}>{language === 'vi' ? 'Xóa tìm kiếm' : 'Clear search'}</button></p>}
       {/* 1. Header matching Sketch Screen 5 */}
       <div className="partner-page-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
@@ -48,6 +54,20 @@ export const ActivityProposalPage: React.FC<ActivityProposalPageProps> = ({
 
       </div>
 
+      <input
+        className="partner-activity-mobile-search"
+        type="search"
+        aria-label={language === 'vi' ? 'Tìm hoạt động' : 'Search activities'}
+        placeholder={language === 'vi' ? 'Tìm hoạt động...' : 'Search activities...'}
+        maxLength={200}
+        value={rawSearch}
+        onChange={event => {
+          const params = new URLSearchParams(searchParams);
+          if (event.target.value) params.set('search', event.target.value);
+          else params.delete('search');
+          setSearchParams(params, { replace: true });
+        }}
+      />
       {/* 2. Filter Tabs matching Sketch Screen 5 */}
       <div className="partner-tabs-bar">
         <button

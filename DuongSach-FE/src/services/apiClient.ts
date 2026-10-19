@@ -111,7 +111,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}, retryUnau
 }
 
 export const apiClient = {
-  get: <T>(endpoint: string) => request<T>(endpoint, { method: 'GET' }),
+  get: <T>(endpoint: string, options: { signal?: AbortSignal } = {}) => request<T>(endpoint, { method: 'GET', ...options }),
   post: <T>(endpoint: string, body?: unknown) => request<T>(endpoint, { method: 'POST', body: JSON.stringify(body) }),
   put: <T>(endpoint: string, body?: unknown) => request<T>(endpoint, { method: 'PUT', body: JSON.stringify(body) }),
   patch: <T>(endpoint: string, body?: unknown) => request<T>(endpoint, { method: 'PATCH', body: JSON.stringify(body) }),

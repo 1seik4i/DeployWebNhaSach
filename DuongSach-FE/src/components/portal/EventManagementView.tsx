@@ -100,7 +100,7 @@ export const EventManagementView: React.FC<EventManagementViewProps> = ({
       }
       // Search filter
       if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase().trim();
+        const q = searchQuery.trim().normalize('NFC').toLocaleLowerCase('vi-VN');
         const matchTitle = e.title.toLowerCase().includes(q);
         const matchLoc = (e.location || '').toLowerCase().includes(q);
         const matchDesc = (e.description || '').toLowerCase().includes(q);
@@ -304,7 +304,7 @@ export const EventManagementView: React.FC<EventManagementViewProps> = ({
             {/* Search Input */}
             <div className="event-search-box" style={{ width: '220px' }}>
               <Search size={15} color="#6d847c" />
-              <input
+              <input maxLength={200}
                 type="text"
                 placeholder={language === 'vi' ? 'Tìm tên sự kiện...' : 'Search event...'}
                 value={searchQuery}

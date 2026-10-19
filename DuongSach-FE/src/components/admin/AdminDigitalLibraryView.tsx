@@ -284,7 +284,7 @@ export function AdminDigitalLibraryView({ language }: {
     const handleCoverUpload = (file?: File) => { 
         if (!file) return; 
         setCoverError(''); 
-        if (!file.type.startsWith('image/')) {
+        if (!/^(?:image\/(?:png|jpeg|gif|webp|avif))$/.test(file.type)) {
             setCoverError(language === 'vi' ? 'Vui lòng chọn đúng định dạng ảnh.' : 'Please choose an image file.');
             return;
         } 
@@ -805,7 +805,7 @@ export function AdminDigitalLibraryView({ language }: {
                 return bookStallsList.some(s => s.stallId === selectedStallId);
             })
             .filter(book => selectedStatus === 'all' || book.status === selectedStatus)
-            .filter(book => !query || `${book.title} ${book.author} ${book.isbn}`.toLocaleLowerCase('vi').includes(query.toLocaleLowerCase('vi')));
+            .filter(book => !query || `${book.title} ${book.author} ${book.isbn}`.normalize('NFC').toLocaleLowerCase('vi').includes(query.trim().normalize('NFC').toLocaleLowerCase('vi')));
     }, [books, selectedCategoryId, selectedStallId, selectedStatus, query, getBookStalls]);
 
     const visibleSubmissions = useMemo(() => {
@@ -813,7 +813,7 @@ export function AdminDigitalLibraryView({ language }: {
             .filter(item => requestStatus === 'all' || item.status === requestStatus)
             .filter(item => requestType === 'all' || item.type === requestType)
             .filter(item => !requestDate || item.submittedAt.slice(0, 10) === requestDate)
-            .filter(item => !query || `${item.stallName} ${item.stallCode || ''} ${item.proposedData.title || ''} ${item.proposedData.isbn || ''} ${item.submitterName || ''}`.toLocaleLowerCase('vi').includes(query.toLocaleLowerCase('vi')));
+            .filter(item => !query || `${item.stallName} ${item.stallCode || ''} ${item.proposedData.title || ''} ${item.proposedData.isbn || ''} ${item.submitterName || ''}`.normalize('NFC').toLocaleLowerCase('vi').includes(query.trim().normalize('NFC').toLocaleLowerCase('vi')));
     }, [submissions, requestStatus, requestType, requestDate, query]);
 
     const ranked = useMemo(() => books.filter(book => rankingType === 'bestseller' ? book.bestsellerRank : book.weeklyRank).sort((a, b) => (rankingType === 'bestseller' ? a.bestsellerRank || 999 : a.weeklyRank || 999) - (rankingType === 'bestseller' ? b.bestsellerRank || 999 : b.weeklyRank || 999)), [books, rankingType]);
@@ -847,8 +847,8 @@ export function AdminDigitalLibraryView({ language }: {
                     row =>
                         !query ||
                         `${row.book.title} ${row.book.isbn} ${row.stall.stallName} ${row.stall.stallCode || ''}`
-                            .toLocaleLowerCase('vi')
-                            .includes(query.toLocaleLowerCase('vi'))
+                            .normalize('NFC').toLocaleLowerCase('vi')
+                            .includes(query.trim().normalize('NFC').toLocaleLowerCase('vi'))
                 ),
         [inventory, activeStallIds, stallId, stockStatus, query]
     );
@@ -916,7 +916,7 @@ export function AdminDigitalLibraryView({ language }: {
                 <div className="admin-library-tools admin-books-tools">
                     <label>
                         <Search size={16}/>
-                        <input 
+                        <input maxLength={200}
                             value={query} 
                             onChange={e => setQuery(e.target.value)} 
                             placeholder={language === 'vi' ? 'Tìm tên sách, tác giả, ISBN...' : 'Search title, author, ISBN...'}
@@ -1297,7 +1297,7 @@ export function AdminDigitalLibraryView({ language }: {
                 <div className="admin-library-tools admin-moderation-tools">
                     <label>
                         <Search size={16}/>
-                        <input 
+                        <input maxLength={200}
                             value={query} 
                             onChange={e => setQuery(e.target.value)} 
                             placeholder={language === 'vi' ? 'Gian hàng, tên sách, ISBN hoặc người gửi...' : 'Stall, book title, ISBN or submitter...'}
@@ -1350,7 +1350,7 @@ export function AdminDigitalLibraryView({ language }: {
                                     <td style={{ textAlign: 'left' }}>{submissionLabel(item, language)}</td>
                                     <td style={{ textAlign: 'center' }}>{new Date(item.submittedAt).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-GB')}</td>
                                     <td style={{ textAlign: 'center' }}>
-                                        <span className={`admin-request-status ${item.status.toLowerCase()}`}>
+                                        <span className={`admin-request-status ${item.status.normalize('NFC').toLowerCase()}`}>
                                             {item.status === 'PENDING' ? (language === 'vi' ? 'Chờ duyệt' : 'Pending') : item.status === 'APPROVED' ? (language === 'vi' ? 'Đã duyệt' : 'Approved') : (language === 'vi' ? 'Bị từ chối' : 'Rejected')}
                                         </span>
                                         {item.rejectionReason && (
@@ -1385,7 +1385,7 @@ export function AdminDigitalLibraryView({ language }: {
                                     <strong>{item.stallName}</strong>
                                     {item.stallCode && <span className="admin-stall-code-tag">{item.stallCode}</span>}
                                 </div>
-                                <span className={`admin-request-status ${item.status.toLowerCase()}`}>
+                                <span className={`admin-request-status ${item.status.normalize('NFC').toLowerCase()}`}>
                                     {item.status === 'PENDING' ? (language === 'vi' ? 'Chờ duyệt' : 'Pending') : item.status === 'APPROVED' ? (language === 'vi' ? 'Đã duyệt' : 'Approved') : (language === 'vi' ? 'Bị từ chối' : 'Rejected')}
                                 </span>
                             </div>
@@ -1557,7 +1557,7 @@ export function AdminDigitalLibraryView({ language }: {
                 <div className="admin-library-tools admin-stall-tools">
                     <label>
                         <Search size={16}/>
-                        <input
+                        <input maxLength={200}
                             value={query}
                             onChange={e => setQuery(e.target.value)}
                             placeholder={language === 'vi' ? 'Tìm sách hoặc gian hàng' : 'Search book or stall'}
@@ -1646,7 +1646,7 @@ export function AdminDigitalLibraryView({ language }: {
                                             </span>
                                         </td>
                                         <td style={{ textAlign: 'center' }}>
-                                            <span className={`admin-clean-badge review-${status.toLowerCase()}`}>
+                                            <span className={`admin-clean-badge review-${status.normalize('NFC').toLowerCase()}`}>
                                                 {status === 'PENDING'
                                                     ? (language === 'vi' ? 'Chờ duyệt' : 'Pending')
                                                     : status === 'REJECTED'
@@ -1719,7 +1719,7 @@ export function AdminDigitalLibraryView({ language }: {
                                     </div>
                                     <div className="admin-smc-stat-box">
                                         <span className="admin-smc-stat-label">{language === 'vi' ? 'Duyệt nội dung' : 'Review'}</span>
-                                        <span className={`admin-clean-badge review-${status.toLowerCase()}`}>
+                                        <span className={`admin-clean-badge review-${status.normalize('NFC').toLowerCase()}`}>
                                             {status === 'PENDING'
                                                 ? (language === 'vi' ? 'Chờ duyệt' : 'Pending')
                                                 : status === 'REJECTED'
@@ -1978,23 +1978,23 @@ export function AdminDigitalLibraryView({ language }: {
                     <div className="admin-book-form-grid">
                         <label>
                             ISBN *
-                            <input name="isbn" autoComplete="off" value={form.isbn} onChange={e => setForm({ ...form, isbn: e.target.value })} required placeholder="VD: 9786041000009"/>
+                            <input name="isbn" autoComplete="off" value={form.isbn} onChange={e => setForm({ ...form, isbn: e.target.value })} required maxLength={32} placeholder="VD: 9786041000009"/>
                         </label>
                         <label>
                             {language === 'vi' ? 'Tên sách *' : 'Title *'}
-                            <input name="bookTitle" autoComplete="off" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} required placeholder={language === 'vi' ? 'Nhập tên sách...' : 'Enter book title...'}/>
+                            <input name="bookTitle" autoComplete="off" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} required maxLength={200} placeholder={language === 'vi' ? 'Nhập tên sách...' : 'Enter book title...'}/>
                         </label>
                         <label>
                             {language === 'vi' ? 'Tác giả *' : 'Author *'}
-                            <input name="bookAuthor" autoComplete="off" value={form.author} onChange={e => setForm({ ...form, author: e.target.value })} required placeholder={language === 'vi' ? 'Tên tác giả...' : 'Author name...'}/>
+                            <input name="bookAuthor" autoComplete="off" value={form.author} onChange={e => setForm({ ...form, author: e.target.value })} required maxLength={200} placeholder={language === 'vi' ? 'Tên tác giả...' : 'Author name...'}/>
                         </label>
                         <label>
                             {language === 'vi' ? 'Nhà xuất bản' : 'Publisher'}
-                            <input value={form.publisher || ''} onChange={e => setForm({ ...form, publisher: e.target.value })} placeholder="VD: NXB Trẻ, Nhã Nam..."/>
+                            <input value={form.publisher || ''} onChange={e => setForm({ ...form, publisher: e.target.value })} maxLength={200} placeholder="VD: NXB Trẻ, Nhã Nam..."/>
                         </label>
                         <label>
                             {language === 'vi' ? 'Năm xuất bản' : 'Publication year'}
-                            <input type="number" value={form.publicationYear || ''} onChange={e => setForm({ ...form, publicationYear: Number(e.target.value) || undefined })} placeholder="VD: 2024"/>
+                            <input type="number" min={1} max={2200} step={1} value={form.publicationYear || ''} onChange={e => setForm({ ...form, publicationYear: Number(e.target.value) || undefined })} placeholder="VD: 2024"/>
                         </label>
                         <label>
                             {language === 'vi' ? 'Phân loại danh mục' : 'Category'}
@@ -2021,8 +2021,10 @@ export function AdminDigitalLibraryView({ language }: {
                             <input 
                                 type="number" 
                                 min="0" 
+                                max="2147483647"
+                                step="1"
                                 value={form.inventoryQuantity ?? 0} 
-                                onChange={e => setForm({ ...form, inventoryQuantity: Math.max(0, Number(e.target.value) || 0) })}
+                                onChange={e => setForm({ ...form, inventoryQuantity: Number(e.target.value) })}
                             />
                         </label>
 
@@ -2054,7 +2056,7 @@ export function AdminDigitalLibraryView({ language }: {
                                     </div>
                                     <div className="admin-cover-url-input">
                                         <span className="admin-cover-or-text">{language === 'vi' ? 'Hoặc dán URL ảnh trực tuyến:' : 'Or paste cover image URL:'}</span>
-                                        <input 
+                                        <input maxLength={10000000}
                                             type="text"
                                             name="bookCoverUrl"
                                             autoComplete="off"
@@ -2090,7 +2092,7 @@ export function AdminDigitalLibraryView({ language }: {
 
                         <label className="admin-form-wide">
                             {language === 'vi' ? 'Tóm tắt / Mô tả nội dung sách' : 'Description'}
-                            <textarea rows={4} value={form.description || ''} onChange={e => setForm({ ...form, description: e.target.value })} placeholder={language === 'vi' ? 'Giới thiệu ngắn về cuốn sách...' : 'Brief description...'}/>
+                            <textarea maxLength={20000} rows={4} value={form.description || ''} onChange={e => setForm({ ...form, description: e.target.value })} placeholder={language === 'vi' ? 'Giới thiệu ngắn về cuốn sách...' : 'Brief description...'}/>
                         </label>
                     </div>
                     <div className="admin-form-actions">
@@ -2336,7 +2338,7 @@ export function AdminDigitalLibraryView({ language }: {
                                 <>
                                     <label>
                                         {language === 'vi' ? 'Lý do từ chối (bắt buộc nhập để đối tác biết và sửa):' : 'Rejection Reason:'}
-                                        <textarea 
+                                        <textarea maxLength={2000}
                                             value={rejectionReason} 
                                             onChange={e => setRejectionReason(e.target.value)} 
                                             rows={3}
@@ -2366,7 +2368,7 @@ export function AdminDigitalLibraryView({ language }: {
                     ) : (
                         <div className="admin-review-actions" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                                <span className={`admin-request-status ${reviewing.status.toLowerCase()}`}>
+                                <span className={`admin-request-status ${reviewing.status.normalize('NFC').toLowerCase()}`}>
                                     {reviewing.status === 'APPROVED' ? (language === 'vi' ? 'Đã duyệt' : 'Approved') : (language === 'vi' ? 'Bị từ chối' : 'Rejected')}
                                 </span>
                                 {reviewing.rejectionReason && (
@@ -2402,7 +2404,7 @@ export function AdminDigitalLibraryView({ language }: {
                     <div className="admin-taxonomy-edit-body">
                         <label>
                             {language === 'vi' ? 'Tên hiển thị *' : 'Display Name *'}
-                            <input 
+                            <input maxLength={200}
                                 value={editingTaxonomy.name} 
                                 onChange={e => setEditingTaxonomy({ ...editingTaxonomy, name: e.target.value })} 
                                 required 
@@ -2413,7 +2415,7 @@ export function AdminDigitalLibraryView({ language }: {
                         {editingTaxonomy.type === 'category' && (
                             <label>
                                 {language === 'vi' ? 'Tên tiếng Anh (tùy chọn)' : 'English Name (Optional)'}
-                                <input 
+                                <input maxLength={200}
                                     value={editingTaxonomy.nameEn || ''} 
                                     onChange={e => setEditingTaxonomy({ ...editingTaxonomy, nameEn: e.target.value })} 
                                     placeholder="e.g. Vietnamese Literature"
@@ -2719,7 +2721,7 @@ export function AdminDigitalLibraryView({ language }: {
                                 </div>
                                 <div className="admin-ranking-input-group">
                                     <span className="admin-ranking-input-prefix">#</span>
-                                    <input
+                                    <input step={1}
                                         type="number"
                                         min="1"
                                         max="100"
@@ -2753,7 +2755,7 @@ export function AdminDigitalLibraryView({ language }: {
                                 </div>
                                 <div className="admin-ranking-input-group">
                                     <span className="admin-ranking-input-prefix">#</span>
-                                    <input
+                                    <input step={1}
                                         type="number"
                                         min="1"
                                         max="100"
@@ -2868,7 +2870,7 @@ export function AdminDigitalLibraryView({ language }: {
                             {language === 'vi' ? 'Vị trí thứ hạng mong muốn (Hạng 1 - 100) *' : 'Target Rank Position (1 - 100) *'}
                             <div className="admin-ranking-input-group">
                                 <span className="admin-ranking-input-prefix">#</span>
-                                <input
+                                <input step={1}
                                     type="number"
                                     min="1"
                                     max="100"
@@ -3004,7 +3006,7 @@ function Tools({ query, setQuery, placeholder }: {
     query: string;
     setQuery: (value: string) => void;
     placeholder: string;
-}) { return <div className="admin-library-tools"><label><Search size={16}/><input value={query} onChange={e => setQuery(e.target.value)} placeholder={placeholder}/></label></div>; }
+}) { return <div className="admin-library-tools"><label><Search size={16}/><input maxLength={200} value={query} onChange={e => setQuery(e.target.value)} placeholder={placeholder}/></label></div>; }
 function TaxonomySection({ title, icon, value, setValue, onCreate, rows, language }: {
     title: string;
     icon: React.ReactNode;
@@ -3033,10 +3035,10 @@ function TaxonomySection({ title, icon, value, setValue, onCreate, rows, languag
                 <span className="admin-taxonomy-count-tag">{rows.length} {language === 'vi' ? 'mục' : 'items'}</span>
             </header>
             <form onSubmit={e => { e.preventDefault(); onCreate(); }} className="admin-taxonomy-form">
-                <input 
+                <input maxLength={200}
                     value={value} 
                     onChange={e => setValue(e.target.value)} 
-                    placeholder={language === 'vi' ? `Nhập tên ${title.toLowerCase()} mới...` : `New ${title.toLowerCase()}...`}
+                    placeholder={language === 'vi' ? `Nhập tên ${title.normalize('NFC').toLowerCase()} mới...` : `New ${title.normalize('NFC').toLowerCase()}...`}
                 />
                 <button className="admin-library-primary" type="submit">
                     <Plus size={15}/>{language === 'vi' ? 'Thêm' : 'Add'}

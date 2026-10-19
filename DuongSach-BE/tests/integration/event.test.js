@@ -235,10 +235,11 @@ describe('Event Management API (/api/admin/events)', () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
           title: 'Triển lãm tranh Đông Hồ ' + Date.now(),
-          startAt: '2026-10-15T08:00:00.000Z',
-          endAt: '2026-10-20T18:00:00.000Z',
+          startAt: new Date(Date.now() + 30 * 86400000).toISOString(),
+          endAt: new Date(Date.now() + 35 * 86400000).toISOString(),
           priorityLevel: 'medium',
         });
+      expect(res.status, JSON.stringify(res.body)).toBe(201);
       createdEventId = res.body.data.id;
     });
 

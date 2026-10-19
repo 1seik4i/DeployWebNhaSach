@@ -95,6 +95,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
 
   // Core Admin Data States
   const [users, setUsers] = useState<AdminUserAccount[]>([]);
+  const [userSearch, setUserSearch] = useState('');
   const [roleConfigs, setRoleConfigs] = useState<Record<AdminRoleType, AdminRolePermissionConfig>>({} as Record<AdminRoleType, AdminRolePermissionConfig>);
   const [permissions, setPermissions] = useState<AdminPermissionItem[]>([]);
   const [systemSettings, setSystemSettings] = useState<AdminSystemSettings | null>(null);
@@ -296,6 +297,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     <div className="admin-app-shell">
       {/* 1. Full-Width Top Header */}
       <AdminTopBar
+        onSearchUsers={(query) => { setUserSearch(query); setActiveTab('users'); }}
         language={language}
         profile={profile}
         unreadCount={unreadNotificationsCount}
@@ -460,6 +462,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
 
           {activeTab === 'users' && (
             <AdminUserManagementView
+              key={userSearch}
+              initialSearch={userSearch}
               users={users}
               onAddUser={handleAddUser}
               onUpdateUser={handleUpdateUser}

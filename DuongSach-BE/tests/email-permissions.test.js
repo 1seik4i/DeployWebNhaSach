@@ -6,7 +6,7 @@ vi.mock('../src/config/database.js', () => {
   const prisma = {
     user: { findUnique: vi.fn(), findFirst: vi.fn(), update: vi.fn() },
     organizationMember: { findFirst: vi.fn() },
-    organization: { update: vi.fn() },
+    organization: { update: vi.fn(), updateMany: vi.fn() },
     auditLog: { create: vi.fn() },
   };
   prisma.$transaction = vi.fn(callback => callback(prisma));
@@ -54,6 +54,10 @@ describe('email editing permissions', () => {
     const response = await request(app).patch('/api/admin/users/00000000-0000-4000-8000-000000000001').set('x-test-role', 'admin').send({ email: 'new@example.test' });
     expect(response.status).toBe(200);
     expect(prisma.user.update).toHaveBeenCalledWith(expect.objectContaining({ data: { email: 'new@example.test' } }));
+    expect(prisma.organization.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: { members: { some: { userId: '00000000-0000-4000-8000-000000000001', roleInOrg: 'owner' } }, isDeleted: false },
+      data: { email: 'new@example.test' },
+    }));
   });
   it('denies partner access to the admin email edit endpoint', async () => {
     expect((await request(app).patch('/api/admin/users/00000000-0000-4000-8000-000000000001').send({ email: 'new@example.test' })).status).toBe(403);

@@ -61,7 +61,7 @@ export const EventsExperience: React.FC<EventsExperienceProps> = ({
   const filteredEvents = useMemo(() => {
     return events.filter((evt) => {
       const matchType = selectedType === 'all' || evt.type === selectedType;
-      const q = searchQuery.toLowerCase().trim();
+      const q = searchQuery.trim().normalize('NFC').toLocaleLowerCase('vi-VN');
       const matchSearch =
         !q ||
         evt.title.toLowerCase().includes(q) ||
@@ -181,7 +181,7 @@ export const EventsExperience: React.FC<EventsExperienceProps> = ({
             </div>
             <div className="heritage-search">
               <Search size={16} />
-              <input
+              <input maxLength={200}
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}

@@ -230,6 +230,7 @@ model User {
   lockReason         String?              @map("lock_reason")
   avatarUrl          String?              @map("avatar_url")
   totalPoints        Int                  @default(0) @map("total_points")
+  department         String?              @db.VarChar(200)
   emailNotifications Boolean              @default(true) @map("email_notifications")
   lastActiveAt       DateTime?            @map("last_active_at") @db.Timestamptz(6)
   createdAt          DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)

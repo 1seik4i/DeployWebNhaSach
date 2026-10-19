@@ -1,5 +1,6 @@
 import { DatePicker } from '../ui/DatePicker';
 import { useModalBehavior } from '../../hooks/useModalBehavior';
+import { imageFileError } from '../../utils/fileValidation';
 import React, { useState } from 'react';
 import { 
   X, 
@@ -91,7 +92,7 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting || isReadingImage) return;
-    if (!title.trim()) {
+    if (!title.trim() || title.trim().length > 200) {
       setError(language === 'vi' ? 'Vui lòng nhập tên sự kiện' : 'Please enter event title');
       return;
     }
@@ -99,6 +100,14 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
     const endDate = activityDateKey(endDateStr);
     if (!startDate || !endDate) {
       setError(language === 'vi' ? 'Ngày bắt đầu và kết thúc phải hợp lệ, theo định dạng dd/mm/yyyy.' : 'Enter valid start and end dates in dd/mm/yyyy format.');
+      return;
+    }
+    if (!location || !locations.some(item => item.id === location)) {
+      setError(language === 'vi' ? 'Vui lòng chọn sự kiện và địa điểm hợp lệ' : 'Please select a valid event and location');
+      return;
+    }
+    if (!Number.isInteger(Number(capacity)) || Number(capacity) < 1 || Number(capacity) > 2147483647) {
+      setError(language === 'vi' ? 'Sức chứa phải là số nguyên dương' : 'Capacity must be a positive integer');
       return;
     }
 
@@ -234,6 +243,7 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
               <input 
                 type="text"
                 placeholder={language === 'vi' ? 'Ví dụ: Giao lưu tác giả & Ký tặng sách mới' : 'e.g. Author Meet & Greet'}
+                maxLength={200}
                 value={title}
                 onChange={e => setTitle(e.target.value)}
                 style={{
@@ -290,7 +300,7 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
                   <Building2 size={14} color="#17382E" />
                   <span>{language === 'vi' ? 'Đơn vị tổ chức / Đối tác' : 'Partner / Organizer'}</span>
                 </label>
-                <input 
+                <input maxLength={200}
                   type="text"
                   placeholder={language === 'vi' ? 'Ví dụ: NXB Trẻ, Nhã Nam...' : 'e.g. Tre Publishing, Nha Nam...'}
                   value={organization?.name || partnerName}
@@ -319,7 +329,7 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
                   <Mic size={14} color="#17382E" />
                   <span>{language === 'vi' ? 'Diễn giả / Khách mời' : 'Speaker / Host'}</span>
                 </label>
-                <input 
+                <input maxLength={200}
                   type="text"
                   placeholder={language === 'vi' ? 'Ví dụ: Nhà văn Nguyễn Nhật Ánh' : 'e.g. Author Nguyen Nhat Anh'}
                   value={speaker}
@@ -347,6 +357,8 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
                 <input 
                   type="number"
                   min="1"
+                  max="2147483647"
+                  required
                   
                   step="1"
                   value={capacity}
@@ -476,14 +488,8 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
                       const file = e.target.files?.[0];
                       e.target.value = '';
                       if (file) {
-                        if (!file.type.startsWith('image/')) {
-                          setError(language === 'vi' ? 'Vui lòng chọn một tệp ảnh.' : 'Please select an image file.');
-                          return;
-                        }
-                        if (file.size > MAX_EVENT_IMAGE_MB * 1024 * 1024) {
-                          setError(language === 'vi' ? `Ảnh sự kiện tối đa ${MAX_EVENT_IMAGE_MB} MB.` : `Event images must be ${MAX_EVENT_IMAGE_MB} MB or smaller.`);
-                          return;
-                        }
+                        const error = imageFileError(file, MAX_EVENT_IMAGE_MB);
+                        if (error) { setError(error); e.target.value = ''; return; }
                         setError(null);
                         setIsReadingImage(true);
                         const reader = new FileReader();
@@ -506,7 +512,7 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
               <small>{language === 'vi' ? `Ảnh tối đa ${MAX_EVENT_IMAGE_MB} MB` : `Images up to ${MAX_EVENT_IMAGE_MB} MB`}</small>
 
               <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                <input 
+                <input maxLength={10000000}
                   type="text"
                   value={thumbnail}
                   onChange={e => setThumbnail(e.target.value)}
@@ -539,7 +545,7 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
               <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 650, color: '#1F2937', marginBottom: '0.4rem' }}>
                 {language === 'vi' ? 'Nội dung tóm tắt & Giới thiệu' : 'Description & Highlights'}
               </label>
-              <textarea 
+              <textarea maxLength={20000}
                 rows={3}
                 placeholder={language === 'vi' ? 'Mô tả ngắn về chủ đề buổi giao lưu, các phần quà tặng, hoạt động tương tác...' : 'Brief summary of the activity highlights, guest speaker bio...'}
                 value={description}

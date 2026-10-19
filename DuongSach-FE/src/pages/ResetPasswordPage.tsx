@@ -230,7 +230,7 @@ export const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({ language }
                 </label>
                 <div className="rpp-input-wrap">
                   <Lock size={17} className="rpp-input-icon" />
-                  <input
+                  <input maxLength={128}
                     id="rpp-new-password"
                     type={showNewPassword ? 'text' : 'password'}
                     required
@@ -262,7 +262,7 @@ export const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({ language }
                 </label>
                 <div className="rpp-input-wrap">
                   <Lock size={17} className="rpp-input-icon" />
-                  <input
+                  <input maxLength={128}
                     id="rpp-confirm-password"
                     type={showConfirmPassword ? 'text' : 'password'}
                     required

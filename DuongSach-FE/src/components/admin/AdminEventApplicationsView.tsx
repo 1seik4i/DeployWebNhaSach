@@ -81,7 +81,7 @@ export function AdminEventApplicationsView({ language }: { language: Language })
   const visible = rows.filter(row =>
     (eventId === 'all' || row.eventId === eventId) &&
     (status === 'all' || (status === 'pending' ? pending(row) : row.status === status)) &&
-    [row.orgName, row.rep, row.email, row.phone, row.eventTitle].some(value => value?.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()))
+    [row.orgName, row.rep, row.email, row.phone, row.eventTitle].some(value => value?.normalize('NFC').toLocaleLowerCase('vi-VN').includes(query.trim().normalize('NFC').toLocaleLowerCase('vi-VN')))
   );
 
   const pagination = useListPagination(visible, `${eventId}:${status}:${query}`, 8);
@@ -222,7 +222,7 @@ export function AdminEventApplicationsView({ language }: { language: Language })
       <div className="adm-applications-filters-wrap">
         <div className="adm-filter-search-box">
           <Search size={16} className="adm-filter-search-icon" />
-          <input
+          <input maxLength={200}
             className="adm-filter-search-input"
             aria-label={vi ? 'Tìm đơn đăng ký' : 'Search applications'}
             placeholder={vi ? 'Tìm theo tên gian hàng, người đại diện, số điện thoại, sự kiện…' : 'Search partner, representative, phone or event…'}

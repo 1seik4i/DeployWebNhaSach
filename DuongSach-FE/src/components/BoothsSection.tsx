@@ -166,7 +166,7 @@ export const BoothsSection: React.FC<BoothsSectionProps> = ({
   const filteredBooths = useMemo(() => {
     const matchingBooths = booths.filter((booth) => {
       const matchCat = activeCategory === 'all' || booth.category === activeCategory;
-      const q = searchQuery.toLowerCase().trim();
+      const q = searchQuery.trim().normalize('NFC').toLocaleLowerCase('vi-VN');
       const matchSearch =
         !q ||
         booth.name.toLowerCase().includes(q) ||
@@ -231,7 +231,7 @@ export const BoothsSection: React.FC<BoothsSectionProps> = ({
         <div className="figma-stalls-controls">
           <div className="figma-search-bar">
             <Search size={18} className="search-ico" />
-            <input
+            <input maxLength={200}
               type="text"
               ref={searchInputRef}
               value={searchQuery}

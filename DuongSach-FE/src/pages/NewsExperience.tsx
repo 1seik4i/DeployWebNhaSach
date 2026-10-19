@@ -137,7 +137,7 @@ export const NewsExperience: React.FC<NewsExperienceProps> = ({ language, open }
     return articles
       .filter((item) => {
         const matchCat = selectedCategory === 'all' || item.category === selectedCategory;
-        const q = searchQuery.toLowerCase().trim();
+        const q = searchQuery.trim().normalize('NFC').toLocaleLowerCase('vi-VN');
         const matchQuery =
           !q ||
           item.titleVi.toLowerCase().includes(q) ||
@@ -432,7 +432,7 @@ export const NewsExperience: React.FC<NewsExperienceProps> = ({ language, open }
                 </div>
                 <div className="heritage-search">
                   <Search size={16} />
-                  <input
+                  <input maxLength={200}
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -584,7 +584,7 @@ export const NewsExperience: React.FC<NewsExperienceProps> = ({ language, open }
 
               <div className="newsletter-form-wrap">
                 <form onSubmit={handleSubscribeNewsletter} className="newsletter-input-group">
-                  <input
+                  <input maxLength={254}
                     type="email"
                     required
                     className="newsletter-input-field"

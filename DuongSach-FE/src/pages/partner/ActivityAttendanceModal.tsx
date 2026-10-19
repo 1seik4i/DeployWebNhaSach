@@ -126,7 +126,7 @@ export const ActivityAttendanceModal: React.FC<ActivityAttendanceModalProps> = (
 
           {/* Manual Input Entry */}
           <form onSubmit={handleManualCheckIn} style={{ display: 'flex', gap: '0.65rem', marginBottom: '1.5rem' }}>
-            <input
+            <input maxLength={2000}
               type="text"
               required
               value={manualCode}

@@ -1,6 +1,9 @@
+import { z } from 'zod';
+import { parse } from './contract.js';
+import { paginationFields } from './input.validation.js';
+
 export const getPagination = (query) => {
-  const page = Math.max(1, parseInt(query.page || '1', 10));
-  const limit = Math.min(100, Math.max(1, parseInt(query.limit || '20', 10)));
+  const { page, limit } = parse(z.object(paginationFields), query);
   const skip = (page - 1) * limit;
 
   return {

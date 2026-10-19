@@ -24,6 +24,7 @@ interface AdminTopBarProps {
   onMarkNotifRead?: (id: string) => void;
   onOpenNotifications: () => void;
   onNavigateTab?: (tab: string) => void;
+  onSearchUsers: (query: string) => void;
   onOpenProfile: () => void;
   onLogout: () => void;
   onOpenMobileMenu: () => void;
@@ -38,6 +39,7 @@ export const AdminTopBar: React.FC<AdminTopBarProps> = ({
   onMarkNotifRead,
   onOpenNotifications,
   onNavigateTab,
+  onSearchUsers,
   onOpenProfile,
   onLogout,
   onOpenMobileMenu
@@ -73,6 +75,11 @@ export const AdminTopBar: React.FC<AdminTopBarProps> = ({
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const query = searchQuery.normalize('NFC').trim();
+    const command = query.toLocaleLowerCase('vi-VN');
+    if (['vai trò', 'phân quyền', 'roles'].includes(command)) onNavigateTab?.('roles');
+    else if (['cấu hình', 'cài đặt', 'settings'].includes(command)) onNavigateTab?.('settings');
+    else onSearchUsers(query);
   };
 
   const latestNotifs = notifications.slice(0, 4);
@@ -106,7 +113,7 @@ export const AdminTopBar: React.FC<AdminTopBarProps> = ({
         {/* Global Quick Search Bar */}
         <form className="admin-top-search" onSubmit={handleSearchSubmit}>
           <Search size={16} className="search-icon" />
-          <input 
+          <input maxLength={200}
             type="text" 
             placeholder={language === 'vi' ? 'Tìm tài khoản, phân quyền, cấu hình...' : 'Search users, roles, settings...'} 
             value={searchQuery}

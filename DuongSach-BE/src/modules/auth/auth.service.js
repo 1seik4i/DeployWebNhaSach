@@ -195,12 +195,17 @@ export class AuthService {
 
     // Tạo đường dẫn đặt lại mật khẩu và gửi email
     const resetUrl = `${config.publicSiteUrl}/reset-password?token=${rawToken}`;
-    await MailService.sendPasswordResetEmail({
-      to: user.email,
-      name: user.fullName || user.email,
-      resetUrl,
-      rawToken,
-    });
+    try {
+      await MailService.sendPasswordResetEmail({
+        to: user.email,
+        name: user.fullName || user.email,
+        resetUrl,
+        rawToken,
+      });
+    } catch (error) {
+      await prisma.passwordReset.deleteMany({ where: { tokenHash } });
+      throw error;
+    }
 
     return {
       message: 'Hướng dẫn khôi phục mật khẩu đã được gửi qua email. Vui lòng kiểm tra hộp thư (bao gồm cả thư mục Spam/Rác).',

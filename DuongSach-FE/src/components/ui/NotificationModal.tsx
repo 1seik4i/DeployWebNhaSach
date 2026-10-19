@@ -24,7 +24,7 @@ function ModalContent({ request }: { request: ModalRequest }) {
     <form onSubmit={event => { event.preventDefault(); finishModal(request.id, request.kind === 'input' ? value : true); }}>
       <header className="notification-modal-header"><span className="notification-modal-icon">{request.kind === 'confirmation' ? <CircleAlert size={24} /> : <Info size={24} />}</span><h2 id="notification-modal-title">{title}</h2><button type="button" className="notification-modal-close" onClick={cancel} aria-label={vi ? 'Đóng thông báo' : 'Close notification'}><X size={20} /></button></header>
       <p id="notification-modal-message">{request.message}</p>
-      {request.kind === 'input' && <textarea autoFocus aria-label={request.message} rows={4} value={value} onChange={event => setValue(event.target.value)} />}
+      {request.kind === 'input' && <textarea maxLength={2000} autoFocus aria-label={request.message} rows={4} value={value} onChange={event => setValue(event.target.value)} />}
       <footer className="notification-modal-actions">
         {request.kind !== 'notice' && <button autoFocus={request.kind === 'confirmation'} type="button" className="notification-modal-secondary" onClick={cancel}>{vi ? 'Hủy' : 'Cancel'}</button>}
         <button autoFocus={request.kind === 'notice'} type="submit" className="notification-modal-primary">{request.kind === 'notice' ? (vi ? 'Đã hiểu' : 'Got it') : (vi ? 'Xác nhận' : 'Confirm')}</button>

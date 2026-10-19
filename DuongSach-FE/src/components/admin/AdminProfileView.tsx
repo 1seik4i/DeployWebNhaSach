@@ -1,6 +1,7 @@
 import './AdminProfileView.css';
 import { AdminPageHeading } from './AdminPageHeading';
 import { useModalBehavior } from '../../hooks/useModalBehavior';
+import { imageFileError } from '../../utils/fileValidation';
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   User, 
@@ -73,6 +74,8 @@ export const AdminProfileView: React.FC<AdminProfileViewProps> = ({
   const handleAvatarFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      const fileError = imageFileError(file);
+      if (fileError) { showToast(fileError); e.target.value = ''; return; }
       if (file.size > 5 * 1024 * 1024) {
         showToast('Dung lượng ảnh tối đa là 5MB');
         return;
@@ -94,6 +97,14 @@ export const AdminProfileView: React.FC<AdminProfileViewProps> = ({
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!/^[\p{L}\p{M}][\p{L}\p{M}\s.'-]*$/u.test(formName.trim()) || formName.trim().length < 2 || formName.trim().length > 160) {
+      showToast('Họ tên phải có từ 2 đến 160 ký tự và chỉ chứa chữ cái.');
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formEmail.trim()) || (formPhone.trim() && !/^(?:\+?84|0)(?:3|5|7|8|9)\d{8}$/.test(formPhone.replace(/[\s.-]/g, '')))) {
+      showToast('Email hoặc số điện thoại Việt Nam không hợp lệ.');
+      return;
+    }
     const initials = formName
       .trim()
       .split(' ')
@@ -104,8 +115,8 @@ export const AdminProfileView: React.FC<AdminProfileViewProps> = ({
     try {
       await onUpdateProfile({
         name: formName.trim(),
-        email: formEmail.trim(),
-        phone: formPhone.trim(),
+        email: formEmail.trim().toLowerCase(),
+        phone: formPhone.replace(/[\s.-]/g, ''),
         department: formDepartment.trim(),
         avatarUrl: formAvatarUrl,
         avatarInitials: initials
@@ -189,11 +200,11 @@ export const AdminProfileView: React.FC<AdminProfileViewProps> = ({
                 : <button type="button" className="adm-btn adm-btn-secondary" onClick={() => setIsEditing(true)}><Edit3 size={14} />Chỉnh sửa</button>}
             </div>
             <div className="admin-profile-fields">
-              <label>Họ và tên<input value={formName} onChange={e => setFormName(e.target.value)} required disabled={!isEditing} /></label>
+              <label>Họ và tên<input minLength={2} maxLength={160} value={formName} onChange={e => setFormName(e.target.value)} required disabled={!isEditing} /></label>
               <label>Chức vụ<input value={profile.role || 'Quản trị viên'} disabled /></label>
-              <label className="admin-profile-field-wide">Cơ quan / Đơn vị quản lý<div><Building size={15} /><input value={formDepartment} onChange={e => setFormDepartment(e.target.value)} disabled={!isEditing} placeholder="Chưa cập nhật" /></div></label>
-              <label>Email công vụ<div><Mail size={15} /><input type="email" value={formEmail} onChange={e => setFormEmail(e.target.value)} required disabled={!isEditing} /></div></label>
-              <label>Số điện thoại<div><Phone size={15} /><input type="tel" value={formPhone} onChange={e => setFormPhone(e.target.value)} disabled={!isEditing} placeholder="Chưa cập nhật" /></div></label>
+              <label className="admin-profile-field-wide">Cơ quan / Đơn vị quản lý<div><Building size={15} /><input maxLength={200} value={formDepartment} onChange={e => setFormDepartment(e.target.value)} disabled={!isEditing} placeholder="Chưa cập nhật" /></div></label>
+              <label>Email công vụ<div><Mail size={15} /><input type="email" maxLength={200} value={formEmail} onChange={e => setFormEmail(e.target.value)} required disabled={!isEditing} /></div></label>
+              <label>Số điện thoại<div><Phone size={15} /><input type="tel" inputMode="tel" maxLength={40} value={formPhone} onChange={e => setFormPhone(e.target.value)} disabled={!isEditing} placeholder="Chưa cập nhật" /></div></label>
             </div>
           </form>
           <div className="admin-profile-bottom-panels">
@@ -269,6 +280,7 @@ export const AdminProfileView: React.FC<AdminProfileViewProps> = ({
                       type="password"
                       required
                       value={currentPwd}
+                      maxLength={128}
                       onChange={(e) => setCurrentPwd(e.target.value)}
                       style={{
                         width: '100%',
@@ -289,6 +301,7 @@ export const AdminProfileView: React.FC<AdminProfileViewProps> = ({
                       type="password"
                       required
                       value={newPwd}
+                      maxLength={128}
                       onChange={(e) => setNewPwd(e.target.value)}
                       style={{
                         width: '100%',
@@ -309,6 +322,7 @@ export const AdminProfileView: React.FC<AdminProfileViewProps> = ({
                       type="password"
                       required
                       value={confirmPwd}
+                      maxLength={128}
                       onChange={(e) => setConfirmPwd(e.target.value)}
                       style={{
                         width: '100%',

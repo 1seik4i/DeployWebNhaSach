@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { imageSourceFor } from '../../utils/input.validation.js';
 import { z } from "zod";
 import { prisma } from "../../config/database.js";
 import { authenticate } from "../../middlewares/auth.js";
@@ -124,8 +125,7 @@ router.put(
     const input = parse(
       z
         .object({
-          // 20 MiB image encoded as base64, plus the data URL prefix.
-          imageUrl: z.string().max(4 * Math.ceil(20 * 1024 * 1024 / 3) + 1024, 'Ảnh bản đồ tối đa 20 MB.').optional(),
+          imageUrl: imageSourceFor(4 * Math.ceil(20 * 1024 * 1024 / 3) + 1024).optional(),
           points: z
             .array(
               z.object({

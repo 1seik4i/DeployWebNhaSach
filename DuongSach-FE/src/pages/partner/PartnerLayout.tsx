@@ -141,9 +141,8 @@ export const PartnerLayout: React.FC<PartnerLayoutProps> = ({
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/partner/activities?search=${encodeURIComponent(searchQuery.trim())}`);
-    }
+    const query = searchQuery.normalize('NFC').trim();
+    navigate(`/partner/activities${query ? `?search=${encodeURIComponent(query)}` : ''}`);
   };
 
   const latestNotifications = notifications.slice(0, 4);
@@ -179,9 +178,9 @@ export const PartnerLayout: React.FC<PartnerLayoutProps> = ({
           {/* Global Quick Search Bar */}
           <form className="partner-top-search" onSubmit={handleSearchSubmit}>
             <Search size={16} className="search-icon" />
-            <input
+            <input maxLength={200}
               type="text"
-              placeholder={language === 'vi' ? 'Tìm kiếm gian hàng, hoạt động...' : 'Search booths, activities...'}
+              placeholder={language === 'vi' ? 'Tìm kiếm hoạt động...' : 'Search activities...'}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />

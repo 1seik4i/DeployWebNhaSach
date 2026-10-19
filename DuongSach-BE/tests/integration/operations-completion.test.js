@@ -286,6 +286,12 @@ describe("Operational workflows against PostgreSQL", () => {
       ok(await call("get", `/partner/booths/${booth.id}/content`, partner))
         .description,
     ).toBe("Stored booth description");
+    expect((await call("patch", `/partner/booths/${booth.id}/content`, partner, {
+      imageUrl: "javascript:alert(1)",
+    })).status).toBe(422);
+    expect((await call("patch", `/partner/booths/${booth.id}/content`, partner, {
+      documents: [{ id: "doc-1", name: "Unsafe.pdf", size: "1 MB", dataUrl: "javascript:alert(1)" }],
+    })).status).toBe(422);
   });
   it("keeps approved proposals private until their activity is published", async () => {
     proposal = ok(
