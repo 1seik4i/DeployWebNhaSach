@@ -172,7 +172,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ language }) => {
               </label>
               <div className="auth-input-wrap">
                 <Mail size={18} className="auth-input-icon" />
-                <input
+                <input maxLength={200}
                   id="login-identifier"
                   type="text"
                   required
@@ -205,7 +205,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ language }) => {
 
               <div className="auth-input-wrap">
                 <Lock size={18} className="auth-input-icon" />
-                <input
+                <input maxLength={128}
                   id="login-password"
                   type={showPassword ? 'text' : 'password'}
                   required

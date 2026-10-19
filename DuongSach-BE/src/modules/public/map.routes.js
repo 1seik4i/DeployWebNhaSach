@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { imageSource } from '../../utils/input.validation.js';
 import { z } from "zod";
 import { prisma } from "../../config/database.js";
 import { authenticate } from "../../middlewares/auth.js";
@@ -124,7 +125,7 @@ router.put(
     const input = parse(
       z
         .object({
-          imageUrl: z.string().max(3000000).optional(),
+          imageUrl: imageSource.optional(),
           points: z
             .array(
               z.object({

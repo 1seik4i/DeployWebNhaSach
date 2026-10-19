@@ -11,9 +11,9 @@ test.describe('Giao diện công khai và dữ liệu API', () => {
     await expect(page.getByRole('heading', { name: /Sự kiện sắp diễn ra tại Đường Sách/i })).toBeVisible();
     await expect(page.locator('body')).not.toContainText(/dữ liệu giả|dữ liệu mẫu/i);
 
-    const search = page.getByPlaceholder('Tìm kiếm ki-ốt, nhà xuất bản, tên sách...');
+    const search = page.getByPlaceholder('Tìm gian hàng, sự kiện...');
     await search.fill('NXB Trẻ');
-    const clearButton = page.getByRole('button', { name: 'Xóa tìm kiếm' });
+    const clearButton = page.getByRole('button', { name: 'Xóa nội dung tìm kiếm' });
     await expect(clearButton).toBeEnabled();
     await clearButton.click();
     await expect(search).toHaveValue('');

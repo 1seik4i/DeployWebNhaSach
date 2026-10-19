@@ -1,4 +1,5 @@
 import { useModalBehavior } from '../../hooks/useModalBehavior';
+import { imageFileError, documentFileError } from '../../utils/fileValidation';
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { 
@@ -146,6 +147,8 @@ export const BoothManagementPage: React.FC<BoothManagementPageProps> = ({
   const handleBoothPhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const error = imageFileError(file, 2);
+    if (error) { showToast(error); e.target.value = ''; return; }
     const reader = new FileReader();
     reader.onload = (event) => {
       const dataUrl = String(event.target?.result || '');
@@ -201,6 +204,9 @@ export const BoothManagementPage: React.FC<BoothManagementPageProps> = ({
   const handleImageFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
+    if (boothImages.length + files.length > 20) { showToast('Tối đa 20 ảnh cho mỗi gian hàng.'); e.target.value = ''; return; }
+    const error = Array.from(files).map(file => imageFileError(file, 2)).find(Boolean);
+    if (error) { showToast(error); e.target.value = ''; return; }
     const additions = await Promise.all(Array.from(files).map((file, index) => new Promise<BoothImageItem>((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = event => resolve({ id: `${crypto.randomUUID()}-${index}`, url: String(event.target?.result || ''), caption: file.name.replace(/\.[^/.]+$/, '') });
@@ -226,10 +232,13 @@ export const BoothManagementPage: React.FC<BoothManagementPageProps> = ({
   const handleAddDoc = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newDocName.trim()) return;
+    const name = newDocName.trim().toLowerCase().endsWith('.pdf') ? newDocName.trim() : `${newDocName.trim()}.pdf`;
+    if (name.length > 200 || boothDocs.length >= 20) { showToast('Tên tài liệu tối đa 200 ký tự và mỗi gian hàng tối đa 20 tài liệu.'); return; }
+    if (newDocSize.trim() && !/^(?:0*[1-9]\d*)(?:[.,]\d{1,2})?\s*(?:KB|MB|GB)$/i.test(newDocSize.trim())) { showToast('Dung lượng phải ở dạng như 500 KB hoặc 2 MB.'); return; }
     const next = [...boothDocs, {
         id: crypto.randomUUID(),
-        name: newDocName.trim().endsWith('.pdf') ? newDocName.trim() : `${newDocName.trim()}.pdf`,
-        size: newDocSize
+        name,
+        size: newDocSize.trim()
       }];
     try { await partnerApi.updateBoothContent(booth.id, { documents: next }); setBoothDocs(next); setNewDocName(''); showToast(language === 'vi' ? 'Đã lưu tài liệu mới!' : 'Document added!'); }
     catch (error) { showToast(error instanceof Error ? error.message : 'Không thể lưu tài liệu'); }
@@ -238,6 +247,9 @@ export const BoothManagementPage: React.FC<BoothManagementPageProps> = ({
   const handleDocFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
+    if (boothDocs.length + files.length > 20) { showToast('Tối đa 20 tài liệu cho mỗi gian hàng.'); e.target.value = ''; return; }
+    const error = Array.from(files).map(file => documentFileError(file, 2)).find(Boolean);
+    if (error) { showToast(error); e.target.value = ''; return; }
 
     const additions = await Promise.all(Array.from(files).map((file, index) => new Promise<BoothDocItem>((resolve, reject) => {
       const sizeInMB = (file.size / (1024 * 1024)).toFixed(1);
@@ -474,7 +486,7 @@ export const BoothManagementPage: React.FC<BoothManagementPageProps> = ({
                         </button>
                       )}
                     </div>
-                    <input
+                    <input maxLength={10000000}
                       type="text"
                       value={editImageUrl}
                       onChange={(e) => setEditImageUrl(e.target.value)}
@@ -511,7 +523,7 @@ export const BoothManagementPage: React.FC<BoothManagementPageProps> = ({
                     <option value="custom">Tự nhập khung giờ khác...</option>
                   </select>
 
-                  <input
+                  <input maxLength={60}
                     type="text"
                     required
                     value={editOpenHours}
@@ -524,7 +536,7 @@ export const BoothManagementPage: React.FC<BoothManagementPageProps> = ({
 
               <div className="form-field-group">
                 <label>{language === 'vi' ? 'Tên gian hàng *' : 'Booth Name *'}</label>
-                <input 
+                <input maxLength={160}
                   type="text"
                   required
                   value={editName}
@@ -535,7 +547,7 @@ export const BoothManagementPage: React.FC<BoothManagementPageProps> = ({
 
               <div className="form-field-group">
                 <label>{language === 'vi' ? 'Khu vực gian hàng *' : 'Booth Area *'}</label>
-                <input 
+                <input maxLength={80}
                   type="text"
                   required
                   value={editAreaName}
@@ -546,7 +558,7 @@ export const BoothManagementPage: React.FC<BoothManagementPageProps> = ({
 
               <div className="form-field-group">
                 <label>{language === 'vi' ? 'Mô tả gian hàng *' : 'Booth Description *'}</label>
-                <textarea 
+                <textarea maxLength={20000}
                   rows={3}
                   required
                   value={editDescription}
@@ -586,7 +598,7 @@ export const BoothManagementPage: React.FC<BoothManagementPageProps> = ({
                 </div>
 
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <input 
+                  <input maxLength={100}
                     type="text"
                     value={newCatInput}
                     onChange={(e) => setNewCatInput(e.target.value)}
@@ -815,7 +827,7 @@ export const BoothManagementPage: React.FC<BoothManagementPageProps> = ({
                     <div className="form-field-group">
                       <label>{language === 'vi' ? 'Đường dẫn ảnh (URL) *' : 'Image URL *'}</label>
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        <input 
+                        <input maxLength={10000000}
                           type="url" 
                           required 
                           value={newImageUrl} 
@@ -833,6 +845,8 @@ export const BoothManagementPage: React.FC<BoothManagementPageProps> = ({
                             onChange={(e) => {
                               const file = e.target.files?.[0];
                               if (file) {
+                                const error = imageFileError(file, 2);
+                                if (error) { showToast(error); e.target.value = ''; return; }
                                 const reader = new FileReader();
                                 reader.onload = () => {
                                   setNewImageUrl(String(reader.result || ''));
@@ -848,7 +862,7 @@ export const BoothManagementPage: React.FC<BoothManagementPageProps> = ({
                     </div>
                     <div className="form-field-group">
                       <label>{language === 'vi' ? 'Chú thích ảnh' : 'Caption'}</label>
-                      <input 
+                      <input maxLength={200}
                         type="text" 
                         value={newImageCaption} 
                         onChange={(e) => setNewImageCaption(e.target.value)} 
@@ -992,7 +1006,7 @@ export const BoothManagementPage: React.FC<BoothManagementPageProps> = ({
                   <div className="form-row-2col">
                     <div className="form-field-group">
                       <label>{language === 'vi' ? 'Tên tập tin tài liệu *' : 'Document Name *'}</label>
-                      <input 
+                      <input maxLength={200}
                         type="text" 
                         required 
                         value={newDocName} 
@@ -1002,7 +1016,7 @@ export const BoothManagementPage: React.FC<BoothManagementPageProps> = ({
                     </div>
                     <div className="form-field-group">
                       <label>{language === 'vi' ? 'Dung lượng ước tính' : 'File Size'}</label>
-                      <input 
+                      <input maxLength={50}
                         type="text" 
                         value={newDocSize} 
                         onChange={(e) => setNewDocSize(e.target.value)} 
@@ -1063,7 +1077,7 @@ export const BoothManagementPage: React.FC<BoothManagementPageProps> = ({
 
                   <div className="form-field-group">
                     <label>{language === 'vi' ? 'Lý do yêu cầu *' : 'Reason *'}</label>
-                    <textarea 
+                    <textarea maxLength={2000}
                       rows={4}
                       required 
                       value={requestReason}

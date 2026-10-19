@@ -179,7 +179,7 @@ export const EventFeedbackModal: React.FC<EventFeedbackModalProps> = ({
                 <label className="feedback-input-label">
                   {language === 'vi' ? 'Họ và tên (tùy chọn)' : 'Full Name (optional)'}
                 </label>
-                <input
+                <input maxLength={160}
                   type="text"
                   className="feedback-text-input"
                   placeholder={language === 'vi' ? 'Ví dụ: Nguyễn Văn An' : 'e.g. John Doe'}
@@ -191,7 +191,7 @@ export const EventFeedbackModal: React.FC<EventFeedbackModalProps> = ({
                 <label className="feedback-input-label">
                   {language === 'vi' ? 'Email / SĐT (tùy chọn)' : 'Email / Phone (optional)'}
                 </label>
-                <input
+                <input maxLength={254}
                   type="text"
                   className="feedback-text-input"
                   placeholder={language === 'vi' ? 'Để nhận quà tri ân...' : 'To receive perks...'}
@@ -205,7 +205,7 @@ export const EventFeedbackModal: React.FC<EventFeedbackModalProps> = ({
               <label className="feedback-input-label">
                 {language === 'vi' ? 'Ý kiến đóng góp / Cảm nhận chi tiết' : 'Detailed Comments & Suggestions'}
               </label>
-              <textarea
+              <textarea maxLength={10000}
                 className="feedback-textarea"
                 rows={3}
                 placeholder={language === 'vi' ? 'Chia sẻ cảm nhận chân thật hoặc những điều bạn mong muốn Đường Sách nâng cao trong các sự kiện tới...' : 'Share your honest feedback or suggestions for future events...'}

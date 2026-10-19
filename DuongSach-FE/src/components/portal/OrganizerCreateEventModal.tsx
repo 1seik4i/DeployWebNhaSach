@@ -1,4 +1,5 @@
 import { useModalBehavior } from '../../hooks/useModalBehavior';
+import { imageFileError } from '../../utils/fileValidation';
 import React, { useEffect, useState } from 'react';
 import { 
   X, 
@@ -60,7 +61,7 @@ export const OrganizerCreateEventModal: React.FC<OrganizerCreateEventModalProps>
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) {
+    if (!title.trim() || title.trim().length > 200) {
       setError(language === 'vi' ? 'Vui lòng nhập tên sự kiện' : 'Please enter event title');
       return;
     }
@@ -179,6 +180,7 @@ export const OrganizerCreateEventModal: React.FC<OrganizerCreateEventModalProps>
               <input 
                 type="text"
                 placeholder={language === 'vi' ? 'Ví dụ: Lễ hội Sách Mùa Đông 2026' : 'e.g. Winter Book Festival 2026'}
+                maxLength={200}
                 value={title}
                 onChange={e => setTitle(e.target.value)}
                 style={{
@@ -203,7 +205,7 @@ export const OrganizerCreateEventModal: React.FC<OrganizerCreateEventModalProps>
                 <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 650, color: '#1F2937', marginBottom: '0.4rem' }}>
                   {language === 'vi' ? 'Chủ đề chính' : 'Main Theme'}
                 </label>
-                <input 
+                <input maxLength={5000}
                   type="text"
                   placeholder={language === 'vi' ? 'Ví dụ: Khơi nguồn tri thức trẻ' : 'e.g. Igniting Young Minds'}
                   value={theme}
@@ -312,7 +314,7 @@ export const OrganizerCreateEventModal: React.FC<OrganizerCreateEventModalProps>
               <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 650, color: '#1F2937', marginBottom: '0.4rem' }}>
                 {language === 'vi' ? 'Mô tả tóm tắt sự kiện' : 'Event Description'}
               </label>
-              <textarea 
+              <textarea maxLength={20000}
                 rows={3}
                 placeholder={language === 'vi' ? 'Nội dung mục tiêu, điểm nhấn của sự kiện...' : 'Event objectives and highlights...'}
                 value={description}
@@ -403,6 +405,8 @@ export const OrganizerCreateEventModal: React.FC<OrganizerCreateEventModalProps>
                         onChange={(e) => {
                           const file = e.target.files?.[0];
                           if (file) {
+                            const error = imageFileError(file);
+                            if (error) { setError(error); e.target.value = ''; return; }
                             const reader = new FileReader();
                             reader.onload = (ev) => {
                               if (typeof ev.target?.result === 'string') {
@@ -421,7 +425,7 @@ export const OrganizerCreateEventModal: React.FC<OrganizerCreateEventModalProps>
                   </div>
                 )}
 
-                <input 
+                <input maxLength={10000000}
                   type="text"
                   value={imageUrl}
                   onChange={(e) => setImageUrl(e.target.value)}

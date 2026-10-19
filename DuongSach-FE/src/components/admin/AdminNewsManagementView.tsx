@@ -34,6 +34,8 @@ import {
 import { Language } from '../../types';
 import { NewsArticle } from '../../pages/NewsExperience';
 import { landingContentService } from '../../services/landingContentService';
+import { isImageSource, isPublicationDate, isReadTime } from '../../utils/inputValidation';
+import { imageFileError } from '../../utils/fileValidation';
 import './AdminNewsManagementView.css';
 
 export interface AdminNewsManagementViewProps {
@@ -169,10 +171,10 @@ export const AdminNewsManagementView: React.FC<AdminNewsManagementViewProps> = (
     return newsList.filter(article => {
       const matchCat = selectedCategory === 'all' || article.category === selectedCategory;
       const matchSearch =
-        article.titleVi.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (article.summaryVi && article.summaryVi.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (article.author && article.author.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (article.tags && article.tags.some(t => t.toLowerCase().includes(searchTerm.toLowerCase())));
+        article.titleVi.normalize('NFC').toLowerCase().includes(searchTerm.trim().normalize('NFC').toLowerCase()) ||
+        (article.summaryVi && article.summaryVi.normalize('NFC').toLowerCase().includes(searchTerm.trim().normalize('NFC').toLowerCase())) ||
+        (article.author && article.author.normalize('NFC').toLowerCase().includes(searchTerm.trim().normalize('NFC').toLowerCase())) ||
+        (article.tags && article.tags.some(t => t.normalize('NFC').toLowerCase().includes(searchTerm.trim().normalize('NFC').toLowerCase())));
       return matchCat && matchSearch;
     });
   }, [newsList, selectedCategory, searchTerm]);
@@ -283,6 +285,8 @@ export const AdminNewsManagementView: React.FC<AdminNewsManagementViewProps> = (
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      const error = imageFileError(file);
+      if (error) { showToast(error); e.target.value = ''; return; }
       const reader = new FileReader();
       reader.onload = () => {
         if (typeof reader.result === 'string') {
@@ -300,6 +304,8 @@ export const AdminNewsManagementView: React.FC<AdminNewsManagementViewProps> = (
     if (!fileList || fileList.length === 0) return;
 
     const files = Array.from(fileList);
+    const error = files.map(file => imageFileError(file)).find(Boolean);
+    if (error) { showToast(error); e.target.value = ''; return; }
     
     // Read all files as Data URLs in parallel
     const readFilesPromises = files.map(file => {
@@ -403,6 +409,13 @@ export const AdminNewsManagementView: React.FC<AdminNewsManagementViewProps> = (
       void notifyModal(isVi ? 'Vui lòng nhập tiêu đề bài viết!' : 'Please enter article title!');
       return;
     }
+    const validationError = formTitleVi.trim().length > 200 ? 'Tiêu đề tối đa 200 ký tự.'
+      : !isPublicationDate(formPublishedDate) ? 'Ngày xuất bản không hợp lệ; dùng DD/MM/YYYY.'
+      : formReadTime.trim() && !isReadTime(formReadTime) ? 'Thời lượng đọc phải từ 1 đến 999 phút.'
+      : !isImageSource(formImageUrl) || formBlocks.some(block => block.type === 'image' && !isImageSource(block.url)) ? 'Đường dẫn ảnh không hợp lệ.'
+      : formBlocks.some(block => block.type === 'text' && block.text.length > 20000) || formSummaryVi.length > 20000 ? 'Nội dung mỗi phần tối đa 20.000 ký tự.'
+      : formSelectedTags.length > 50 || formSelectedTags.some(tag => !tag.trim() || tag.length > 100) ? 'Tối đa 50 thẻ, mỗi thẻ từ 1 đến 100 ký tự.' : '';
+    if (validationError) { void notifyModal(validationError); return; }
 
     const catObj = CATEGORIES.find(c => c.id === formCategory) || CATEGORIES[1];
     const categoryLabelVi = catObj.labelVi;
@@ -655,7 +668,7 @@ export const AdminNewsManagementView: React.FC<AdminNewsManagementViewProps> = (
         <div className="admin-news-toolbar-row1">
           <div className="admin-news-search-box">
             <Search size={18} color="#94A3B8" />
-            <input
+            <input maxLength={200}
               type="text"
               placeholder={isVi ? 'Tìm kiếm bài viết theo tiêu đề, tác giả, tag...' : 'Search by title, author, tags...'}
               value={searchTerm}
@@ -1010,7 +1023,7 @@ export const AdminNewsManagementView: React.FC<AdminNewsManagementViewProps> = (
                       <span>{isVi ? 'Tiêu đề bài viết' : 'Article Headline'}</span>
                       <span className="req">*</span>
                     </label>
-                    <input
+                    <input maxLength={200}
                       type="text"
                       className="admin-composer-input"
                       style={{ fontSize: '1rem', fontWeight: 700, padding: '0.75rem 1rem' }}
@@ -1055,7 +1068,7 @@ export const AdminNewsManagementView: React.FC<AdminNewsManagementViewProps> = (
                         <User size={13} />
                         <span>{isVi ? 'Tác giả / Bút danh' : 'Author'}</span>
                       </label>
-                      <input
+                      <input maxLength={160}
                         type="text"
                         className="admin-composer-input"
                         placeholder="Ban Biên Tập Đường Sách"
@@ -1070,7 +1083,7 @@ export const AdminNewsManagementView: React.FC<AdminNewsManagementViewProps> = (
                         <span>{isVi ? 'Ngày đăng' : 'Publish Date'}</span>
                       </label>
                       <div style={{ display: 'flex', gap: '0.4rem' }}>
-                        <input
+                        <input maxLength={10}
                           type="text"
                           className="admin-composer-input"
                           style={{ flex: 1 }}
@@ -1093,7 +1106,7 @@ export const AdminNewsManagementView: React.FC<AdminNewsManagementViewProps> = (
                         <Clock size={13} />
                         <span>{isVi ? 'Thời gian đọc' : 'Read Time'}</span>
                       </label>
-                      <input
+                      <input maxLength={20}
                         type="text"
                         className="admin-composer-input"
                         placeholder="5 phút đọc"
@@ -1161,7 +1174,7 @@ export const AdminNewsManagementView: React.FC<AdminNewsManagementViewProps> = (
                         <ImageIcon size={13} />
                         <span>{isVi ? 'Đường dẫn ảnh bìa (URL)' : 'Image URL'}</span>
                       </label>
-                      <input
+                      <input maxLength={10000000}
                         type="text"
                         className="admin-composer-input"
                         placeholder="https://... hoặc /assets/..."
@@ -1174,7 +1187,7 @@ export const AdminNewsManagementView: React.FC<AdminNewsManagementViewProps> = (
                       <label className="admin-composer-label">
                         <span>{isVi ? 'Chú thích ảnh bìa (Caption)' : 'Caption'}</span>
                       </label>
-                      <input
+                      <input maxLength={5000}
                         type="text"
                         className="admin-composer-input"
                         placeholder={isVi ? 'Mô tả ngắn gọn về bức ảnh...' : 'Short description...'}
@@ -1283,7 +1296,7 @@ export const AdminNewsManagementView: React.FC<AdminNewsManagementViewProps> = (
                                   </div>
                                 </div>
 
-                                <textarea
+                                <textarea maxLength={20000}
                                   className={`word-doc-textarea ${isFirstText ? 'is-sapo' : ''}`}
                                   rows={isFirstText ? 3 : 4}
                                   placeholder={
@@ -1371,7 +1384,7 @@ export const AdminNewsManagementView: React.FC<AdminNewsManagementViewProps> = (
                                     <span>{isVi ? 'Thay/chèn thêm ảnh từ máy tính' : 'Upload / add photos from device'}</span>
                                   </button>
 
-                                  <input
+                                  <input maxLength={10000000}
                                     type="text"
                                     className="admin-composer-input"
                                     style={{ flex: 1, minWidth: '220px', padding: '0.45rem 0.75rem', fontSize: '0.82rem' }}
@@ -1387,7 +1400,7 @@ export const AdminNewsManagementView: React.FC<AdminNewsManagementViewProps> = (
                                   />
                                 </div>
 
-                                <input
+                                <input maxLength={5000}
                                   type="text"
                                   className="word-doc-caption-input"
                                   placeholder={isVi ? 'Nhập chú thích hiển thị dưới bức ảnh (vd: Độc giả giao lưu cùng tác giả...)' : 'Enter image caption below photo...'}
@@ -1519,7 +1532,7 @@ export const AdminNewsManagementView: React.FC<AdminNewsManagementViewProps> = (
 
                       {/* Custom tag input */}
                       <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.4rem', maxWidth: '380px' }}>
-                        <input
+                        <input maxLength={100}
                           type="text"
                           className="admin-composer-input"
                           style={{ padding: '0.4rem 0.75rem', fontSize: '0.82rem' }}

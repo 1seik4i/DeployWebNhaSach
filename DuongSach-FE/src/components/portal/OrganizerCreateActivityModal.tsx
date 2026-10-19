@@ -1,4 +1,5 @@
 import { useModalBehavior } from '../../hooks/useModalBehavior';
+import { imageFileError } from '../../utils/fileValidation';
 import React, { useState } from 'react';
 import { 
   X, 
@@ -61,7 +62,7 @@ export const OrganizerCreateActivityModal: React.FC<OrganizerCreateActivityModal
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) {
+    if (!title.trim() || title.trim().length > 200) {
       setError(language === 'vi' ? 'Vui lòng nhập tên hoạt động' : 'Please enter activity title');
       return;
     }
@@ -71,6 +72,18 @@ export const OrganizerCreateActivityModal: React.FC<OrganizerCreateActivityModal
     }
     if (dateStr < todayKey) {
       setError(language === 'vi' ? 'Không thể tạo hoạt động vào ngày đã diễn ra' : 'Cannot create activity on a past date');
+      return;
+    }
+    if (!eventId || !events.some(event => event.id === eventId) || !location || !locations.some(item => item.id === location)) {
+      setError(language === 'vi' ? 'Vui lòng chọn sự kiện và địa điểm hợp lệ' : 'Please select a valid event and location');
+      return;
+    }
+    if (!startTime || !endTime || endTime <= startTime) {
+      setError(language === 'vi' ? 'Giờ kết thúc phải sau giờ bắt đầu' : 'End time must be after start time');
+      return;
+    }
+    if (!Number.isInteger(Number(capacity)) || Number(capacity) < 1 || Number(capacity) > 2147483647) {
+      setError(language === 'vi' ? 'Sức chứa phải là số nguyên dương' : 'Capacity must be a positive integer');
       return;
     }
 
@@ -189,6 +202,7 @@ export const OrganizerCreateActivityModal: React.FC<OrganizerCreateActivityModal
               <input 
                 type="text"
                 placeholder={language === 'vi' ? 'Ví dụ: Giao lưu tác giả & Ký tặng sách mới' : 'e.g. Author Meet & Greet'}
+                maxLength={200}
                 value={title}
                 onChange={e => setTitle(e.target.value)}
                 style={{
@@ -244,7 +258,7 @@ export const OrganizerCreateActivityModal: React.FC<OrganizerCreateActivityModal
                   <Building2 size={14} color="#17382E" />
                   <span>{language === 'vi' ? 'Đơn vị tổ chức / Đối tác' : 'Partner / Organizer'}</span>
                 </label>
-                <input 
+                <input maxLength={200}
                   type="text"
                   placeholder={language === 'vi' ? 'Ví dụ: NXB Trẻ, Nhã Nam...' : 'e.g. Tre Publishing, Nha Nam...'}
                   value={partnerName}
@@ -272,7 +286,7 @@ export const OrganizerCreateActivityModal: React.FC<OrganizerCreateActivityModal
                   <Mic size={14} color="#17382E" />
                   <span>{language === 'vi' ? 'Diễn giả / Khách mời' : 'Speaker / Host'}</span>
                 </label>
-                <input 
+                <input maxLength={200}
                   type="text"
                   placeholder={language === 'vi' ? 'Ví dụ: Nhà văn Nguyễn Nhật Ánh' : 'e.g. Author Nguyen Nhat Anh'}
                   value={speaker}
@@ -300,6 +314,8 @@ export const OrganizerCreateActivityModal: React.FC<OrganizerCreateActivityModal
                 <input 
                   type="number"
                   min="1"
+                  max="2147483647"
+                  required
                   
                   step="1"
                   value={capacity}
@@ -423,6 +439,8 @@ export const OrganizerCreateActivityModal: React.FC<OrganizerCreateActivityModal
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (file) {
+                        const error = imageFileError(file);
+                        if (error) { setError(error); e.target.value = ''; return; }
                         const reader = new FileReader();
                         reader.onload = (evt) => {
                           if (typeof evt.target?.result === 'string') {
@@ -437,7 +455,7 @@ export const OrganizerCreateActivityModal: React.FC<OrganizerCreateActivityModal
               </div>
 
               <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                <input 
+                <input maxLength={10000000}
                   type="text"
                   value={thumbnail}
                   onChange={e => setThumbnail(e.target.value)}
@@ -470,7 +488,7 @@ export const OrganizerCreateActivityModal: React.FC<OrganizerCreateActivityModal
               <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 650, color: '#1F2937', marginBottom: '0.4rem' }}>
                 {language === 'vi' ? 'Nội dung tóm tắt & Giới thiệu' : 'Description & Highlights'}
               </label>
-              <textarea 
+              <textarea maxLength={20000}
                 rows={3}
                 placeholder={language === 'vi' ? 'Mô tả ngắn về chủ đề buổi giao lưu, các phần quà tặng, hoạt động tương tác...' : 'Brief summary of the activity highlights, guest speaker bio...'}
                 value={description}

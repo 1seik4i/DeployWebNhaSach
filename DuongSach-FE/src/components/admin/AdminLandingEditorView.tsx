@@ -1,3 +1,4 @@
+import { validateManagedContent } from '../../utils/inputValidation';
 import { confirmModal } from '../../services/notificationModal';
 import { useModalBehavior } from '../../hooks/useModalBehavior';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
@@ -127,6 +128,7 @@ export const AdminLandingEditorView: React.FC<AdminLandingEditorViewProps> = ({
 
   const handleSaveAll = async () => {
     try {
+      [journey, { articles: newsList }, org].forEach(value => validateManagedContent(value));
       await Promise.all([
         landingContentService.saveJourney(journey),
         landingContentService.saveNews(newsList),
@@ -283,6 +285,11 @@ export const AdminLandingEditorView: React.FC<AdminLandingEditorViewProps> = ({
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (!/^image\/(png|jpeg|gif|webp|avif)$/.test(file.type) || file.size > 5 * 1024 * 1024) {
+        showToast('Chọn ảnh PNG, JPEG, GIF, WebP hoặc AVIF, tối đa 5 MB.');
+        e.target.value = '';
+        return;
+      }
       const reader = new FileReader();
       reader.onload = (uploadEvent) => {
         const result = uploadEvent.target?.result as string;
@@ -2508,7 +2515,7 @@ export const AdminLandingEditorView: React.FC<AdminLandingEditorViewProps> = ({
             <div className="editor-modal-body">
               <div>
                 <label className="editor-input-label">{vi ? 'Đường dẫn ảnh (URL):' : 'Image URL:'}</label>
-                <input
+                <input maxLength={10000000}
                   type="text"
                   className="editor-input-field"
                   value={imageModal.url}

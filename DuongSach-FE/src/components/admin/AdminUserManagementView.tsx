@@ -1,5 +1,6 @@
 import { useModalBehavior } from '../../hooks/useModalBehavior';
 import React, { useState, useMemo } from 'react';
+import { matchesSearch } from '../../utils/inputValidation';
 import { apiClient } from '../../services/apiClient';
 import { 
   Search, 
@@ -23,6 +24,7 @@ import {
 } from '../../types/admin';
 
 interface AdminUserManagementViewProps {
+  initialSearch?: string;
   users: AdminUserAccount[];
   onAddUser: (user: { fullName: string; email: string; phone?: string; role: AdminRoleType; status: AdminAccountStatus; password: string }) => void | Promise<void>;
   onUpdateUser: (id: string, updates: Partial<AdminUserAccount>) => void | Promise<void>;
@@ -31,13 +33,14 @@ interface AdminUserManagementViewProps {
 }
 
 export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = ({
+  initialSearch = '',
   users,
   onAddUser,
   onUpdateUser,
   onToggleLock,
   onResetPassword
 }) => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(initialSearch);
   const [selectedRole, setSelectedRole] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
 
@@ -74,30 +77,33 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
 
   // Edit user form state
   const [editFullName, setEditFullName] = useState('');
+  const [editEmail, setEditEmail] = useState('');
   const [editPhone, setEditPhone] = useState('');
+  const [editError, setEditError] = useState('');
+  const nameValid = (value: string) => /^[\p{L}\p{M}][\p{L}\p{M}\s.'-]*$/u.test(value.trim()) && value.trim().length >= 2 && value.trim().length <= 160;
+  const emailValid = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim()) && value.trim().length <= 200;
+  const phoneValid = (value: string) => !value.trim() || /^(?:\+?84|0)(?:3|5|7|8|9)\d{8}$/.test(value.replace(/[\s.-]/g, ''));
   const [editRole, setEditRole] = useState<AdminRoleType>('partner');
   const [editStatus, setEditStatus] = useState<AdminAccountStatus>('active');
 
   const filteredUsers = useMemo(() => {
     return users.filter(u => {
       if (u.role !== 'admin' && u.role !== 'partner') return false;
-      const matchesSearch = 
-        u.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        u.phone.includes(searchTerm) ||
-        u.code.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesQuery = matchesSearch(searchTerm, u.fullName, u.email, u.phone, u.code, u.id);
       
       const matchesRole = selectedRole === 'all' || u.role === selectedRole;
       const matchesStatus = selectedStatus === 'all' || u.status === selectedStatus;
 
-      return matchesSearch && matchesRole && matchesStatus;
+      return matchesQuery && matchesRole && matchesStatus;
     });
   }, [users, searchTerm, selectedRole, selectedStatus]);
 
   const handleOpenEdit = (user: AdminUserAccount) => {
     setEditingUser(user);
     setEditFullName(user.fullName);
+    setEditEmail(user.email);
     setEditPhone(user.phone);
+    setEditError('');
     setEditRole(user.role);
     setEditStatus(user.status);
   };
@@ -105,6 +111,10 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
   const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingUser) return;
+    if (!nameValid(editFullName) || !emailValid(editEmail) || !phoneValid(editPhone)) {
+      setEditError('Vui lòng kiểm tra họ tên, email và số điện thoại Việt Nam.');
+      return;
+    }
 
     const roleMap: Record<AdminRoleType, string> = {
       admin: 'Quản trị viên',
@@ -117,16 +127,17 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
       pending_verification: 'Chờ xác thực'
     };
 
-    await onUpdateUser(editingUser.id, {
+    try { await onUpdateUser(editingUser.id, {
       fullName: editFullName.trim(),
-      phone: editPhone.trim(),
+      email: editEmail.trim().toLowerCase(),
+      phone: editPhone.replace(/[\s.-]/g, ''),
       role: editRole,
       roleLabelVi: roleMap[editRole],
       status: editStatus,
       statusLabelVi: statusMap[editStatus]
-    });
-
-    setEditingUser(null);
+    }); setEditingUser(null); } catch (error) {
+      setEditError(error instanceof Error ? error.message : 'Không thể cập nhật tài khoản.');
+    }
   };
 
   const handleOpenAdd = () => {
@@ -144,7 +155,10 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
   const handleSaveNewUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isCreating) return;
-    if (!newFullName.trim() || !newEmail.trim()) return;
+    if (!nameValid(newFullName) || !emailValid(newEmail) || !phoneValid(newPhone)) {
+      setCreateError('Vui lòng kiểm tra họ tên, email và số điện thoại Việt Nam.');
+      return;
+    }
     setCreateError('');
     if (newPassword.length < 8 || new TextEncoder().encode(newPassword).length > 72) {
       setCreateError('Mật khẩu cần ít nhất 8 ký tự và tối đa 72 byte.');
@@ -158,8 +172,8 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
     try {
       await onAddUser({
         fullName: newFullName.trim(),
-        email: newEmail.trim(),
-        phone: newPhone.trim(),
+        email: newEmail.trim().toLowerCase(),
+        phone: newPhone.replace(/[\s.-]/g, ''),
         role: newRole,
         status: newStatus,
         password: newPassword,
@@ -176,6 +190,7 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
 
   const handleConfirmLockToggle = async () => {
     if (!lockTargetUser) return;
+    if (lockTargetUser.status !== 'locked' && !lockReason.trim()) return;
     await onToggleLock(lockTargetUser.id, lockReason);
     setLockTargetUser(null);
     setLockReason('');
@@ -224,7 +239,7 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
           {/* Search Box */}
           <div className="adm-search-input-wrap">
             <Search size={16} className="adm-search-icon" />
-            <input 
+            <input maxLength={200}
               type="text"
               placeholder="Tìm theo tên, email, SĐT hoặc mã..."
               value={searchTerm}
@@ -334,7 +349,7 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
                         </div>
                         <div>
                           <div className="adm-user-name">{user.fullName}</div>
-                          <div className="adm-user-code">ID: {user.code}</div>
+                          <div className="adm-user-code">ID: {user.id}</div>
                         </div>
                       </div>
                     </td>
@@ -456,7 +471,7 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
                     </div>
                     <div>
                       <div className="adm-user-name">{user.fullName}</div>
-                      <div className="adm-user-code">ID: {user.code}</div>
+                      <div className="adm-user-code">ID: {user.id}</div>
                     </div>
                   </div>
                   <div className="adm-user-badges-wrap">
@@ -545,6 +560,8 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
                     type="text" 
                     required
                     placeholder="Ví dụ: Nguyễn Văn An"
+                    minLength={2}
+                    maxLength={160}
                     className="adm-form-input"
                     value={newFullName}
                     onChange={(e) => setNewFullName(e.target.value)}
@@ -558,6 +575,7 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
                       type="email" 
                       required
                       placeholder="email@domain.com"
+                      maxLength={200}
                       className="adm-form-input"
                       value={newEmail}
                       onChange={(e) => setNewEmail(e.target.value)}
@@ -565,9 +583,10 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
                   </div>
                   <div className="adm-form-group">
                     <label className="adm-form-label">Số điện thoại</label>
-                    <input 
+                    <input maxLength={40}
                       type="tel" 
                       placeholder="0912 345 678"
+                      inputMode="tel"
                       className="adm-form-input"
                       value={newPhone}
                       onChange={(e) => setNewPhone(e.target.value)}
@@ -637,7 +656,7 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
         <div className="adm-modal-overlay">
           <div className="adm-modal-content">
             <div className="adm-modal-header">
-              <h3 className="adm-modal-title">Chỉnh sửa tài khoản: {editingUser.code}</h3>
+              <h3 className="adm-modal-title">Chỉnh sửa tài khoản: {editingUser.id}</h3>
               <button className="adm-modal-close" onClick={() => setEditingUser(null)}>
                 <X size={18} />
               </button>
@@ -649,6 +668,8 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
                   <input 
                     type="text" 
                     required
+                    minLength={2}
+                    maxLength={160}
                     className="adm-form-input"
                     value={editFullName}
                     onChange={(e) => setEditFullName(e.target.value)}
@@ -657,18 +678,21 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
 
                 <div className="adm-form-row">
                   <div className="adm-form-group">
-                    <label className="adm-form-label">Email (Không thể sửa)</label>
+                    <label className="adm-form-label">Email liên hệ</label>
                     <input 
-                      type="text" 
-                      disabled
-                      className="adm-form-input adm-input-disabled"
-                      value={editingUser.email}
+                      type="email"
+                      required
+                      maxLength={200}
+                      className="adm-form-input"
+                      value={editEmail}
+                      onChange={(e) => setEditEmail(e.target.value)}
                     />
                   </div>
                   <div className="adm-form-group">
                     <label className="adm-form-label">Số điện thoại</label>
-                    <input 
+                    <input maxLength={40}
                       type="tel" 
+                      inputMode="tel"
                       className="adm-form-input"
                       value={editPhone}
                       onChange={(e) => setEditPhone(e.target.value)}
@@ -697,6 +721,7 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
                     </select>
                   </div>
                 </div>
+                {editError && <p role="alert" className="adm-form-hint">{editError}</p>}
               </div>
 
               <div className="adm-modal-footer">
@@ -742,7 +767,7 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
                   </p>
                   <div className="adm-form-group" style={{ marginTop: '1rem' }}>
                     <label className="adm-form-label">Lý do khóa tài khoản (Ghi vào Audit log) *</label>
-                    <input 
+                    <input maxLength={2000}
                       type="text"
                       className="adm-form-input"
                       placeholder="Ví dụ: Vi phạm quy định nội dung, nghi ngờ bị chiếm quyền..."
@@ -764,6 +789,7 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
               <button 
                 type="button" 
                 className={`adm-btn ${lockTargetUser.status === 'locked' ? 'adm-btn-primary' : 'adm-btn-danger'}`}
+                disabled={lockTargetUser.status !== 'locked' && !lockReason.trim()}
                 onClick={handleConfirmLockToggle}
               >
                 {lockTargetUser.status === 'locked' ? 'Xác nhận mở khóa' : 'Xác nhận khóa tài khoản'}

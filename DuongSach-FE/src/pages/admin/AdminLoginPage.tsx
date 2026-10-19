@@ -134,7 +134,7 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({
                 <span className="admin-input-icon">
                   <User size={16} />
                 </span>
-                <input
+                <input maxLength={200}
                   id="admin-username"
                   aria-label={language === 'vi' ? 'Tài khoản quản trị viên' : 'Admin Username or Email'}
                   type="text"
@@ -173,7 +173,7 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({
                 <span className="admin-input-icon">
                   <Lock size={16} />
                 </span>
-                <input
+                <input maxLength={128}
                   id="admin-password"
                   aria-label={language === 'vi' ? 'Mật khẩu quản trị' : 'Password'}
                   type={showPassword ? 'text' : 'password'}

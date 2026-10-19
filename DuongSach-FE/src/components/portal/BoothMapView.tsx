@@ -1,4 +1,5 @@
 import { notifyModal } from '../../services/notificationModal';
+import { imageFileError } from '../../utils/fileValidation';
 import { useModalBehavior } from '../../hooks/useModalBehavior';
 import React, { useState, useEffect, useRef } from 'react';
 import { 
@@ -260,7 +261,7 @@ export const BoothMapView: React.FC<BoothMapViewProps> = ({
 
   const handleSubmitVenue = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!venueForm.name.trim()) {
+    if (!venueForm.name.trim() || !venueForm.code.trim() || !Number.isInteger(Number(venueForm.capacity)) || Number(venueForm.capacity) < 1) {
       setFormError(language === 'vi' ? 'Vui lòng nhập tên địa điểm' : 'Please enter venue name');
       return;
     }
@@ -273,7 +274,7 @@ export const BoothMapView: React.FC<BoothMapViewProps> = ({
         body: JSON.stringify({
           name: venueForm.name.trim(),
           code: venueForm.code.trim() || undefined,
-          capacity: Number(venueForm.capacity) || 50,
+          capacity: Number(venueForm.capacity),
           kind: venueForm.kind,
           zone: venueForm.campus.trim(),
           x: 50,
@@ -290,7 +291,7 @@ export const BoothMapView: React.FC<BoothMapViewProps> = ({
         statusLabelVi: 'Địa điểm tổ chức',
         x: 50,
         y: 35,
-        capacity: Number(venueForm.capacity) || 50,
+        capacity: Number(venueForm.capacity),
         shortDesc: `${venueForm.name.trim()} · Sức chứa: ${venueForm.capacity} người`,
       } as any;
 
@@ -446,6 +447,8 @@ export const BoothMapView: React.FC<BoothMapViewProps> = ({
   const handleMapUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      const error = imageFileError(file);
+      if (error) { void notifyModal(error); e.target.value = ''; return; }
       const reader = new FileReader();
       reader.onload = (event) => {
         const result = event.target?.result as string;
@@ -467,8 +470,8 @@ export const BoothMapView: React.FC<BoothMapViewProps> = ({
     if (activeTab === 'assigned' && b.status !== 'assigned') return false;
     if (activeTab === 'available' && b.status !== 'available') return false;
     if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      return b.name.toLowerCase().includes(q) || b.code.toLowerCase().includes(q) || (b.orgName && b.orgName.toLowerCase().includes(q));
+      const q = searchQuery.trim().normalize('NFC').toLowerCase();
+      return b.name.normalize('NFC').toLowerCase().includes(q) || b.code.normalize('NFC').toLowerCase().includes(q) || (b.orgName && b.orgName.normalize('NFC').toLowerCase().includes(q));
     }
     return true;
   });
@@ -985,7 +988,7 @@ export const BoothMapView: React.FC<BoothMapViewProps> = ({
             {/* Search Input */}
             <div style={{ position: 'relative' }}>
               <Search size={14} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF' }} />
-              <input
+              <input maxLength={200}
                 type="text"
                 placeholder={language === 'vi' ? 'Tìm mã, tên gian hàng, đơn vị...' : 'Search code, name...'}
                 value={searchQuery}
@@ -1350,7 +1353,7 @@ export const BoothMapView: React.FC<BoothMapViewProps> = ({
                   <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#374151', marginBottom: '0.35rem' }}>
                     {language === 'vi' ? 'Mã gian hàng *' : 'Booth Code *'}
                   </label>
-                  <input
+                  <input maxLength={20}
                     type="text"
                     value={boothForm.code}
                     onChange={(e) => setBoothForm(prev => ({ ...prev, code: e.target.value }))}
@@ -1373,7 +1376,7 @@ export const BoothMapView: React.FC<BoothMapViewProps> = ({
                   <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#374151', marginBottom: '0.35rem' }}>
                     {language === 'vi' ? 'Tên gian hàng *' : 'Booth Name *'}
                   </label>
-                  <input
+                  <input maxLength={160}
                     type="text"
                     value={boothForm.name}
                     onChange={(e) => setBoothForm(prev => ({ ...prev, name: e.target.value }))}
@@ -1397,7 +1400,7 @@ export const BoothMapView: React.FC<BoothMapViewProps> = ({
                   <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#374151', marginBottom: '0.35rem' }}>
                     {language === 'vi' ? 'Phân khu / Khu vực' : 'Zone'}
                   </label>
-                  <input
+                  <input maxLength={80}
                     type="text"
                     value={boothForm.areaName}
                     onChange={(e) => setBoothForm(prev => ({ ...prev, areaName: e.target.value }))}
@@ -1417,7 +1420,7 @@ export const BoothMapView: React.FC<BoothMapViewProps> = ({
                   <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#374151', marginBottom: '0.35rem' }}>
                     {language === 'vi' ? 'Giờ mở cửa' : 'Open Hours'}
                   </label>
-                  <input
+                  <input maxLength={60}
                     type="text"
                     value={boothForm.openHours}
                     onChange={(e) => setBoothForm(prev => ({ ...prev, openHours: e.target.value }))}
@@ -1439,7 +1442,7 @@ export const BoothMapView: React.FC<BoothMapViewProps> = ({
                 <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#374151', marginBottom: '0.35rem' }}>
                   {language === 'vi' ? 'Cơ sở / Khuôn viên' : 'Campus'}
                 </label>
-                <input
+                <input maxLength={160}
                   type="text"
                   value={boothForm.campus}
                   onChange={(e) => setBoothForm(prev => ({ ...prev, campus: e.target.value }))}
@@ -1459,7 +1462,7 @@ export const BoothMapView: React.FC<BoothMapViewProps> = ({
                 <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#374151', marginBottom: '0.35rem' }}>
                   {language === 'vi' ? 'Mô tả ngắn' : 'Description'}
                 </label>
-                <textarea
+                <textarea maxLength={20000}
                   value={boothForm.description}
                   onChange={(e) => setBoothForm(prev => ({ ...prev, description: e.target.value }))}
                   placeholder="Giới thiệu về gian hàng, thể loại sách nổi bật..."
@@ -1614,7 +1617,7 @@ export const BoothMapView: React.FC<BoothMapViewProps> = ({
                 <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#374151', marginBottom: '0.35rem' }}>
                   {language === 'vi' ? 'Tên địa điểm / sân khấu *' : 'Venue / Stage Name *'}
                 </label>
-                <input
+                <input maxLength={160}
                   type="text"
                   value={venueForm.name}
                   onChange={(e) => setVenueForm(prev => ({ ...prev, name: e.target.value }))}
@@ -1637,7 +1640,7 @@ export const BoothMapView: React.FC<BoothMapViewProps> = ({
                   <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#374151', marginBottom: '0.35rem' }}>
                     {language === 'vi' ? 'Mã địa điểm' : 'Venue Code'}
                   </label>
-                  <input
+                  <input maxLength={20} required
                     type="text"
                     value={venueForm.code}
                     onChange={(e) => setVenueForm(prev => ({ ...prev, code: e.target.value }))}
@@ -1660,7 +1663,7 @@ export const BoothMapView: React.FC<BoothMapViewProps> = ({
                   <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#374151', marginBottom: '0.35rem' }}>
                     {language === 'vi' ? 'Sức chứa (người) *' : 'Capacity *'}
                   </label>
-                  <input
+                  <input step={1}
                     type="number"
                     min={1}
                     max={10000}
@@ -1709,7 +1712,7 @@ export const BoothMapView: React.FC<BoothMapViewProps> = ({
                 <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#374151', marginBottom: '0.35rem' }}>
                   {language === 'vi' ? 'Cơ sở / Khuôn viên' : 'Campus'}
                 </label>
-                <input
+                <input maxLength={40}
                   type="text"
                   value={venueForm.campus}
                   onChange={(e) => setVenueForm(prev => ({ ...prev, campus: e.target.value }))}

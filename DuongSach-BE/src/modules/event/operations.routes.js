@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { imageSource, supportPhone } from '../../utils/input.validation.js';
 import { z } from "zod";
 import crypto from "node:crypto";
 import { prisma } from "../../config/database.js";
@@ -45,7 +46,7 @@ const activityInput = z.object({
   capacity: quantity.optional().default(1),
   description: z.string().max(20000).optional(),
   speaker: text.optional(),
-  imageUrl: z.string().max(2000).optional(),
+  imageUrl: imageSource.optional(),
 });
 export async function checkSchedule(tx, data) {
   const event = await tx.event.findFirst({
@@ -658,7 +659,7 @@ router.get(
 const proposalInput = activityInput.omit({ imageUrl: true }).extend({
   targetAudience: z.string().max(2000).optional(),
   contactPerson: text.optional(),
-  contactPhone: z.string().max(20).optional(),
+  contactPhone: supportPhone.optional(),
   devices: z
     .array(
       z.object({ assetId: uuid.optional(), name: text, quantity: quantity }),

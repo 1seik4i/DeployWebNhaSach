@@ -32,7 +32,7 @@ export async function facilityRequest<T>(path: string, options: RequestInit = {}
   if (method === 'PATCH') return apiClient.patch(endpoint, body) as Promise<T>;
   if (method === 'DELETE') return apiClient.delete(endpoint) as Promise<T>;
 
-  const rows = await apiClient.get<Facility[]>(endpoint);
+  const rows = await apiClient.get<Facility[]>(endpoint, { signal: options.signal ?? undefined });
   return {
     data: rows,
     campuses: [...new Set(rows.map(row => row.campus).filter(Boolean))].sort(),

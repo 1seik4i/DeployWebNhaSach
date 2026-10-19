@@ -152,7 +152,7 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
                 </label>
                 <div className="fpm-input-wrap">
                   <Mail size={17} className="fpm-input-icon" />
-                  <input
+                  <input maxLength={254}
                     id="fpm-email-input"
                     type="email"
                     required

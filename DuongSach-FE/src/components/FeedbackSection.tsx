@@ -157,6 +157,10 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
   const handleProposalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!proposalData.eventTitle.trim() || !proposalData.description.trim()) return;
+    if (!/^[\p{L}\p{M}][\p{L}\p{M}\s.'-]*$/u.test(proposalData.contactName.trim()) || !/^(?:\+?84|0)(?:3|5|7|8|9)\d{8}$/.test(proposalData.contactPhone.replace(/[\s.-]/g, '')) || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(proposalData.contactEmail.trim())) {
+      setSubmissionState('error');
+      return;
+    }
     setIsSubmitting(true);
     try {
       const formattedComments = [
@@ -168,7 +172,7 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
 
       await apiClient.post('/public/event-suggestions', {
         fullName: proposalData.contactName,
-        phone: proposalData.contactPhone,
+        phone: proposalData.contactPhone.replace(/[\s.-]/g, ''),
         content: formattedComments,
       });
       setSubmissionState('success');
@@ -341,7 +345,7 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
                             <div className="sk05-searchable-dropdown-panel" role="listbox">
                               <div className="sk05-dropdown-search-box">
                                 <Search size={16} className="sk05-search-icon" />
-                                <input
+                                <input maxLength={200}
                                   ref={searchInputRef}
                                   type="text"
                                   className="sk05-dropdown-search-input"
@@ -485,7 +489,7 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
                         <label className="sk05-field-label" htmlFor="feedback-comment-input">
                           {language === 'vi' ? 'Nội dung góp ý:' : 'Your suggestions / perspective:'}
                         </label>
-                        <textarea
+                        <textarea maxLength={10000}
                           id="feedback-comment-input"
                           required
                           rows={3}
@@ -505,7 +509,7 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
                         <label className="sk05-field-label" htmlFor="feedback-contact-input">
                           {language === 'vi' ? 'Email / SĐT (tùy chọn):' : 'Email / Phone (optional):'}
                         </label>
-                        <input
+                        <input maxLength={254}
                           id="feedback-contact-input"
                           type="text"
                           value={contact}
@@ -559,6 +563,8 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
                           <input
                             type="text"
                             required
+                            minLength={2}
+                            maxLength={160}
                             className="sk05-text-input"
                             placeholder={language === 'vi' ? 'Ví dụ: Tọa đàm Ra mắt sách Mùa Thu 2026' : 'e.g., Autumn Book Launch 2026'}
                             value={proposalData.eventTitle}
@@ -590,7 +596,7 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
                         <label className="sk05-field-label">
                           {language === 'vi' ? 'Mô tả nội dung & Thiết bị cần hỗ trợ *' : 'Event Description & Technical Needs *'}
                         </label>
-                        <textarea
+                        <textarea maxLength={8000}
                           required
                           rows={3}
                           className="sk05-textarea-input"
@@ -610,7 +616,7 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
                           <label className="sk05-field-label">
                             {language === 'vi' ? 'Họ tên người đại diện *' : 'Contact Person *'}
                           </label>
-                          <input
+                          <input maxLength={160}
                             type="text"
                             required
                             className="sk05-text-input"
@@ -624,9 +630,10 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
                           <label className="sk05-field-label">
                             {language === 'vi' ? 'Số điện thoại *' : 'Phone Number *'}
                           </label>
-                          <input
+                          <input maxLength={40}
                             type="tel"
                             required
+                            inputMode="tel"
                             className="sk05-text-input"
                             placeholder="0901 234 567"
                             value={proposalData.contactPhone}
@@ -641,6 +648,7 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
                           <input
                             type="email"
                             required
+                            maxLength={254}
                             className="sk05-text-input"
                             placeholder="contact@domain.com"
                             value={proposalData.contactEmail}

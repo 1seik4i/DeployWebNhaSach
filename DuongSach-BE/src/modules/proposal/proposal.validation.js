@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { paginationFields } from '../../utils/input.validation.js';
 
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -27,8 +28,7 @@ const isValidCalendarDate = (dateStr) => {
 export const listProposalSchema = z.object({
   query: z.object({
     eventId: z.string().uuid().optional(),
-    page: z.string().optional(),
-    limit: z.string().optional(),
+    ...paginationFields,
     status: z.enum(['pending', 'approved', 'need_revision', 'rejected', 'withdrawn'], {
       errorMap: () => ({ message: 'Trạng thái đề xuất không hợp lệ' }),
     }).optional(),

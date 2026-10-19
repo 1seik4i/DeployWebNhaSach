@@ -2208,3 +2208,19 @@
     margin-top: 0.5rem;
   }
 }
+.partner-activity-mobile-search { display: none; }
+@media (max-width: 768px) {
+  .partner-activity-mobile-search {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 44px;
+    margin: 0.75rem 0;
+    padding: 0.65rem 0.85rem;
+    border: 1px solid #cbd5d1;
+    border-radius: 8px;
+    background: #fff;
+    color: #17382e;
+    font: inherit;
+  }
+}

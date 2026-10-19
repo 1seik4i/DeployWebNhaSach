@@ -1,4 +1,5 @@
 import { useModalBehavior } from '../../hooks/useModalBehavior';
+import { imageFileError } from '../../utils/fileValidation';
 import React, { useEffect, useState, useRef } from 'react';
 import { 
   Building2, 
@@ -82,6 +83,8 @@ export const PartnerProfilePage: React.FC<PartnerProfilePageProps> = ({
   const handleAvatarFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      const fileError = imageFileError(file);
+      if (fileError) { showToast(fileError); e.target.value = ''; return; }
       if (file.size > 5 * 1024 * 1024) {
         showToast(language === 'vi' ? 'Dung lượng ảnh tối đa là 5MB' : 'Max image size is 5MB');
         return;
@@ -103,15 +106,23 @@ export const PartnerProfilePage: React.FC<PartnerProfilePageProps> = ({
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (name.trim().length < 2 || repName.trim().length < 2 || !/^[\p{L}\p{M}][\p{L}\p{M}\s.'-]*$/u.test(repName.trim())) {
+      showToast('Tên tổ chức hoặc họ tên người đại diện không hợp lệ');
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) || (phone.trim() && !/^(?:\+?84|0)(?:3|5|7|8|9)\d{8}$/.test(phone.replace(/[\s.-]/g, '')))) {
+      showToast('Email hoặc số điện thoại Việt Nam không hợp lệ');
+      return;
+    }
     try {
       await onUpdateOrg({
-        name,
+        name: name.trim(),
         shortDesc,
         address,
         website,
-        representativeName: repName,
-        email,
-        phone,
+        representativeName: repName.trim(),
+        email: email.trim().toLowerCase(),
+        phone: phone.replace(/[\s.-]/g, ''),
         logoUrl
       });
       setIsEditing(false);
@@ -461,8 +472,7 @@ export const PartnerProfilePage: React.FC<PartnerProfilePageProps> = ({
                     {language === 'vi' ? 'Hủy' : 'Cancel'}
                   </button>
                   <button
-                    type="button"
-                    onClick={handleSave}
+                    type="submit" form="partner-profile-form"
                     style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -485,7 +495,7 @@ export const PartnerProfilePage: React.FC<PartnerProfilePageProps> = ({
             </div>
 
             {/* Form grid */}
-            <form onSubmit={handleSave}>
+            <form id="partner-profile-form" onSubmit={handleSave}>
               <div className="partner-profile-form-grid">
                 {/* Tên tổ chức */}
                 <div>
@@ -495,6 +505,9 @@ export const PartnerProfilePage: React.FC<PartnerProfilePageProps> = ({
                   <input
                     type="text"
                     value={name}
+                    required
+                    minLength={2}
+                    maxLength={200}
                     onChange={e => setName(e.target.value)}
                     disabled={!isEditing}
                     style={{
@@ -546,6 +559,9 @@ export const PartnerProfilePage: React.FC<PartnerProfilePageProps> = ({
                     <input
                       type="text"
                       value={repName}
+                      required
+                      minLength={2}
+                      maxLength={160}
                       onChange={e => setRepName(e.target.value)}
                       disabled={!isEditing}
                       style={{
@@ -572,6 +588,8 @@ export const PartnerProfilePage: React.FC<PartnerProfilePageProps> = ({
                     <input
                       type="email"
                       value={email}
+                      required
+                      maxLength={200}
                       onChange={e => setEmail(e.target.value)}
                       disabled={!isEditing}
                       style={{
@@ -598,6 +616,7 @@ export const PartnerProfilePage: React.FC<PartnerProfilePageProps> = ({
                     <input
                       type="tel"
                       value={phone}
+                      inputMode="tel"
                       onChange={e => setPhone(e.target.value)}
                       disabled={!isEditing}
                       style={{
@@ -624,6 +643,7 @@ export const PartnerProfilePage: React.FC<PartnerProfilePageProps> = ({
                     <input
                       type="text"
                       value={address}
+                      maxLength={1000}
                       onChange={e => setAddress(e.target.value)}
                       disabled={!isEditing}
                       style={{
@@ -648,6 +668,7 @@ export const PartnerProfilePage: React.FC<PartnerProfilePageProps> = ({
                   <textarea
                     rows={2}
                     value={shortDesc}
+                    maxLength={5000}
                     onChange={e => setShortDesc(e.target.value)}
                     disabled={!isEditing}
                     style={{
@@ -786,7 +807,7 @@ export const PartnerProfilePage: React.FC<PartnerProfilePageProps> = ({
                     <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#374151', marginBottom: 5 }}>
                       {language === 'vi' ? 'Mật khẩu hiện tại *' : 'Current Password *'}
                     </label>
-                    <input 
+                    <input maxLength={128}
                       type="password"
                       required
                       value={currentPassword}
@@ -806,7 +827,7 @@ export const PartnerProfilePage: React.FC<PartnerProfilePageProps> = ({
                     <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#374151', marginBottom: 5 }}>
                       {language === 'vi' ? 'Mật khẩu mới (tối thiểu 8 ký tự) *' : 'New Password (min 8 chars) *'}
                     </label>
-                    <input 
+                    <input maxLength={128}
                       type="password"
                       required
                       value={newPassword}
@@ -826,7 +847,7 @@ export const PartnerProfilePage: React.FC<PartnerProfilePageProps> = ({
                     <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#374151', marginBottom: 5 }}>
                       {language === 'vi' ? 'Nhập lại mật khẩu mới *' : 'Confirm New Password *'}
                     </label>
-                    <input 
+                    <input maxLength={128}
                       type="password"
                       required
                       value={confirmPassword}

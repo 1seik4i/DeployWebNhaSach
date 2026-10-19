@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { searchText } from '../../utils/input.validation.js';
 import { z } from "zod";
 import bcrypt from "bcrypt";
 import crypto from "node:crypto";
@@ -29,11 +30,14 @@ const safeUser = {
   lockReason: true,
 };
 const password = z.string().min(8).max(72);
+const contactName = z.string().trim().min(2).max(160).regex(/^[\p{L}\p{M}][\p{L}\p{M}\s.'-]*$/u, "Họ tên chỉ được chứa chữ cái và dấu câu hợp lệ");
+const contactEmail = z.string().trim().email().max(200).transform(value => value.toLowerCase());
+const contactPhone = z.string().trim().transform(value => value.replace(/[\s.-]/g, "")).pipe(z.string().regex(/^(?:\+?84|0)(?:3|5|7|8|9)\d{8}$/, "Số điện thoại Việt Nam không hợp lệ"));
 const userInput = z
   .object({
-    fullName: text,
-    email: z.string().email().max(200),
-    phone: z.string().max(20).optional(),
+    fullName: contactName,
+    email: contactEmail,
+    phone: z.union([contactPhone, z.literal("")]).optional(),
     role: z.enum(["admin", "partner"]),
     status: z.enum(["active", "locked", "pending_verification"]).optional(),
     avatarUrl: z.string().max(2000).optional().nullable(),
@@ -74,7 +78,7 @@ router.get(
         ...(r.query.search
           ? {
               OR: ["fullName", "email"].map((k) => ({
-                [k]: { contains: String(r.query.search), mode: "insensitive" },
+                [k]: { contains: parse(searchText, r.query.search), mode: "insensitive" },
               })),
             }
           : {}),
@@ -152,9 +156,9 @@ async function updateUser(r, statusOnly = false) {
       ? z
           .object({
             status: z.enum(["active", "locked"]),
-            reason: z.string().max(2000).optional(),
+            reason: z.string().trim().max(2000).optional(),
           })
-          .strict()
+          .strict().refine(data => data.status !== 'locked' || !!data.reason, { path: ['reason'], message: 'Vui lòng nhập lý do khóa tài khoản' })
       : userInput.omit({ password: true }).partial(),
     r.body,
   );
@@ -207,6 +211,16 @@ async function updateUser(r, statusOnly = false) {
             kind: "role",
           },
         });
+    }
+    if (old.primaryRole === "partner" && (!role || role === "partner") && (fields.email !== undefined || fields.phone !== undefined || fields.fullName !== undefined)) {
+      await tx.organization.updateMany({
+        where: { members: { some: { userId: id, roleInOrg: "owner" } }, isDeleted: false },
+        data: {
+          ...(fields.email !== undefined ? { email: fields.email } : {}),
+          ...(fields.phone !== undefined ? { phone: fields.phone } : {}),
+          ...(fields.fullName !== undefined ? { representativeName: fields.fullName } : {}),
+        },
+      });
     }
     if (input.status === "locked" || (role && role !== old.primaryRole))
       await tx.refreshToken.updateMany({

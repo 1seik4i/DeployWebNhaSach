@@ -3,6 +3,7 @@ import { prisma } from '../../config/database.js';
 import { ApiError } from '../../utils/ApiError.js';
 import { z } from 'zod';
 import { parse } from '../../utils/contract.js';
+import { paginationFields, queryInteger, searchText, imageSource } from '../../utils/input.validation.js';
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const text = (value, field, maxLength = 160) => {
@@ -22,10 +23,6 @@ const validId = id => {
   if (!uuid.test(id)) throw ApiError.notFound('Không tìm thấy dữ liệu');
   return id;
 };
-const paging = query => ({
-  page: Math.max(1, Number.parseInt(query.page, 10) || 1),
-  limit: Math.max(1, Math.min(100, Number.parseInt(query.limit, 10) || 50)),
-});
 const meta = (page, limit, total, campuses = []) => ({ page, limit, total, totalPages: Math.ceil(total / limit), campuses });
 const uniqueConflict = error => {
   if (error.code === 'P2002') throw ApiError.conflict('Tên hoặc mã đã tồn tại trong danh mục này');
@@ -160,9 +157,10 @@ export const FacilityService = {
   },
 
   async list(kind, query) {
-    const { page, limit } = paging(query);
-    const search = String(query.search || '').trim();
-    const campus = String(query.campus || '').trim();
+    const { page, limit, search = '', campus = '' } = parse(z.object({
+      ...paginationFields, limit: queryInteger(1, 100).default(50),
+      search: searchText.optional(), campus: z.string().trim().max(160).optional(),
+    }), query);
     const where = { isDeleted: false, ...(search ? { name: { contains: search, mode: 'insensitive' } } : {}) };
     if (kind === 'locations') {
       const venue = await mapVenue();
@@ -231,6 +229,13 @@ export const FacilityService = {
         return locationResult(row);
       }
       if (kind === 'venues') {
+        input = parse(z.object({
+          name: z.string().trim().min(1).max(160), campus: z.string().trim().min(1).max(160),
+          capacity: z.number().int().min(1).max(1000000),
+          code: z.string().trim().min(1).max(20).optional(),
+          kind: z.enum(['main_stage', 'workshop_area', 'reading_area', 'other']).optional(),
+          x: z.number().finite().min(0).max(100).optional(), y: z.number().finite().min(0).max(100).optional(),
+        }).strict(), input);
         const facility = text(input.campus, 'campus');
         const capacity = quantity(input.capacity, 'capacity', 1);
         const duplicate = await prisma.venue.findFirst({ where: { name: { equals: name, mode: 'insensitive' }, facility: { equals: facility, mode: 'insensitive' }, isDeleted: false, ...(id ? { id: { not: id } } : {}) } });
@@ -262,7 +267,8 @@ export const FacilityService = {
         return id ? prisma.asset.update({ where: { id }, data: { name, totalQuantity } }) : prisma.asset.create({ data: { name, totalQuantity } });
       }
       const facility = text(input.campus, 'campus');
-      const details = parse(z.object({ code:z.string().trim().min(1).max(20).optional(), dimensions:z.string().max(40).optional(), areaName:z.string().max(80).optional(), description:z.string().max(20000).optional(), imageUrl:z.string().max(3000000).optional(), openHours:z.string().max(60).optional() }),input);
+      const details = parse(z.object({ code:z.string().trim().min(1).max(20).optional(), dimensions:z.string().max(40).optional(), areaName:z.string().max(80).optional(), description:z.string().max(20000).optional(), imageUrl:imageSource.optional(), openHours:z.string().max(60).optional() }),input);
+      const coordinates = parse(z.object({ x: z.number().finite().min(0).max(100).optional(), y: z.number().finite().min(0).max(100).optional() }), input);
       const venue = await prisma.venue.findFirst({ where: { facility: { equals: facility, mode: 'insensitive' }, isDeleted: false }, orderBy: { createdAt: 'asc' } });
       if (!venue) throw ApiError.validation([{ field: 'campus', message: 'Cơ sở chưa có địa điểm tổ chức; hãy tạo địa điểm trước' }]);
       const duplicate = await prisma.booth.findFirst({ where: { name: { equals: name, mode: 'insensitive' }, isDeleted: false, location: { venue: { facility: { equals: facility, mode: 'insensitive' } } }, ...(id ? { id: { not: id } } : {}) } });
@@ -277,8 +283,8 @@ export const FacilityService = {
       }
       return prisma.$transaction(async tx => {
         const code = details.code || `B-${randomBytes(5).toString('hex').toUpperCase()}`;
-        const mapX = input.x !== undefined ? Number(input.x) : 50;
-        const mapY = input.y !== undefined ? Number(input.y) : 50;
+        const mapX = coordinates.x ?? 50;
+        const mapY = coordinates.y ?? 50;
         const location = await tx.location.create({ data: { venueId: venue.id, code, name: `Vị trí ${name}`, kind: 'booth', capacity: 0, mapX, mapY } });
         return tx.booth.create({ data: { locationId: location.id, ...details, code, name }, include: boothInclude() });
       }).then(boothResult);

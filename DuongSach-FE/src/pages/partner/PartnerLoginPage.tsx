@@ -140,7 +140,7 @@ export const PartnerLoginPage: React.FC<PartnerLoginPageProps> = ({
                 <span className="partner-input-icon">
                   <User size={16} />
                 </span>
-                <input
+                <input maxLength={200}
                   id="partner-username"
                   type="text"
                   required
@@ -179,7 +179,7 @@ export const PartnerLoginPage: React.FC<PartnerLoginPageProps> = ({
                 <span className="partner-input-icon">
                   <Lock size={16} />
                 </span>
-                <input
+                <input maxLength={128}
                   id="partner-password"
                   type={showPassword ? 'text' : 'password'}
                   required

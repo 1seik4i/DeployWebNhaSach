@@ -1,4 +1,5 @@
 import { promptModal, notifyModal } from '../../services/notificationModal';
+import { documentFileError } from '../../utils/fileValidation';
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
@@ -224,6 +225,9 @@ export const PartnerActivityDetailPage: React.FC<PartnerActivityDetailPageProps>
   const handleUploadDocFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
+    if (documents.length + files.length > 100) { showToast('Tối đa 100 tài liệu cho mỗi hoạt động.'); e.target.value = ''; return; }
+    const error = Array.from(files).map(file => documentFileError(file)).find(Boolean);
+    if (error) { showToast(error); e.target.value = ''; return; }
     const additions = await Promise.all(Array.from(files).map((file, idx) => new Promise<PartnerActivityDocumentItem>((resolve, reject) => {
       const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
       const sizeStr = parseFloat(sizeMB) >= 0.1 ? `${sizeMB} MB` : `${Math.round(file.size / 1024)} KB`;
@@ -473,7 +477,7 @@ export const PartnerActivityDetailPage: React.FC<PartnerActivityDetailPageProps>
             )}
             <div className="form-field-group">
               <label>{language === 'vi' ? 'Tên hoạt động' : 'Title'}</label>
-              <input 
+              <input maxLength={200}
                 type="text" 
                 value={title} 
                 onChange={(e) => setTitle(e.target.value)} 
@@ -483,7 +487,7 @@ export const PartnerActivityDetailPage: React.FC<PartnerActivityDetailPageProps>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
               <div className="form-field-group">
                 <label>{language === 'vi' ? 'Diễn giả / Khách mời' : 'Speaker / Host'}</label>
-                <input 
+                <input maxLength={200}
                   type="text" 
                   value={speaker} 
                   onChange={(e) => setSpeaker(e.target.value)} 
@@ -492,7 +496,7 @@ export const PartnerActivityDetailPage: React.FC<PartnerActivityDetailPageProps>
               </div>
               <div className="form-field-group">
                 <label>{language === 'vi' ? 'Đối tượng tham gia' : 'Target Audience'}</label>
-                <input 
+                <input maxLength={2000}
                   type="text" 
                   value={targetAudience} 
                   onChange={(e) => setTargetAudience(e.target.value)} 
@@ -502,7 +506,7 @@ export const PartnerActivityDetailPage: React.FC<PartnerActivityDetailPageProps>
             </div>
             <div className="form-field-group">
               <label>{language === 'vi' ? 'Số người tham dự dự kiến' : 'Expected attendees'}</label>
-              <input 
+              <input step={1} max={2147483647}
                 type="number" 
                 min={1}
                 value={capacity} 
@@ -512,7 +516,7 @@ export const PartnerActivityDetailPage: React.FC<PartnerActivityDetailPageProps>
             </div>
             <div className="form-field-group">
               <label>{language === 'vi' ? 'Mô tả nội dung' : 'Description'}</label>
-              <textarea 
+              <textarea maxLength={20000}
                 rows={4} 
                 value={description} 
                 onChange={(e) => setDescription(e.target.value)} 
@@ -772,7 +776,7 @@ export const PartnerActivityDetailPage: React.FC<PartnerActivityDetailPageProps>
                         <label style={{ fontSize: '0.82rem', fontWeight: 700, display: 'block', marginBottom: '0.3rem' }}>
                           {language === 'vi' ? 'Khung giờ *' : 'Time *'}
                         </label>
-                        <input
+                        <input maxLength={200}
                           type="text"
                           required
                           value={scheduleForm.time}
@@ -785,7 +789,7 @@ export const PartnerActivityDetailPage: React.FC<PartnerActivityDetailPageProps>
                         <label style={{ fontSize: '0.82rem', fontWeight: 700, display: 'block', marginBottom: '0.3rem' }}>
                           {language === 'vi' ? 'Tiêu đề tiết mục / phần việc *' : 'Title *'}
                         </label>
-                        <input
+                        <input maxLength={200}
                           type="text"
                           required
                           value={scheduleForm.title}
@@ -798,7 +802,7 @@ export const PartnerActivityDetailPage: React.FC<PartnerActivityDetailPageProps>
                         <label style={{ fontSize: '0.82rem', fontWeight: 700, display: 'block', marginBottom: '0.3rem' }}>
                           {language === 'vi' ? 'Diễn giả / Người phụ trách' : 'Presenter / Lead'}
                         </label>
-                        <input
+                        <input maxLength={200}
                           type="text"
                           value={scheduleForm.speaker}
                           onChange={(e) => setScheduleForm({ ...scheduleForm, speaker: e.target.value })}
@@ -811,7 +815,7 @@ export const PartnerActivityDetailPage: React.FC<PartnerActivityDetailPageProps>
                       <label style={{ fontSize: '0.82rem', fontWeight: 700, display: 'block', marginBottom: '0.3rem' }}>
                         {language === 'vi' ? 'Nội dung chi tiết' : 'Description / Notes'}
                       </label>
-                      <textarea
+                      <textarea maxLength={20000}
                         rows={2}
                         value={scheduleForm.description}
                         onChange={(e) => setScheduleForm({ ...scheduleForm, description: e.target.value })}
@@ -934,7 +938,7 @@ export const PartnerActivityDetailPage: React.FC<PartnerActivityDetailPageProps>
                   {participants.length > 0 && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#F4F7F5', border: '1px solid #D6E2DD', borderRadius: '8px', padding: '0.35rem 0.65rem' }}>
                       <Search size={14} color="#657B74" />
-                      <input
+                      <input maxLength={200}
                         type="text"
                         value={participantSearch}
                         onChange={(e) => setParticipantSearch(e.target.value)}
@@ -1129,7 +1133,7 @@ export const PartnerActivityDetailPage: React.FC<PartnerActivityDetailPageProps>
 
                 {/* Thêm tài liệu nhanh thủ công */}
                 <form onSubmit={handleAddDocManual} style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1.25rem' }}>
-                  <input
+                  <input maxLength={200}
                     type="text"
                     value={newDocName}
                     required
@@ -1137,7 +1141,7 @@ export const PartnerActivityDetailPage: React.FC<PartnerActivityDetailPageProps>
                     placeholder={language === 'vi' ? 'Nhập tên tài liệu mới (ví dụ: Giao_an_workshop_v1.pdf)...' : 'Enter document title...'}
                     style={{ flex: 1, padding: '0.5rem 0.75rem', borderRadius: '8px', border: '1px solid #D1DDD8', fontSize: '0.86rem' }}
                   />
-                  <input type="url" required aria-label="Liên kết tài liệu" placeholder="https://..." value={newDocUrl} onChange={event => setNewDocUrl(event.target.value)} style={{ flex: 1, minWidth: '10rem', padding: '0.5rem' }} />
+                  <input maxLength={2000} type="url" required aria-label="Liên kết tài liệu" placeholder="https://..." value={newDocUrl} onChange={event => setNewDocUrl(event.target.value)} style={{ flex: 1, minWidth: '10rem', padding: '0.5rem' }} />
                   <button type="submit" className="btn-part-secondary" style={{ padding: '0.5rem 0.9rem', fontSize: '0.84rem' }}>
                     <Plus size={14} />
                     <span>{language === 'vi' ? 'Thêm tài liệu' : 'Add'}</span>
@@ -1177,7 +1181,7 @@ export const PartnerActivityDetailPage: React.FC<PartnerActivityDetailPageProps>
 
                         {editingDocId === doc.id ? (
                           <div style={{ display: 'flex', gap: '0.35rem', flex: 1, alignItems: 'center' }}>
-                            <input
+                            <input maxLength={200}
                               type="text"
                               value={editingDocName}
                               onChange={(e) => setEditingDocName(e.target.value)}

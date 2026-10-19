@@ -26,6 +26,7 @@ import {
   Tag
 } from 'lucide-react';
 import { AdminAuditLogItem } from '../../types/admin';
+import { vietnamDateKey, matchesSearch } from '../../utils/inputValidation';
 
 interface AdminAuditLogsViewProps {
   logs: AdminAuditLogItem[];
@@ -54,7 +55,7 @@ export const AdminAuditLogsView: React.FC<AdminAuditLogsViewProps> = ({ logs }) 
     let securityCount = 0;
 
     logs.forEach(l => {
-      if (l.timestamp.includes(todayStr) || l.timestamp.includes('Hôm nay')) {
+      if (l.createdAt ? vietnamDateKey(l.createdAt) === vietnamDateKey() : l.timestamp.includes(todayStr) || l.timestamp.includes('Hôm nay')) {
         todayCount++;
       }
       const act = (l.actionLabelVi || l.actionType || '').toLowerCase();
@@ -73,14 +74,7 @@ export const AdminAuditLogsView: React.FC<AdminAuditLogsViewProps> = ({ logs }) 
   // Bộ lọc dữ liệu
   const filteredLogs = useMemo(() => {
     return logs.filter(item => {
-      const q = searchTerm.trim().toLowerCase();
-      const matchQuery = !q ||
-        item.actorName.toLowerCase().includes(q) ||
-        (item.actorEmail && item.actorEmail.toLowerCase().includes(q)) ||
-        item.targetObject.toLowerCase().includes(q) ||
-        item.details.toLowerCase().includes(q) ||
-        item.actionLabelVi.toLowerCase().includes(q) ||
-        item.ipAddress.includes(q);
+      const matchQuery = matchesSearch(searchTerm, item.actorName, item.actorEmail, item.targetObject, item.details, item.actionLabelVi, item.ipAddress);
 
       let matchCategory = true;
       const target = item.targetObject.toLowerCase();
@@ -104,7 +98,7 @@ export const AdminAuditLogsView: React.FC<AdminAuditLogsViewProps> = ({ logs }) 
       if (filterTimeRange === 'today') {
         const now = new Date();
         const todayStr = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()}`;
-        matchTime = item.timestamp.includes(todayStr) || item.timestamp.includes('Hôm nay');
+        matchTime = item.createdAt ? vietnamDateKey(item.createdAt) === vietnamDateKey() : item.timestamp.includes(todayStr) || item.timestamp.includes('Hôm nay');
       }
 
       return matchQuery && matchCategory && matchStatus && matchTime;
@@ -114,9 +108,9 @@ export const AdminAuditLogsView: React.FC<AdminAuditLogsViewProps> = ({ logs }) 
   // Phân trang
   const totalPages = Math.ceil(filteredLogs.length / pageSize) || 1;
   const paginatedLogs = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
+    const start = (Math.min(currentPage, totalPages) - 1) * pageSize;
     return filteredLogs.slice(start, start + pageSize);
-  }, [filteredLogs, currentPage, pageSize]);
+  }, [filteredLogs, currentPage, pageSize, totalPages]);
 
   const handleExportCSV = () => {
     const headers = ['Mã log', 'Thời gian', 'Người thực hiện', 'Email', 'Vai trò', 'Hành động', 'Đối tượng', 'Chi tiết thay đổi', 'Trạng thái', 'IP'];
@@ -261,7 +255,7 @@ export const AdminAuditLogsView: React.FC<AdminAuditLogsViewProps> = ({ logs }) 
         <div className="adm-filter-bar">
           <div className="adm-search-input-wrap">
             <Search size={15} className="adm-search-icon" />
-            <input 
+            <input maxLength={200}
               type="text"
               placeholder="Tìm theo người thực hiện, đối tượng, chi tiết hoặc IP..."
               value={searchTerm}

@@ -1,4 +1,5 @@
 import { promptModal, notifyModal } from '../../services/notificationModal';
+import { imageFileError } from '../../utils/fileValidation';
 import React, { useEffect, useState } from 'react';
 import { 
   ArrowLeft, 
@@ -97,6 +98,8 @@ export const EventDetailView: React.FC<EventDetailViewProps> = ({
   const handleUploadEventImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const error = imageFileError(file);
+    if (error) { void notifyModal(error); e.target.value = ''; return; }
     setUploadingImage(true);
     const reader = new FileReader();
     reader.onload = async (ev) => {
@@ -1332,7 +1335,7 @@ export const EventDetailView: React.FC<EventDetailViewProps> = ({
                   <span style={{ fontSize: '0.78rem', color: '#6B7280', display: 'block', marginBottom: '0.25rem' }}>
                     {language === 'vi' ? 'Hoặc dán đường dẫn URL trực tiếp:' : 'Or enter direct image URL:'}
                   </span>
-                  <input 
+                  <input maxLength={10000000}
                     type="text"
                     value={currentImageUrl}
                     onChange={(e) => setCurrentImageUrl(e.target.value)}
@@ -1445,7 +1448,7 @@ export const EventDetailView: React.FC<EventDetailViewProps> = ({
                     <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#172421', marginBottom: '0.35rem' }}>
                       {language === 'vi' ? 'Tên hoạt động' : 'Activity Title'} <span style={{ color: '#DC2626' }}>*</span>
                     </label>
-                    <input
+                    <input maxLength={200}
                       type="text"
                       value={editScheduleForm.title}
                       onChange={(e) => setEditScheduleForm({ ...editScheduleForm, title: e.target.value })}
@@ -1503,7 +1506,7 @@ export const EventDetailView: React.FC<EventDetailViewProps> = ({
                       <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#172421', marginBottom: '0.35rem' }}>
                         {language === 'vi' ? 'Diễn giả / Khách mời' : 'Speaker / Host'}
                       </label>
-                      <input
+                      <input maxLength={200}
                         type="text"
                         value={editScheduleForm.speaker}
                         onChange={(e) => setEditScheduleForm({ ...editScheduleForm, speaker: e.target.value })}
@@ -1516,7 +1519,7 @@ export const EventDetailView: React.FC<EventDetailViewProps> = ({
                       <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#172421', marginBottom: '0.35rem' }}>
                         {language === 'vi' ? 'Số người tham dự dự kiến' : 'Expected attendees'}
                       </label>
-                      <input
+                      <input step={1} max={2147483647}
                         type="number"
                         min={1}
                         value={editScheduleForm.capacity}
@@ -1530,7 +1533,7 @@ export const EventDetailView: React.FC<EventDetailViewProps> = ({
                     <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#172421', marginBottom: '0.35rem' }}>
                       {language === 'vi' ? 'Mô tả nội dung chi tiết' : 'Description'}
                     </label>
-                    <textarea
+                    <textarea maxLength={20000}
                       rows={4}
                       value={editScheduleForm.description}
                       onChange={(e) => setEditScheduleForm({ ...editScheduleForm, description: e.target.value })}

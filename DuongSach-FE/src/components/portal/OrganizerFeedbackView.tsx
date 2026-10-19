@@ -374,7 +374,7 @@ export const OrganizerFeedbackView: React.FC<{ language: Language }> = ({ langua
         {/* Search Input */}
         <div className="organizer-search-box feedback-search-box">
           <Search size={15} />
-          <input
+          <input maxLength={200}
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder={isVi ? 'Tìm nội dung, người gửi...' : 'Search feedback, sender...'}
@@ -701,7 +701,7 @@ export const OrganizerFeedbackView: React.FC<{ language: Language }> = ({ langua
                 <label style={{ display: 'block', fontWeight: 700, fontSize: '0.86rem', color: '#172421', marginBottom: '0.45rem' }}>
                   {isVi ? 'Nội dung phản hồi hoặc ghi chú giải quyết' : 'Response Message or Resolution Note'}
                 </label>
-                <textarea
+                <textarea maxLength={50000}
                   value={note}
                   onChange={e => setNote(e.target.value)}
                   rows={4}

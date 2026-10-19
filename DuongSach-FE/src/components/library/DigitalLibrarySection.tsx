@@ -155,7 +155,7 @@ export function DigitalLibrarySection({ language }: { language: Language }) {
 
         <form className="library-home-search" role="search" onSubmit={submitSearch}>
           <Search size={19} aria-hidden="true" />
-          <input
+          <input maxLength={200}
             value={query}
             onChange={event => setQuery(event.target.value)}
             aria-label={language === 'vi' ? 'Tìm sách' : 'Search books'}

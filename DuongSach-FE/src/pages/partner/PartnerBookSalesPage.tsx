@@ -150,14 +150,14 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
   }, [refresh]);
 
   const visibleRecords = useMemo(() => 
-    records.filter(row => !query || `${row.book.title} ${row.book.author} ${row.book.isbn}`.toLocaleLowerCase('vi').includes(query.toLocaleLowerCase('vi'))),
+    records.filter(row => !query || `${row.book.title} ${row.book.author} ${row.book.isbn}`.normalize('NFC').toLocaleLowerCase('vi').includes(query.trim().normalize('NFC').toLocaleLowerCase('vi'))),
     [records, query]
   );
 
   const visibleSubmissions = useMemo(() =>
     submissions
       .filter(sub => submissionStatusFilter === 'all' || sub.status === submissionStatusFilter)
-      .filter(sub => !query || `${sub.proposedData.title || ''} ${sub.proposedData.author || ''} ${sub.proposedData.isbn || ''}`.toLocaleLowerCase('vi').includes(query.toLocaleLowerCase('vi'))),
+      .filter(sub => !query || `${sub.proposedData.title || ''} ${sub.proposedData.author || ''} ${sub.proposedData.isbn || ''}`.normalize('NFC').toLocaleLowerCase('vi').includes(query.trim().normalize('NFC').toLocaleLowerCase('vi'))),
     [submissions, submissionStatusFilter, query]
   );
 
@@ -198,7 +198,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
   const handleCoverUpload = (file?: File) => {
     if (!file) return;
     setCoverError('');
-    if (!file.type.startsWith('image/')) {
+    if (!/^(?:image\/(?:png|jpeg|gif|webp|avif))$/.test(file.type)) {
       setCoverError(language === 'vi' ? 'Vui lòng chọn đúng định dạng ảnh.' : 'Please choose an image file.');
       return;
     }
@@ -274,8 +274,16 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
-    const inventory = Math.max(0, Number(form.inventoryQuantity) || 0);
-    const sold = form.soldQuantity.trim() === '' ? undefined : Math.max(0, Number(form.soldQuantity) || 0);
+    const inventory = Number(form.inventoryQuantity);
+    const sold = form.soldQuantity.trim() === '' ? undefined : Number(form.soldQuantity);
+    const year = form.publicationYear.trim() === '' ? undefined : Number(form.publicationYear);
+    if (!Number.isInteger(inventory) || inventory < 0 || inventory > 2147483647 ||
+        (sold !== undefined && (!Number.isInteger(sold) || sold < 0 || sold > 2147483647)) ||
+        (year !== undefined && (!Number.isInteger(year) || year < 1 || year > 2200)) ||
+        !form.isbn.trim() || form.isbn.trim().length > 32 || !form.title.trim() || !form.author.trim()) {
+      setModalNotice({ type: 'error', title: 'Dữ liệu không hợp lệ', message: 'Kiểm tra ISBN, tên sách, tác giả, năm xuất bản và số lượng nguyên không âm.' });
+      return;
+    }
 
     try {
       if (modal === 'edit' && current) {
@@ -448,7 +456,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
           <div className="partner-books-tools">
             <label>
               <Search size={16}/>
-              <input 
+              <input maxLength={200}
                 value={query} 
                 onChange={e => setQuery(e.target.value)} 
                 placeholder={language === 'vi' ? 'Tìm tên sách, tác giả hoặc ISBN tại gian hàng...' : 'Search title, author, or ISBN...'}
@@ -595,7 +603,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
           <div className="partner-books-tools" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
             <label style={{ flex: 1, minWidth: '260px' }}>
               <Search size={16}/>
-              <input 
+              <input maxLength={200}
                 value={query} 
                 onChange={e => setQuery(e.target.value)} 
                 placeholder={language === 'vi' ? 'Tìm tên sách gửi duyệt, tác giả, ISBN...' : 'Search submissions...'}
@@ -645,7 +653,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
                     <td style={{ textAlign: 'center' }}>{sub.inventoryQuantity ?? '—'}</td>
                     <td style={{ textAlign: 'center' }}>{new Date(sub.submittedAt).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-GB')}</td>
                     <td style={{ textAlign: 'center' }}>
-                      <span className={`book-content-status ${sub.status.toLowerCase()}`}>
+                      <span className={`book-content-status ${sub.status.normalize('NFC').toLowerCase()}`}>
                         {contentLabel(sub.status, language)}
                       </span>
                       {sub.status === 'REJECTED' && sub.rejectionReason && (
@@ -720,7 +728,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
                     <span className="book-mobile-type-pill">
                       {sub.type === 'CREATE' ? (language === 'vi' ? 'Thêm mới' : 'Create') : (language === 'vi' ? 'Cập nhật' : 'Update')}
                     </span>
-                    <span className={`book-content-status ${sub.status.toLowerCase()}`}>
+                    <span className={`book-content-status ${sub.status.normalize('NFC').toLowerCase()}`}>
                       {contentLabel(sub.status, language)}
                     </span>
                   </div>
@@ -827,7 +835,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
                 <div className="partner-book-lookup">
                   <label>
                     ISBN / {language === 'vi' ? 'Tên sách' : 'Title'}
-                    <input 
+                    <input maxLength={32}
                       value={form.isbn} 
                       onChange={e => { setForm({ ...form, isbn: e.target.value }); setMatch(null); }} 
                       placeholder={language === 'vi' ? 'Nhập ISBN để tìm sách có sẵn trong Thư viện số' : 'Enter ISBN to search existing library'}
@@ -854,6 +862,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
                 ISBN *
                 <input 
                   value={form.isbn} 
+                  maxLength={32}
                   readOnly={modal === 'view' || Boolean(match)} 
                   onChange={e => setForm({ ...form, isbn: e.target.value })} 
                   required 
@@ -865,6 +874,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
                 {language === 'vi' ? 'Tên sách *' : 'Title *'}
                 <input 
                   value={form.title} 
+                  maxLength={200}
                   readOnly={modal === 'view' || Boolean(match)} 
                   onChange={e => setForm({ ...form, title: e.target.value })} 
                   required 
@@ -876,6 +886,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
                 {language === 'vi' ? 'Tác giả *' : 'Author *'}
                 <input 
                   value={form.author} 
+                  maxLength={200}
                   readOnly={modal === 'view' || Boolean(match)} 
                   onChange={e => setForm({ ...form, author: e.target.value })} 
                   required 
@@ -887,6 +898,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
                 {language === 'vi' ? 'Nhà xuất bản' : 'Publisher'}
                 <input 
                   value={form.publisher} 
+                  maxLength={200}
                   readOnly={modal === 'view' || Boolean(match)} 
                   onChange={e => setForm({ ...form, publisher: e.target.value })} 
                   placeholder="NXB Trẻ, Kim Đồng, Nhã Nam..."
@@ -897,6 +909,9 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
                 {language === 'vi' ? 'Năm xuất bản' : 'Publication year'}
                 <input 
                   type="number" 
+                  min="1"
+                  max="2200"
+                  step="1"
                   value={form.publicationYear} 
                   readOnly={modal === 'view' || Boolean(match)} 
                   onChange={e => setForm({ ...form, publicationYear: e.target.value })} 
@@ -965,17 +980,17 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
 
               <label className="form-wide">
                 {language === 'vi' ? 'Mô tả nội dung sách' : 'Description'}
-                <textarea rows={3} value={form.description} readOnly={modal === 'view' || Boolean(match)} onChange={e => setForm({ ...form, description: e.target.value })} placeholder={language === 'vi' ? 'Tóm tắt nội dung cuốn sách...' : 'Book description...'}/>
+                <textarea rows={3} maxLength={20000} value={form.description} readOnly={modal === 'view' || Boolean(match)} onChange={e => setForm({ ...form, description: e.target.value })} placeholder={language === 'vi' ? 'Tóm tắt nội dung cuốn sách...' : 'Book description...'}/>
               </label>
 
               <label>
                 {language === 'vi' ? 'Số lượng tồn kho ban đầu *' : 'Initial Inventory *'}
-                <input type="number" min="0" value={form.inventoryQuantity} readOnly={modal === 'view'} onChange={e => setForm({ ...form, inventoryQuantity: e.target.value })} required/>
+                <input type="number" min="0" max="2147483647" step="1" value={form.inventoryQuantity} readOnly={modal === 'view'} onChange={e => setForm({ ...form, inventoryQuantity: e.target.value })} required/>
               </label>
               
               <label>
                 {language === 'vi' ? 'Số lượng đã bán (không bắt buộc)' : 'Sold quantity (optional)'}
-                <input type="number" min="0" value={form.soldQuantity} readOnly={modal === 'view'} onChange={e => setForm({ ...form, soldQuantity: e.target.value })}/>
+                <input type="number" min="0" max="2147483647" step="1" value={form.soldQuantity} readOnly={modal === 'view'} onChange={e => setForm({ ...form, soldQuantity: e.target.value })}/>
               </label>
             </div>
 
@@ -1024,7 +1039,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
                 <p style={{ margin: 0, color: '#4b5563' }}><strong>{language === 'vi' ? 'Tồn kho đề xuất:' : 'Stock:'}</strong> {viewingSubmission.inventoryQuantity ?? 0}</p>
                 <div style={{ marginTop: '0.35rem' }}>
                   <strong>{language === 'vi' ? 'Trạng thái:' : 'Status:'}</strong>{' '}
-                  <span className={`book-content-status ${viewingSubmission.status.toLowerCase()}`}>
+                  <span className={`book-content-status ${viewingSubmission.status.normalize('NFC').toLowerCase()}`}>
                     {contentLabel(viewingSubmission.status, language)}
                   </span>
                 </div>

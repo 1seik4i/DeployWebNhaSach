@@ -1,4 +1,6 @@
 import { Router } from "express";
+import { imageSource, supportPhone, queryInteger } from '../../utils/input.validation.js';
+import { managedContentData } from './content.validation.js';
 import { z } from "zod";
 import { prisma } from "../../config/database.js";
 import { authenticate } from "../../middlewares/auth.js";
@@ -114,8 +116,8 @@ router.post(
       data: parse(
         z
           .object({
-            fullName: text,
-            phone: z.string().trim().min(8).max(20),
+            fullName: z.string().trim().min(2).max(160).regex(/^[\p{L}\p{M}][\p{L}\p{M}\s.'-]*$/u),
+            phone: z.string().trim().transform(value => value.replace(/[\s.-]/g, '')).pipe(z.string().regex(/^(?:\+?84|0)(?:3|5|7|8|9)\d{8}$/)),
             content: z.string().trim().min(10).max(10000),
           })
           .strict(),
@@ -215,8 +217,8 @@ router.get(
     const now = new Date();
     const current = vietnamDateParts(now);
     const query = parse(z.object({
-      year: z.coerce.number().int().min(2000).max(9999).optional(),
-      month: z.coerce.number().int().min(1).max(12).optional(),
+      year: queryInteger(2000, 9999).optional(),
+      month: queryInteger(1, 12).optional(),
     }), r.query);
     const year = query.year ?? current.year;
     const month = query.month;
@@ -331,9 +333,9 @@ const general = z
   .object({
     systemName: text,
     slogan: z.string().max(500),
-    logoUrl: z.string().max(2000),
-    supportEmail: z.string().email().or(z.literal("")),
-    supportPhone: z.string().max(30),
+    logoUrl: imageSource,
+    supportEmail: z.string().trim().email().max(254).or(z.literal("")),
+    supportPhone,
     physicalAddress: z.string().max(500),
     primaryColor: z.string().regex(/^#[0-9a-fA-F]{6}$/),
   })
@@ -420,7 +422,7 @@ const contentSchema = z
       .max(200),
     kind: z.enum(["journey", "organization", "news", "footer"]),
     title: text,
-    data: z.record(z.unknown()),
+    data: managedContentData,
     status: z.enum(["draft", "published", "hidden"]).default("draft"),
   })
   .strict();

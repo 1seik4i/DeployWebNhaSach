@@ -9,7 +9,7 @@ test('public event suggestions appear in the admin menu and can be processed', a
   await page.waitForLoadState('networkidle');
   const content = `E2E public event suggestion ${Date.now()}`;
   const response = await request.post('/api/public/event-suggestions', { data: {
-    fullName: 'E2E visitor', phone: '0901234567', content,
+    fullName: 'Khách Kiểm Thử', phone: '0901234567', content,
   } });
   expect(response.ok()).toBeTruthy();
   const { data: created } = await response.json();

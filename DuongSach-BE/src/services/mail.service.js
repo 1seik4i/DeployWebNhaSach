@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
 import { config } from '../config/env.js';
 import { logger } from '../config/logger.js';
+import { ApiError } from '../utils/ApiError.js';
 
 let transporter = null;
 
@@ -113,20 +114,11 @@ Ban Quản Lý Đường Sách TP. Hồ Chí Minh
         return { success: true, messageId: info.messageId };
       } catch (err) {
         logger.error(`[MailService] Failed to send email via SMTP: ${err.message}`);
-        // Fallback to console log so local testing does not break
+        throw new ApiError(503, 'Dịch vụ email tạm thời không khả dụng', 'EMAIL_UNAVAILABLE');
       }
     }
 
-    // Dev / Fallback logger
-    console.log('\n' + '='.repeat(70));
-    console.log('📧 [MAIL SERVICE - SIMULATOR / DEVELOPMENT MODE]');
-    console.log(`To: ${to}`);
-    console.log(`Subject: [Đường Sách TP.HCM] Hướng dẫn đặt lại mật khẩu tài khoản`);
-    console.log(`Reset URL: ${resetUrl}`);
-    console.log(`Raw Token: ${rawToken}`);
-    console.log('='.repeat(70) + '\n');
-
-    return { success: true, simulated: true, resetUrl };
+    throw new ApiError(503, 'Dịch vụ email chưa được cấu hình', 'EMAIL_UNAVAILABLE');
   }
 }
 

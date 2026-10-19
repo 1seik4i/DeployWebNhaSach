@@ -132,9 +132,9 @@ router.post('/events/:id/register', asyncHandler(async (req, res) => {
   const body = req.body || {};
 
   const { fullName, email, phone, attendeesCount, notes } = parse(z.object({
-    fullName: z.string().trim().min(1).max(200),
+    fullName: z.string().trim().min(2).max(160).regex(/^[\p{L}\p{M}][\p{L}\p{M}\s.'-]*$/u),
     email: z.string().trim().email().max(254).transform(value => value.toLowerCase()),
-    phone: z.string().trim().min(8).max(30),
+    phone: z.string().trim().transform(value => value.replace(/[\s.-]/g, '')).pipe(z.string().regex(/^(?:\+?84|0)(?:3|5|7|8|9)\d{8}$/)),
     attendeesCount: z.number().int().positive().max(2147483647).default(1),
     notes: z.string().trim().max(5000).nullable().optional().transform(value => value || null),
   }).strict(), body);

@@ -51,6 +51,14 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
       setErrorMsg(vi ? 'Vui lòng điền đầy đủ Họ tên, Email và Số điện thoại.' : 'Please enter your Full Name, Email and Phone.');
       return;
     }
+    if (!/^[\p{L}\p{M}][\p{L}\p{M}\s.'-]*$/u.test(fullName.trim()) || fullName.trim().length < 2 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) || !/^(?:\+?84|0)(?:3|5|7|8|9)\d{8}$/.test(phone.replace(/[\s.-]/g, ''))) {
+      setErrorMsg(vi ? 'Họ tên, email hoặc số điện thoại Việt Nam không hợp lệ.' : 'Invalid name, email or Vietnamese phone number.');
+      return;
+    }
+    if (!Number.isInteger(attendeesCount) || attendeesCount < 1 || attendeesCount > 2147483647 || notes.length > 5000) {
+      setErrorMsg(vi ? 'Số người tham dự hoặc ghi chú không hợp lệ.' : 'Invalid attendee count or notes.');
+      return;
+    }
 
     setIsSubmitting(true);
     setErrorMsg('');
@@ -58,9 +66,9 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
     try {
       const result = await publicApi.registerEvent(event.id, {
         fullName: fullName.trim(),
-        email: email.trim(),
-        phone: phone.trim(),
-        attendeesCount: Number(attendeesCount) || 1,
+        email: email.trim().toLowerCase(),
+        phone: phone.replace(/[\s.-]/g, ''),
+        attendeesCount,
         notes: notes.trim() || undefined,
       });
 
@@ -190,6 +198,8 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
                   type="text"
                   required
                   placeholder={vi ? 'Ví dụ: Nguyễn Văn A' : 'e.g. John Doe'}
+                  minLength={2}
+                  maxLength={160}
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   className="reg-input"
@@ -206,6 +216,7 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
                     type="email"
                     required
                     placeholder="name@example.com"
+                    maxLength={254}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="reg-input"
@@ -217,10 +228,11 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
                     <Phone size={14} />
                     <span>{vi ? 'Số điện thoại *' : 'Phone *'}</span>
                   </label>
-                  <input
+                  <input maxLength={40}
                     type="tel"
                     required
                     placeholder={vi ? '0901 234 567' : '+84 901 234 567'}
+                    inputMode="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     className="reg-input"
@@ -236,6 +248,7 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
                 <input
                   type="number"
                   min={1}
+                  max={2147483647}
                   step={1}
                   required
                   value={attendeesCount}
@@ -250,6 +263,7 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
                 </label>
                 <textarea
                   rows={2}
+                  maxLength={5000}
                   placeholder={vi ? 'Ví dụ: Đăng ký kèm chỗ ngồi trẻ em...' : 'Special requirements...'}
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}

@@ -10,6 +10,7 @@ import {
   uuid,
 } from "../../utils/contract.js";
 import { config } from "../../config/env.js";
+import { searchText, imageSource } from '../../utils/input.validation.js';
 
 const nullableUuid = z
   .union([uuid, z.literal(""), z.null(), z.undefined()])
@@ -33,7 +34,7 @@ const nullableInt = (min = 1, max = 2200) =>
     .pipe(z.number().int().min(min).max(max).nullable());
 
 const coverUrlSchema = z
-  .union([z.string().trim().max(10000000), z.literal(""), z.null(), z.undefined()])
+  .union([imageSource, z.null(), z.undefined()])
   .transform((v) => (v && v.trim() ? v.trim() : 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=400&q=80'));
 
 export const bookInput = z.object({
@@ -218,6 +219,7 @@ export const LibraryService = {
     }));
   },
   async books(query = {}, admin = false) {
+    query = parse(z.object({ search: searchText.optional(), categoryId: uuid.optional(), stallId: uuid.optional() }), query);
     const where = {
       ...(!admin ? { status: "active" } : {}),
       ...(query.categoryId

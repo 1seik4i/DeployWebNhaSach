@@ -1,4 +1,5 @@
 import { notifyModal } from '../../services/notificationModal';
+import { imageFileError } from '../../utils/fileValidation';
 import { useModalBehavior } from '../../hooks/useModalBehavior';
 import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -1384,7 +1385,7 @@ export const EventApplicationPage: React.FC<EventApplicationPageProps> = ({
 
                 <div className="form-field-group">
                   <label>{language === 'vi' ? 'Tên sự kiện / Tiêu đề chương trình *' : 'Event Title *'}</label>
-                  <input 
+                  <input maxLength={200}
                     type="text"
                     required
                     value={eventTitle}
@@ -1483,7 +1484,7 @@ export const EventApplicationPage: React.FC<EventApplicationPageProps> = ({
 
                   <div className="form-field-group">
                     <label>{language === 'vi' ? 'Diễn giả / Khách mời / Tác giả tham dự (nếu có)' : 'Guest Speakers / Authors'}</label>
-                    <input 
+                    <input maxLength={200}
                       type="text"
                       value={speakerInfo}
                       onChange={(e) => setSpeakerInfo(e.target.value)}
@@ -1494,7 +1495,7 @@ export const EventApplicationPage: React.FC<EventApplicationPageProps> = ({
 
                 <div className="form-field-group">
                   <label>{language === 'vi' ? 'Tóm tắt nội dung & Mục tiêu chương trình *' : 'Event Description & Agenda *'}</label>
-                  <textarea 
+                  <textarea maxLength={20000}
                     rows={3}
                     required
                     value={eventDescription}
@@ -1572,6 +1573,8 @@ export const EventApplicationPage: React.FC<EventApplicationPageProps> = ({
                             onChange={(e) => {
                               const file = e.target.files?.[0];
                               if (file) {
+                                const error = imageFileError(file);
+                                if (error) { void notifyModal(error); e.target.value = ''; return; }
                                 const reader = new FileReader();
                                 reader.onload = (ev) => {
                                   if (typeof ev.target?.result === 'string') {
@@ -1590,7 +1593,7 @@ export const EventApplicationPage: React.FC<EventApplicationPageProps> = ({
                       </div>
                     )}
 
-                    <input 
+                    <input maxLength={10000000}
                       type="text"
                       value={eventImage}
                       onChange={(e) => setEventImage(e.target.value)}
@@ -1665,7 +1668,7 @@ export const EventApplicationPage: React.FC<EventApplicationPageProps> = ({
                     <span>📝</span>
                     <span>{language === 'vi' ? 'Ghi chú & Ý kiến yêu cầu thêm của gian hàng' : 'Additional Requests / Notes from Booth'}</span>
                   </label>
-                  <textarea 
+                  <textarea maxLength={20000}
                     rows={2}
                     value={eventDescription.includes('[Yêu cầu bổ sung:') ? '' : undefined}
                     onChange={(e) => {

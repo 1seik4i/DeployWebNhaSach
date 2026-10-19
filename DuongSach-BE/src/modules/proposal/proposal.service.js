@@ -1,10 +1,12 @@
 import { prisma } from '../../config/database.js';
 import { ApiError } from '../../utils/ApiError.js';
 import { getPagination } from '../../utils/pagination.js';
-import { transaction } from '../../utils/contract.js';
+import { transaction, parse } from '../../utils/contract.js';
+import { listProposalSchema } from './proposal.validation.js';
 
 export class ProposalService {
   static async list(query = {}) {
+    query = parse(listProposalSchema, { query }).query;
     const { page, limit, skip, meta } = getPagination(query);
 
     const where = {};

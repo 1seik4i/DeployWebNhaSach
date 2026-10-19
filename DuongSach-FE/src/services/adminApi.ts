@@ -166,7 +166,7 @@ export const adminApi = {
       const role = (user.primaryRole || user.role) as AdminRoleType;
       return {
         id: user.id,
-        code: user.code || '',
+        code: user.code || user.id,
         fullName: user.fullName,
         email: user.email,
         phone: user.phone || '',
@@ -262,7 +262,8 @@ export const adminApi = {
     const logs = await apiClient.get<any[]>('/admin/audit-logs');
     return logs.map(log => ({
       id: log.id,
-      timestamp: new Date(log.createdAt).toLocaleString('vi-VN'),
+      createdAt: log.createdAt,
+      timestamp: new Date(log.createdAt).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }),
       actorName: log.actor?.fullName || '',
       actorEmail: log.actor?.email || '',
       actorRole: log.actor?.primaryRole || 'admin',

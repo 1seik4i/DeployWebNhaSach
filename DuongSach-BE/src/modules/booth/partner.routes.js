@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { z } from "zod";
+import { imageSource, webUrl } from '../../utils/input.validation.js';
 import { prisma } from "../../config/database.js";
 import { authenticate } from "../../middlewares/auth.js";
 import { authorize } from "../../middlewares/rbac.js";
@@ -376,13 +377,13 @@ router.patch(
             areaName: z.string().max(80).optional(),
             description: z.string().max(20000).optional(),
             openHours: z.string().max(100).optional(),
-            imageUrl: z.string().max(3000000).optional(),
+            imageUrl: imageSource.refine(value => value.length <= 3000000, 'Ảnh tối đa 3 MB dữ liệu').optional(),
             categories: z.array(text).max(30).optional(),
             images: z
               .array(
                 z.object({
                   id: z.string().max(200),
-                  url: z.string().max(3000000),
+                  url: imageSource.refine(value => value.length <= 3000000, 'Ảnh tối đa 3 MB dữ liệu'),
                   caption: z.string().max(200),
                 }),
               )
@@ -394,7 +395,10 @@ router.patch(
                   id: z.string().max(200),
                   name: text,
                   size: z.string().max(50),
-                  dataUrl: z.string().max(3000000).optional(),
+                  dataUrl: z.string().max(3000000).refine(value =>
+                    /^data:(?:application\/(?:pdf|msword|octet-stream|vnd\.[a-z0-9.+-]+)|image\/(?:png|jpeg|webp));base64,[A-Za-z0-9+/]+={0,2}$/i.test(value)
+                    || webUrl.safeParse(value).success,
+                  'Tài liệu phải là dữ liệu PDF, Office, ảnh hoặc URL HTTP(S)').optional(),
                 }),
               )
               .max(20)

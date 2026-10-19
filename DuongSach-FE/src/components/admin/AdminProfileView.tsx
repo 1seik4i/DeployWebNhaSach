@@ -1,4 +1,5 @@
 import { useModalBehavior } from '../../hooks/useModalBehavior';
+import { imageFileError } from '../../utils/fileValidation';
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   User, 
@@ -77,6 +78,8 @@ export const AdminProfileView: React.FC<AdminProfileViewProps> = ({
   const handleAvatarFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      const fileError = imageFileError(file);
+      if (fileError) { showToast(fileError); e.target.value = ''; return; }
       if (file.size > 5 * 1024 * 1024) {
         showToast('Dung lượng ảnh tối đa là 5MB');
         return;
@@ -98,6 +101,14 @@ export const AdminProfileView: React.FC<AdminProfileViewProps> = ({
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!/^[\p{L}\p{M}][\p{L}\p{M}\s.'-]*$/u.test(formName.trim()) || formName.trim().length < 2 || formName.trim().length > 160) {
+      showToast('Họ tên phải có từ 2 đến 160 ký tự và chỉ chứa chữ cái.');
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formEmail.trim()) || (formPhone.trim() && !/^(?:\+?84|0)(?:3|5|7|8|9)\d{8}$/.test(formPhone.replace(/[\s.-]/g, '')))) {
+      showToast('Email hoặc số điện thoại Việt Nam không hợp lệ.');
+      return;
+    }
     const initials = formName
       .trim()
       .split(' ')
@@ -108,8 +119,8 @@ export const AdminProfileView: React.FC<AdminProfileViewProps> = ({
     try {
       await onUpdateProfile({
         name: formName.trim(),
-        email: formEmail.trim(),
-        phone: formPhone.trim(),
+        email: formEmail.trim().toLowerCase(),
+        phone: formPhone.replace(/[\s.-]/g, ''),
         department: formDepartment.trim(),
         avatarUrl: formAvatarUrl,
         avatarInitials: initials
@@ -456,8 +467,7 @@ export const AdminProfileView: React.FC<AdminProfileViewProps> = ({
                     Hủy
                   </button>
                   <button
-                    type="button"
-                    onClick={handleSaveProfile}
+                    type="submit" form="admin-profile-form"
                     style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -480,7 +490,7 @@ export const AdminProfileView: React.FC<AdminProfileViewProps> = ({
             </div>
 
             {/* Form grid */}
-            <form onSubmit={handleSaveProfile}>
+            <form id="admin-profile-form" onSubmit={handleSaveProfile}>
               <div style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
@@ -494,6 +504,9 @@ export const AdminProfileView: React.FC<AdminProfileViewProps> = ({
                   <input
                     type="text"
                     value={formName}
+                    required
+                    minLength={2}
+                    maxLength={160}
                     onChange={e => setFormName(e.target.value)}
                     disabled={!isEditing}
                     style={{
@@ -540,6 +553,7 @@ export const AdminProfileView: React.FC<AdminProfileViewProps> = ({
                     <Building size={15} style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF' }} />
                     <input
                       type="text"
+                      maxLength={200}
                       value={formDepartment}
                       onChange={e => setFormDepartment(e.target.value)}
                       disabled={!isEditing}
@@ -567,6 +581,8 @@ export const AdminProfileView: React.FC<AdminProfileViewProps> = ({
                     <input
                       type="email"
                       value={formEmail}
+                      required
+                      maxLength={200}
                       onChange={e => setFormEmail(e.target.value)}
                       disabled={!isEditing}
                       style={{
@@ -590,9 +606,10 @@ export const AdminProfileView: React.FC<AdminProfileViewProps> = ({
                   </label>
                   <div style={{ position: 'relative' }}>
                     <Phone size={15} style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF' }} />
-                    <input
+                    <input maxLength={40}
                       type="tel"
                       value={formPhone}
+                      inputMode="tel"
                       onChange={e => setFormPhone(e.target.value)}
                       disabled={!isEditing}
                       style={{
@@ -888,6 +905,7 @@ export const AdminProfileView: React.FC<AdminProfileViewProps> = ({
                       type="password"
                       required
                       value={currentPwd}
+                      maxLength={128}
                       onChange={(e) => setCurrentPwd(e.target.value)}
                       style={{
                         width: '100%',
@@ -908,6 +926,7 @@ export const AdminProfileView: React.FC<AdminProfileViewProps> = ({
                       type="password"
                       required
                       value={newPwd}
+                      maxLength={128}
                       onChange={(e) => setNewPwd(e.target.value)}
                       style={{
                         width: '100%',
@@ -928,6 +947,7 @@ export const AdminProfileView: React.FC<AdminProfileViewProps> = ({
                       type="password"
                       required
                       value={confirmPwd}
+                      maxLength={128}
                       onChange={(e) => setConfirmPwd(e.target.value)}
                       style={{
                         width: '100%',

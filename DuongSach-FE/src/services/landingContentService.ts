@@ -1,3 +1,4 @@
+import { validateManagedContent } from '../utils/inputValidation';
 import type { NewsArticle } from '../pages/NewsExperience';
 import { apiClient } from './apiClient';
 
@@ -116,6 +117,7 @@ class LandingContentService {
   }
 
   private async save(kind: ContentKind, title: string, data: Record<string, unknown>): Promise<ContentEntry> {
+    validateManagedContent(data);
     let entry = this.entries.get(kind);
     if (!entry) {
       const rows = await apiClient.get<ContentEntry[]>('/admin/content');
