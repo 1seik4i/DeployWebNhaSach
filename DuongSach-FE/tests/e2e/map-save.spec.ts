@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { writeFile } from 'node:fs/promises';
 
 test('changing the image leaves the 39 existing marker positions untouched', async ({ page }) => {
   let payload: { imageUrl: string; points: unknown[] } | undefined;
@@ -15,7 +16,7 @@ test('changing the image leaves the 39 existing marker positions untouched', asy
   expect(payload).toEqual({ imageUrl: '/new-map.png', points: [] });
 });
 
-test('map upload stays a draft until Save; failed Save keeps draft; large images are accepted', async ({ page }) => {
+test('map upload stays a draft until Save; failed Save keeps draft; large images are accepted', async ({ page }, testInfo) => {
   let imageUrl = '/saved-map.png';
   let failSave = true;
   const writes: Array<{ imageUrl: string; points: unknown[] }> = [];
@@ -41,14 +42,14 @@ test('map upload stays a draft until Save; failed Save keeps draft; large images
   const save = page.locator('.booth-map-btn-save');
   await page.goto('/map-save-test');
   await expect(preview).toHaveAttribute('src', '/saved-map.png');
-  await upload.setInputFiles(file);
+  await upload.setInputFiles(process.env.MAP_TEST_IMAGE_PATH || file);
   await expect(preview).toHaveAttribute('src', /^data:image\/png;base64,/);
   expect(writes).toHaveLength(0);
   await page.evaluate(() => window.dispatchEvent(new Event('duongsach:data-changed')));
   await expect(preview).toHaveAttribute('src', /^data:image\/png;base64,/);
   await page.reload();
   await expect(preview).toHaveAttribute('src', '/saved-map.png');
-  await upload.setInputFiles(file);
+  await upload.setInputFiles(process.env.MAP_TEST_IMAGE_PATH || file);
   await expect(save).toBeEnabled();
   await save.click();
   await expect(page.getByRole('dialog')).toContainText('Save failed');
@@ -63,7 +64,9 @@ test('map upload stays a draft until Save; failed Save keeps draft; large images
   expect(writes[1].imageUrl.length).toBeGreaterThan(3000000);
   await page.reload();
   await expect(preview).toHaveAttribute('src', imageUrl);
-  await upload.setInputFiles({ name: 'oversize.png', mimeType: 'image/png', buffer: Buffer.alloc(21 * 1024 * 1024) });
-  await expect(page.getByRole('dialog')).toContainText('20 MB');
+  const oversizedPath = testInfo.outputPath('oversize.png');
+  await writeFile(oversizedPath, Buffer.alloc(51 * 1024 * 1024));
+  await upload.setInputFiles(oversizedPath);
+  await expect(page.getByRole('dialog')).toContainText('50 MB');
   expect(writes).toHaveLength(2);
 });

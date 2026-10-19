@@ -1,4 +1,5 @@
 import { AdminPageHeading } from '../admin/AdminPageHeading';
+import { MapBackground } from '../ui/MapBackground';
 import { useUrlTab } from '../../hooks/useUrlTab';
 import { notifyModal } from '../../services/notificationModal';
 import { imageFileError } from '../../utils/fileValidation';
@@ -633,11 +634,9 @@ export const BoothMapView: React.FC<BoothMapViewProps> = ({
           background: '#E8E0D2'
         }}>
           {/* Illustrated Map Picture */}
-          <img 
+          <MapBackground
             src={mapImageUrl} 
             alt="Bản đồ"
-            style={{ width: '100%', height: 'auto', display: 'block', userSelect: 'none' }}
-            draggable={false}
           />
 
           {/* Venue and activity-space markers come directly from Location records. */}

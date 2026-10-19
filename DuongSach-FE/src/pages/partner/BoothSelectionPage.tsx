@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { Language, PartnerBooth, PartnerOrganization } from '../../types';
 import { fetchMapHotspotsFromApi, getSharedMapPoints, getSharedMapImage } from '../../services/mapService';
+import { MapBackground } from '../../components/ui/MapBackground';
 import { MapLocationPoint } from '../../types/map';
 import './PartnerPages.css';
 
@@ -362,11 +363,9 @@ export const BoothSelectionPage: React.FC<BoothSelectionPageProps> = ({
             }}
           >
             {/* Illustrated Map Background */}
-            <img 
+            <MapBackground
               src={mapImageUrl} 
               alt="Bản đồ Đường Sách" 
-              style={{ width: '100%', height: 'auto', display: 'block', userSelect: 'none' }}
-              draggable={false}
             />
 
             {/* Interactive Booth Markers on Map */}

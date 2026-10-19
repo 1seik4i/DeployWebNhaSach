@@ -10,6 +10,7 @@ import { IconMapBookPin } from './CustomIcons';
 import { Booth, Language } from '../types';
 import { fetchMapHotspotsFromApi, getSharedMapPoints, getSharedMapImage, MapLocationPoint } from '../services/mapService';
 import './InteractiveMap.css';
+import { MapBackground } from './ui/MapBackground';
 
 interface InteractiveMapProps {
   language: Language;
@@ -270,11 +271,9 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
                   touchAction: zoomLevel > 1 ? 'none' : 'pan-x pan-y'
                 }}
               >
-                <img
-                  className="illustrated-map-image"
+                <MapBackground
                   src={mapImageUrl || undefined}
                   alt={language === 'vi' ? 'Sơ đồ minh họa Đường Sách Nguyễn Văn Bình, Quận 1, Thành phố Hồ Chí Minh' : 'Illustrated map of Nguyen Van Binh Book Street in District 1, Ho Chi Minh City'}
-                  draggable={false}
                 />
 
                 {mapPoints.map((point, index) => {

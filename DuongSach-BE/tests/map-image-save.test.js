@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import express from 'express';
 import request from 'supertest';
+import { readFile } from 'node:fs/promises';
 
 vi.mock('../src/config/database.js', () => {
   const prisma = {
@@ -21,7 +22,7 @@ import { prisma } from '../src/config/database.js';
 import router from '../src/modules/public/map.routes.js';
 
 const app = express();
-app.use(express.json({ limit: '30mb' }));
+app.use(express.json({ limit: '75mb' }));
 app.use('/api', router);
 app.use((error, req, res, next) => res.status(error.statusCode || 500).json({ message: error.message }));
 beforeEach(() => {
@@ -48,16 +49,16 @@ describe('map image size and combined save', () => {
     expect((await request(app).put('/api/admin/map-config').send({ imageUrl: '/new-map.png' })).status).toBe(200);
     expect(prisma.booth.findMany).not.toHaveBeenCalled();
   });
-  it('accepts a 20 MiB image and writes image and coordinates in one transaction', async () => {
-    const imageUrl = 'data:image/png;base64,' + Buffer.alloc(20 * 1024 * 1024).toString('base64');
+  it('accepts a 50 MiB image and writes image and coordinates in one transaction', async () => {
+    const imageUrl = 'data:image/png;base64,' + Buffer.alloc(50 * 1024 * 1024).toString('base64');
     const response = await request(app).put('/api/admin/map-config').send({ imageUrl, points: [{ id: 'booth', x: 25, y: 30 }] });
     expect(response.status).toBe(200);
     expect(prisma.$transaction).toHaveBeenCalledTimes(1);
     expect(prisma.location.update).toHaveBeenCalledWith({ where: { id: 'location' }, data: { mapX: 25, mapY: 30 } });
     expect(prisma.setting.upsert.mock.calls[0][0].update.value.imageUrl).toBe(imageUrl);
   });
-  it('rejects an image above 20 MiB before any write', async () => {
-    const imageUrl = 'data:image/png;base64,' + Buffer.alloc(21 * 1024 * 1024).toString('base64');
+  it('rejects an image above 50 MiB before any write', async () => {
+    const imageUrl = 'data:image/png;base64,' + Buffer.alloc(51 * 1024 * 1024).toString('base64');
     const response = await request(app).put('/api/admin/map-config').send({ imageUrl });
     expect(response.status).toBe(422);
     expect(prisma.$transaction).not.toHaveBeenCalled();
@@ -67,5 +68,12 @@ describe('map image size and combined save', () => {
     const response = await request(app).put('/api/admin/map-config').send({ points: [] });
     expect(response.status).toBe(200);
     expect(prisma.setting.upsert.mock.calls[0][0].update.value.imageUrl).toBe('/old-map.png');
+  });
+  it.skipIf(!process.env.MAP_TEST_IMAGE_PATH)('accepts the supplied map image without changing its contents', async () => {
+    const bytes = await readFile(process.env.MAP_TEST_IMAGE_PATH);
+    const imageUrl = `data:image/png;base64,${bytes.toString('base64')}`;
+    const response = await request(app).put('/api/admin/map-config').send({ imageUrl, points: [] });
+    expect(response.status).toBe(200);
+    expect(prisma.setting.upsert.mock.calls[0][0].update.value.imageUrl).toBe(imageUrl);
   });
 });

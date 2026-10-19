@@ -125,7 +125,7 @@ router.put(
     const input = parse(
       z
         .object({
-          imageUrl: imageSourceFor(4 * Math.ceil(20 * 1024 * 1024 / 3) + 1024).optional(),
+          imageUrl: imageSourceFor(4 * Math.ceil(50 * 1024 * 1024 / 3) + 1024).optional(),
           points: z
             .array(
               z.object({
