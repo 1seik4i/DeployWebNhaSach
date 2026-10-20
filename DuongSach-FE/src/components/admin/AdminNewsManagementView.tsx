@@ -20,7 +20,6 @@ import {
   Check,
   X,
   ExternalLink,
-  RotateCcw,
   Grid,
   List,
   Flame,
@@ -546,18 +545,6 @@ export const AdminNewsManagementView: React.FC<AdminNewsManagementViewProps> = (
     }
   };
 
-  // Clear all news content after explicit confirmation.
-  const handleResetDefaults = async () => {
-    if (await confirmModal(isVi ? 'Bạn có chắc chắn muốn xóa toàn bộ bài viết?' : 'Clear all news articles?')) {
-      try {
-        setNewsList(await landingContentService.resetNews());
-        showToast(isVi ? '🔄 Đã xóa toàn bộ bài viết trên máy chủ.' : '🔄 All news articles were cleared on the server.');
-      } catch (error) {
-        showToast(error instanceof Error ? error.message : (isVi ? 'Không thể xóa danh sách bài viết.' : 'Could not clear articles.'));
-      }
-    }
-  };
-
   return (
     <div className="admin-news-view">
       {/* Hidden file input for inline image blocks (supports selecting multiple images) */}
@@ -590,16 +577,6 @@ export const AdminNewsManagementView: React.FC<AdminNewsManagementViewProps> = (
             <ExternalLink size={15} />
             <span>{isVi ? 'Xem Trang Tin Tức' : 'View Portal'}</span>
           </a>
-
-          <button
-            type="button"
-            className="adm-btn adm-btn-secondary"
-            onClick={handleResetDefaults}
-            title={isVi ? 'Khôi phục tin tức ban đầu' : 'Reset to default sample'}
-          >
-            <RotateCcw size={15} />
-            <span>{isVi ? 'Đặt lại mẫu' : 'Reset'}</span>
-          </button>
 
           <button
             type="button"

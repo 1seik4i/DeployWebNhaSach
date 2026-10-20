@@ -110,8 +110,9 @@ export function EventCoverflow({ events, language, weekEventIds, isLoading = fal
                 type="button"
                 className={`event-coverflow-slide ${index === selected ? 'is-selected' : ''}`}
                 style={{
-                  transform: `translateX(calc(-50% + ${offset * 76}%)) translateZ(${-distance * 105}px) rotateY(${-Math.sign(offset) * Math.min(distance * 43, 76)}deg)`,
-                  opacity: visible ? 1 - distance * 0.22 : 0,
+                  transform: `translateX(calc(-50% + ${offset * 80}%)) translateZ(${-distance * 180}px) rotateY(${-Math.sign(offset) * Math.min(distance * 32, 58)}deg) scale(${distance === 0 ? 1.08 : distance === 1 ? 0.92 : 0.82})`,
+                  opacity: visible ? (distance === 0 ? 1 : distance === 1 ? 0.55 : 0.3) : 0,
+                  filter: distance === 0 ? 'none' : `blur(${distance === 1 ? 1.5 : 3}px) saturate(0.75)`,
                   zIndex: 10 - distance,
                   pointerEvents: visible ? 'auto' : 'none',
                 }}

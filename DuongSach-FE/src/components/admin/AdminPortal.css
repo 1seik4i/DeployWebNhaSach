@@ -742,6 +742,13 @@
   border-bottom: 1px solid #F3F4F6;
 }
 
+.adm-card-header-main {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  text-align: left;
+}
+
 .adm-card-header-icon {
   width: 40px;
   height: 40px;
@@ -1996,6 +2003,10 @@
 }
 
 .adm-settings-card { padding: 0; overflow: hidden; }
+.adm-settings-card .adm-card-header {
+  justify-content: flex-start;
+  align-items: center;
+}
 
 .adm-setting-toggle-item {
   display: flex;
@@ -3585,25 +3596,68 @@
 
 /* User Management Desktop vs Mobile */
 .adm-users-view { min-width: 0; max-width: 100%; }
-.adm-user-desktop-table { overflow-x: hidden; }
-.adm-user-desktop-table .adm-table { table-layout: fixed; min-width: 0; }
+.adm-user-desktop-table { overflow-x: auto; }
+.adm-user-desktop-table .adm-table { table-layout: fixed; min-width: 920px; width: 100%; }
 .adm-user-desktop-table .adm-table th,
-.adm-user-desktop-table .adm-table td { padding: 0.85rem 0.6rem; white-space: normal; overflow-wrap: anywhere; }
-.adm-user-desktop-table th:nth-child(1) { width: 24%; }
-.adm-user-desktop-table th:nth-child(2) { width: 23%; }
-.adm-user-desktop-table th:nth-child(3) { width: 15%; }
+.adm-user-desktop-table .adm-table td {
+  padding: 0.9rem 0.85rem;
+  vertical-align: middle;
+  white-space: normal;
+  overflow-wrap: normal;
+}
+.adm-user-desktop-table .adm-table th {
+  font-size: 0.7rem;
+  line-height: 1.5;
+  letter-spacing: 0.035em;
+  color: #64748B;
+}
+.adm-user-desktop-table .adm-table th:first-child,
+.adm-user-desktop-table .adm-table td:first-child { padding-left: 1.25rem; }
+.adm-user-desktop-table .adm-table th:last-child,
+.adm-user-desktop-table .adm-table td:last-child { padding-right: 1.25rem; }
+.adm-user-desktop-table th:nth-child(1) { width: 25%; }
+.adm-user-desktop-table th:nth-child(2) { width: 24%; }
+.adm-user-desktop-table th:nth-child(3) { width: 16%; }
 .adm-user-desktop-table th:nth-child(4) { width: 12%; }
-.adm-user-desktop-table th:nth-child(5) { width: 14%; }
-.adm-user-desktop-table th:nth-child(6) { width: 12%; }
-.adm-user-desktop-table .adm-user-cell { min-width: 0; max-width: 100%; gap: 0.5rem; }
-.adm-user-desktop-table .adm-user-cell > div:last-child { min-width: 0; }
-.adm-user-desktop-table .adm-user-code { white-space: normal; overflow-wrap: anywhere; }
-.adm-user-desktop-table .adm-contact-cell { width: 100%; max-width: 100%; }
+.adm-user-desktop-table th:nth-child(5) { width: 13%; }
+.adm-user-desktop-table th:nth-child(6) { width: 140px; }
+.adm-user-desktop-table .adm-user-cell { min-width: 0; max-width: 100%; gap: 0.65rem; }
+.adm-user-desktop-table .adm-user-cell > div:last-child { min-width: 0; flex: 1; }
+.adm-user-desktop-table .adm-user-name,
+.adm-user-desktop-table .adm-user-code {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.adm-user-desktop-table .adm-user-name { font-size: 0.82rem; line-height: 1.5; }
+.adm-user-desktop-table .adm-user-code { font-size: 0.67rem; color: #94A3B8; margin-top: 0.2rem; }
+.adm-user-desktop-table .adm-contact-cell { width: 100%; max-width: 100%; gap: 0.3rem; }
+.adm-user-desktop-table .adm-contact-item { font-size: 0.76rem; }
 .adm-user-desktop-table .adm-badge-role,
-.adm-user-desktop-table .adm-badge-status { max-width: 100%; white-space: normal; }
-.adm-user-desktop-table .adm-time-cell { min-width: 0; white-space: normal; align-items: flex-start; }
-.adm-user-desktop-table .adm-time-cell svg { flex-shrink: 0; }
-.adm-user-desktop-table .adm-action-buttons { flex-wrap: wrap; }
+.adm-user-desktop-table .adm-badge-status {
+  max-width: 100%;
+  white-space: nowrap;
+  font-size: 0.7rem;
+  padding: 0.35rem 0.5rem;
+}
+.adm-user-desktop-table .adm-time-cell {
+  min-width: 0;
+  white-space: normal;
+  align-items: flex-start;
+  font-size: 0.73rem;
+  line-height: 1.6;
+  font-variant-numeric: tabular-nums;
+}
+.adm-user-desktop-table .adm-time-cell svg { flex-shrink: 0; margin-top: 0.2rem; }
+.adm-user-desktop-table .adm-action-buttons { flex-wrap: nowrap; gap: 0.3rem; }
+.adm-user-desktop-table .adm-icon-btn { width: 28px; height: 28px; flex: 0 0 28px; }
+.adm-user-desktop-table .adm-lock-hint {
+  font-size: 0.66rem;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .adm-user-table-card { margin-bottom: 0; }
 
 .adm-user-mobile-cards {

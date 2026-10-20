@@ -1,0 +1,98 @@
+/* Landing layout: keep controls together without constraining readable body text. */
+#main-content > #hero {
+  min-height: 100svh;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1024px) {
+  #main-content { min-width: 0; }
+  #main-content > section { max-width: 100%; }
+  #main-content > section > .container {
+    width: 100%;
+    min-width: 0;
+    padding-inline: clamp(16px, 3vw, 32px);
+  }
+  #main-content > #hero {
+    min-height: 100svh;
+    padding: calc(96px + env(safe-area-inset-top, 0px)) 0 calc(28px + env(safe-area-inset-bottom, 0px));
+    align-items: center;
+  }
+  #hero .figma-hero-content { max-width: 760px; }
+  #hero .figma-hero-h1 {
+    font-size: clamp(24px, 4.6vw, 42px);
+    line-height: 1.25;
+    margin: 0 0 16px;
+  }
+  #hero .figma-hero-desc {
+    font-size: clamp(14px, 1.8vw, 18px);
+    line-height: 1.6;
+    max-width: 620px;
+    margin: 0 0 22px;
+    padding: 0;
+  }
+  #hero .hero-search-wrapper { width: 100%; max-width: 620px; margin-bottom: 20px; }
+  #hero .hero-search-input { font-size: 16px; }
+  #hero .hero-search-clear { width: 24px; height: 32px; margin-right: 4px; }
+  #hero .quick-tags-list {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 4px 0;
+  }
+  #hero .quick-tags-list > * { flex-shrink: 0; }
+  #hero .figma-hero-actions {
+    display: grid;
+    grid-template-columns: 1.15fr 1fr;
+    width: 100%;
+    max-width: 460px;
+    gap: 10px;
+    margin: 0 auto 14px;
+  }
+  #hero .figma-hero-actions button {
+    width: 100%;
+    min-width: 0;
+    min-height: 46px;
+    padding: 10px 8px;
+    font-size: clamp(11px, 2.85vw, 15px);
+    white-space: nowrap;
+    gap: 5px;
+  }
+  #hero .figma-hero-actions svg { width: 16px; flex-shrink: 0; }
+  #hero .hero-scroll-cue { margin: 0; padding: 8px; }
+  #main-content .figma-category-pills {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    max-width: 100%;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    scrollbar-width: thin;
+  }
+  #main-content .category-pill-btn { flex-shrink: 0; white-space: nowrap; }
+  #main-content .event-coverflow-kicker-row { flex-wrap: wrap; height: auto; max-height: none; }
+  #main-content .event-coverflow-details { height: auto; max-height: none; }
+  #main-content .event-coverflow-details-main { height: auto; max-height: none; }
+  #main-content .event-coverflow-meta { height: auto; max-height: none; }
+  #main-content .event-coverflow-meta > span { white-space: nowrap; }
+  #main-content .library-home-search input { min-width: 0; font-size: 16px; }
+}
+
+@media (max-width: 480px) {
+  #hero .figma-hero-h1 { font-size: clamp(22px, 6vw, 28px); }
+  #hero .hero-search-form { padding-left: 10px; }
+  #hero .hero-search-submit-btn { padding-inline: 10px; font-size: 12px; min-height: 36px; }
+  #hero .hero-search-input { width: 0; }
+  #main-content .figma-section-title,
+  #main-content .library-section-heading h2 { font-size: clamp(22px, 5.8vw, 28px); text-wrap: balance; }
+}
+
+@media (max-height: 500px) and (orientation: landscape) and (max-width: 1024px) {
+  #main-content > #hero { padding-top: 90px; padding-bottom: 16px; }
+  #hero .figma-hero-h1 { font-size: 22px; line-height: 1.15; margin-bottom: 8px; }
+  #hero .figma-hero-desc { font-size: 12px; line-height: 1.4; margin-bottom: 8px; }
+  #hero .hero-search-wrapper { margin-bottom: 8px; }
+  #hero .hero-quick-tags { margin-top: 4px; }
+  #hero .figma-hero-actions { margin-bottom: 0; }
+  #hero .hero-scroll-cue { display: none; }
+}

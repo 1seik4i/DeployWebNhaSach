@@ -1,7 +1,7 @@
 import { AdminPageHeading } from '../admin/AdminPageHeading';
 import { MapBackground } from '../ui/MapBackground';
 import { useUrlTab } from '../../hooks/useUrlTab';
-import { notifyModal } from '../../services/notificationModal';
+import { confirmModal, notifyModal } from '../../services/notificationModal';
 import { imageFileError } from '../../utils/fileValidation';
 import { useModalBehavior } from '../../hooks/useModalBehavior';
 import { ListPagination } from '../ui/ListPagination';
@@ -22,6 +22,7 @@ import {
   Building2,
   MapPin,
   AlertCircle,
+  Trash2,
 } from 'lucide-react';
 import { Language } from '../../types';
 import { OrganizerBoothItem, OrganizerEvent } from '../../types/organizer';
@@ -142,6 +143,32 @@ export const BoothMapView: React.FC<BoothMapViewProps> = ({
   }, []);
 
   const [isSaved, setIsSaved] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const deleteMapItem = async (kind: 'booths' | 'locations', id: string, name: string) => {
+    if (isDeleting) return;
+    setIsDeleting(true);
+    try {
+      const confirmed = await confirmModal(language === 'vi'
+        ? `Bạn muốn xóa “${name}”? Mục này sẽ được ẩn khỏi danh sách và sơ đồ.`
+        : `Delete “${name}”? This item will be hidden from the list and map.`);
+      if (!confirmed) return;
+      await facilityRequest(`${kind}/${encodeURIComponent(id)}`, { method: 'DELETE' });
+      if (kind === 'booths') {
+        setLocalBooths(items => items.filter(item => item.id !== id));
+        setSelectedBooth(null);
+        notifyBoothsChanged();
+      } else {
+        setVenuePoints(items => items.filter(item => item.id !== id));
+        setSelectedVenuePoint(null);
+      }
+      setCurrentPage(1);
+      window.dispatchEvent(new Event('duongsach:data-changed'));
+    } catch (error) {
+      void notifyModal(error instanceof Error ? error.message : (language === 'vi' ? 'Không thể xóa. Vui lòng thử lại.' : 'Unable to delete. Please try again.'));
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   // Add location modals state
   const [addModalType, setAddModalType] = useState<'booth' | 'venue' | null>(null);
@@ -559,6 +586,36 @@ export const BoothMapView: React.FC<BoothMapViewProps> = ({
           </button>
         </div>
 
+        {/* Map status counts integrated into the actions toolbar */}
+        <div className="booth-map-legend-items">
+          <span className="booth-legend-item">
+            <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#9CA3AF', border: '1px solid #6B7280' }}></span>
+            <span>{language === 'vi' ? 'Đã thuê' : 'Assigned'} ({localBooths.filter(b => b.status === 'assigned').length})</span>
+          </span>
+          <span className="booth-legend-item">
+            <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#E0F2FE', border: '1px solid #7DD3FC' }}></span>
+            <span>{language === 'vi' ? 'Còn trống' : 'Available'} ({localBooths.filter(b => b.status === 'available').length})</span>
+          </span>
+          {localBooths.some(booth => booth.status === 'pending') && (
+            <span className="booth-legend-item">
+              <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#FEF3C7', border: '1px solid #FCD34D' }}></span>
+              <span>{language === 'vi' ? 'Đang giữ chỗ' : 'Pending'} ({localBooths.filter(booth => booth.status === 'pending').length})</span>
+            </span>
+          )}
+          {localBooths.some(booth => booth.status === 'unavailable') && (
+            <span className="booth-legend-item">
+              <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#FEE2E2', border: '1px solid #FCA5A5' }}></span>
+              <span>{language === 'vi' ? 'Không khả dụng' : 'Unavailable'} ({localBooths.filter(booth => booth.status === 'unavailable').length})</span>
+            </span>
+          )}
+          {venuePoints.length > 0 && (
+            <span className="booth-legend-item">
+              <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#DCFCE7', border: '1px solid #16A34A' }}></span>
+              <span>{language === 'vi' ? 'Địa điểm tổ chức' : 'Event locations'} ({venuePoints.length})</span>
+            </span>
+          )}
+        </div>
+
         {/* Map Management Actions: Upload & Save */}
         <div className="booth-map-manage-group">
           <input 
@@ -756,6 +813,9 @@ export const BoothMapView: React.FC<BoothMapViewProps> = ({
               <strong style={{ display: 'block', color: '#172421', marginTop: 4 }}>{selectedVenuePoint.name}</strong>
               <p style={{ margin: '0.5rem 0 0', color: '#475569', fontSize: '0.82rem', lineHeight: 1.45 }}>{selectedVenuePoint.shortDesc || 'Địa điểm tổ chức'}</p>
               <span style={{ display: 'inline-block', marginTop: 8, padding: '3px 8px', borderRadius: 99, background: '#DCFCE7', color: '#166534', fontSize: '0.72rem', fontWeight: 700 }}>{selectedVenuePoint.category === 'stage' ? 'Sân khấu sự kiện' : 'Không gian hoạt động'}</span>
+            <div style={{ display: 'flex', marginTop: '1rem' }}><button type="button" className="booth-map-btn-delete" disabled={isDeleting || isSavingMap} onClick={() => void deleteMapItem('locations', selectedVenuePoint.id, selectedVenuePoint.name)}>
+                    <Trash2 size={15} />{isDeleting ? (language === 'vi' ? 'Đang xóa…' : 'Deleting…') : (language === 'vi' ? 'Xóa' : 'Delete')}
+                  </button></div>
             </div>
           )}
 
@@ -893,6 +953,9 @@ export const BoothMapView: React.FC<BoothMapViewProps> = ({
 
                 {/* Actions */}
                 <div className="bpop-actions" style={{ marginTop: '1.1rem', display: 'flex', gap: '0.65rem' }}>
+                  <button type="button" className="booth-map-btn-delete" disabled={isDeleting || isSavingMap} onClick={() => void deleteMapItem('booths', selectedBooth.booth.id, selectedBooth.booth.name)}>
+                    <Trash2 size={15} />{isDeleting ? (language === 'vi' ? 'Đang xóa…' : 'Deleting…') : (language === 'vi' ? 'Xóa' : 'Delete')}
+                  </button>
                   <button
                     type="button"
                     className="bpop-btn-detail"
@@ -944,38 +1007,6 @@ export const BoothMapView: React.FC<BoothMapViewProps> = ({
           >
             <Minus size={15} />
           </button>
-        </div>
-      </div>
-
-      {/* 4. Map Legend Status Bar (Placed directly under map for quick reference) */}
-      <div className="booth-map-legend-card">
-        <div className="booth-map-legend-items">
-          <span className="booth-legend-item">
-            <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#9CA3AF', border: '1px solid #6B7280' }}></span>
-            <span>{language === 'vi' ? 'Đã thuê' : 'Assigned'} ({localBooths.filter(b => b.status === 'assigned').length})</span>
-          </span>
-          <span className="booth-legend-item">
-            <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#E0F2FE', border: '1px solid #7DD3FC' }}></span>
-            <span>{language === 'vi' ? 'Còn trống' : 'Available'} ({localBooths.filter(b => b.status === 'available').length})</span>
-          </span>
-          {localBooths.some(booth => booth.status === 'pending') && (
-            <span className="booth-legend-item">
-              <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#FEF3C7', border: '1px solid #FCD34D' }}></span>
-              <span>{language === 'vi' ? 'Đang giữ chỗ' : 'Pending'} ({localBooths.filter(booth => booth.status === 'pending').length})</span>
-            </span>
-          )}
-          {localBooths.some(booth => booth.status === 'unavailable') && (
-            <span className="booth-legend-item">
-              <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#FEE2E2', border: '1px solid #FCA5A5' }}></span>
-              <span>{language === 'vi' ? 'Không khả dụng' : 'Unavailable'} ({localBooths.filter(booth => booth.status === 'unavailable').length})</span>
-            </span>
-          )}
-          {venuePoints.length > 0 && (
-            <span className="booth-legend-item">
-              <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#DCFCE7', border: '1px solid #16A34A' }}></span>
-              <span>{language === 'vi' ? 'Địa điểm tổ chức' : 'Event locations'} ({venuePoints.length})</span>
-            </span>
-          )}
         </div>
       </div>
 

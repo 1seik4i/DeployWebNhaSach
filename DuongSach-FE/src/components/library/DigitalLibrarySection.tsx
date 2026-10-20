@@ -204,8 +204,8 @@ export function DigitalLibrarySection({ language }: { language: Language }) {
             aria-label={language === 'vi' ? 'Xem thêm toàn bộ kho sách tại Thư viện số' : 'Explore full collection in Digital Library'}
           >
             <span className="see-more-text-full">{language === 'vi' ? 'Xem thêm toàn bộ kho sách tại Thư viện số' : 'Explore full collection in Digital Library'}</span>
-            <span className="see-more-text-mobile">{language === 'vi' ? 'Xem toàn bộ Thư viện số' : 'Explore Digital Library'}</span>
-            <ChevronRight size={17} className="see-more-arrow-icon" />
+            <span className="see-more-text-mobile">{language === 'vi' ? 'Xem thêm toàn bộ Thư viện số' : 'Explore Digital Library'}</span>
+            <ChevronRight size={22} className="see-more-arrow-icon" />
           </Link>
         </div>
       </div>

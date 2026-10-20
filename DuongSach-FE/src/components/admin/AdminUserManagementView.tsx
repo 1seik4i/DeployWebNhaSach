@@ -382,8 +382,8 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
                           )}
                         </div>
                         <div>
-                          <div className="adm-user-name">{user.fullName}</div>
-                          <div className="adm-user-code">ID: {user.id}</div>
+                          <div className="adm-user-name" title={user.fullName}>{user.fullName}</div>
+                          <div className="adm-user-code" title={user.id}>ID: {user.id}</div>
                         </div>
                       </div>
                     </td>
@@ -504,8 +504,8 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
                       )}
                     </div>
                     <div>
-                      <div className="adm-user-name">{user.fullName}</div>
-                      <div className="adm-user-code">ID: {user.id}</div>
+                      <div className="adm-user-name" title={user.fullName}>{user.fullName}</div>
+                      <div className="adm-user-code" title={user.id}>ID: {user.id}</div>
                     </div>
                   </div>
                   <div className="adm-user-badges-wrap">

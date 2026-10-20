@@ -503,6 +503,21 @@ export const EventApplicationPage: React.FC<EventApplicationPageProps> = ({
           </div>
         </div>
 
+        <div className="partner-event-status-legend" aria-label={language === 'vi' ? 'Chú thích trạng thái sự kiện' : 'Event status legend'}>
+          <span className="partner-event-status-legend-label">{language === 'vi' ? 'Chú thích:' : 'Legend:'}</span>
+          {([
+            ['happening', 'Đang diễn ra', 'Happening'],
+            ['upcoming', 'Sắp diễn ra', 'Upcoming'],
+            ['completed', 'Đã kết thúc', 'Completed'],
+            ['draft', 'Bản nháp', 'Draft'],
+          ] as const).map(([status, vi, en]) => (
+            <span key={status} className="partner-event-status-legend-item">
+              <span aria-hidden="true" className="partner-event-status-legend-dot" style={{ backgroundColor: getEventStatusColor(status) }} />
+              {language === 'vi' ? vi : en}
+            </span>
+          ))}
+        </div>
+
         {/* Calendar Weekday Header */}
         <div className="cal-weekday-header">
           <div><span className="cal-weekday-desktop">{language === 'vi' ? 'Thứ 2' : 'Mon'}</span><span className="cal-weekday-mobile">T2</span></div>
@@ -1049,6 +1064,16 @@ export const EventApplicationPage: React.FC<EventApplicationPageProps> = ({
                 >
                   <div style={{ minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.3rem' }}>
+                      <span style={{
+                        background: getEventStatusColor(ev.status),
+                        color: ev.status === 'draft' ? '#3b2802' : '#FFFFFF',
+                        fontSize: '0.68rem', fontWeight: 800,
+                        padding: '0.2rem 0.5rem', borderRadius: '6px',
+                      }}>
+                        {language === 'vi'
+                          ? ({ happening: 'Đang diễn ra', upcoming: 'Sắp diễn ra', completed: 'Đã kết thúc', draft: 'Bản nháp' }[ev.status] || ev.status)
+                          : ({ happening: 'Happening', upcoming: 'Upcoming', completed: 'Completed', draft: 'Draft' }[ev.status] || ev.status)}
+                      </span>
                       <span style={{
                         fontSize: '0.72rem',
                         fontWeight: 800,

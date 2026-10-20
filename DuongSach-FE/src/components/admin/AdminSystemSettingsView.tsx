@@ -135,12 +135,14 @@ export const AdminSystemSettingsView: React.FC<AdminSystemSettingsViewProps> = (
         {/* Section 1: General Branding */}
         <div className="adm-card adm-settings-card">
           <div className="adm-card-header">
-            <div className="adm-card-header-icon">
-              <Building size={20} />
-            </div>
-            <div>
-              <h3 className="adm-card-title">Thông tin Nhận diện & Liên hệ Nền tảng</h3>
-              <p className="adm-card-subtitle">Hiển thị trên toàn bộ cổng thông tin và các thông báo gửi đến đối tác, độc giả</p>
+            <div className="adm-card-header-main">
+              <div className="adm-card-header-icon">
+                <Building size={20} />
+              </div>
+              <div>
+                <h3 className="adm-card-title">Thông tin Nhận diện & Liên hệ Nền tảng</h3>
+                <p className="adm-card-subtitle">Hiển thị trên toàn bộ cổng thông tin và các thông báo gửi đến đối tác, độc giả</p>
+              </div>
             </div>
           </div>
 
@@ -202,12 +204,14 @@ export const AdminSystemSettingsView: React.FC<AdminSystemSettingsViewProps> = (
         {/* Section 2: Security Policies */}
         <div className="adm-card adm-settings-card">
           <div className="adm-card-header">
-            <div className="adm-card-header-icon icon-emerald">
-              <ShieldCheck size={20} />
-            </div>
-            <div>
-              <h3 className="adm-card-title">Chính sách Bảo mật & Tài khoản</h3>
-              <p className="adm-card-subtitle">Quy định độ phức tạp mật khẩu và tự động bảo vệ tài khoản khỏi xâm nhập trái phép</p>
+            <div className="adm-card-header-main">
+              <div className="adm-card-header-icon icon-emerald">
+                <ShieldCheck size={20} />
+              </div>
+              <div>
+                <h3 className="adm-card-title">Chính sách Bảo mật & Tài khoản</h3>
+                <p className="adm-card-subtitle">Quy định độ phức tạp mật khẩu và tự động bảo vệ tài khoản khỏi xâm nhập trái phép</p>
+              </div>
             </div>
           </div>
 
@@ -294,12 +298,14 @@ export const AdminSystemSettingsView: React.FC<AdminSystemSettingsViewProps> = (
         {/* Section 3: Notification Preferences */}
         <div className="adm-card adm-settings-card">
           <div className="adm-card-header">
-            <div className="adm-card-header-icon icon-amber">
-              <Bell size={20} />
-            </div>
-            <div>
-              <h3 className="adm-card-title">Cấu hình Thông báo Quản trị</h3>
-              <p className="adm-card-subtitle">Kích hoạt các kịch bản gửi email cảnh báo và cập nhật quan trọng</p>
+            <div className="adm-card-header-main">
+              <div className="adm-card-header-icon icon-amber">
+                <Bell size={20} />
+              </div>
+              <div>
+                <h3 className="adm-card-title">Cấu hình Thông báo Quản trị</h3>
+                <p className="adm-card-subtitle">Kích hoạt các kịch bản gửi email cảnh báo và cập nhật quan trọng</p>
+              </div>
             </div>
           </div>
 

@@ -151,8 +151,8 @@ export const EventsSection: React.FC<EventsSectionProps> = ({
             aria-label="Xem thêm toàn bộ lịch hoạt động sự kiện"
           >
             <span className="see-more-text-full">{language === 'vi' ? 'Xem thêm toàn bộ lịch sự kiện & hoạt động tại Đường Sách' : 'View full events & activities schedule at Book Street'}</span>
-            <span className="see-more-text-mobile">{language === 'vi' ? 'Xem toàn bộ lịch sự kiện' : 'View all events'}</span>
-            <ChevronRight size={17} className="see-more-arrow-icon" />
+            <span className="see-more-text-mobile">{language === 'vi' ? 'Xem thêm toàn bộ sự kiện' : 'View all events'}</span>
+            <ChevronRight size={22} className="see-more-arrow-icon" />
           </Link>
         </div>
       </div>

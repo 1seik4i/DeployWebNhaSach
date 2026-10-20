@@ -241,7 +241,7 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
           <div className="sk05-top-header">
             <div className="sk05-header-title-wrap">
               <span className="sk05-tag-code">
-                {activeTab === 'feedback' ? (language === 'vi' ? 'GÓP Ý' : 'FEEDBACK') : (language === 'vi' ? 'SỰ KIỆN' : 'EVENT')}
+                {activeTab === 'feedback' ? (language === 'vi' ? 'GÓP\u00A0Ý' : 'FEEDBACK') : (language === 'vi' ? 'SỰ\u00A0KIỆN' : 'EVENT')}
               </span>
               <h2 className="sk05-main-title">
                 {activeTab === 'feedback'

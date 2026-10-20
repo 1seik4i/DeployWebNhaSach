@@ -1,8 +1,8 @@
 export const EVENT_STATUS_COLORS = {
-  happening: '#059669',
-  upcoming: '#D97706',
-  draft: '#64748B',
-  completed: '#94A3B8',
+  happening: '#16A34A',
+  upcoming: '#0284C7',
+  draft: '#EAB308',
+  completed: '#6B7280',
   cancelled: '#B91C1C',
   default: '#17382E',
 } as const;

@@ -424,8 +424,8 @@ export const BoothsSection: React.FC<BoothsSectionProps> = ({
             aria-label="Xem thêm toàn bộ gian hàng tại Đường Sách"
           >
             <span className="see-more-text-full">{language === 'vi' ? 'Xem thêm toàn bộ các gian hàng tại Đường Sách' : 'View all bookstalls & pavilions at Book Street'}</span>
-            <span className="see-more-text-mobile">{language === 'vi' ? 'Xem toàn bộ gian hàng' : 'View all bookstalls'}</span>
-            <ChevronRight size={17} className="see-more-arrow-icon" />
+            <span className="see-more-text-mobile">{language === 'vi' ? 'Xem thêm toàn bộ gian hàng' : 'View all bookstalls'}</span>
+            <ChevronRight size={22} className="see-more-arrow-icon" />
           </Link>
         </div>
       </div>
