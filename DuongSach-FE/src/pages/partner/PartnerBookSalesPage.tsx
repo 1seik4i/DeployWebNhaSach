@@ -884,7 +884,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
               {modal === 'add' && (
                 <div className="partner-book-lookup">
                   <label>
-                    ISBN / {language === 'vi' ? 'Tên sách' : 'Title'}
+                    {language === 'vi' ? 'Tên sách' : 'Book title'}
                     <input maxLength={200}
                       value={lookupQuery}
                       onChange={e => {
@@ -911,7 +911,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
                       aria-autocomplete="list"
                       aria-expanded={lookupOpen}
                       aria-controls="partner-book-lookup-results"
-                      placeholder={language === 'vi' ? 'Nhập ISBN hoặc tên sách để tìm trong Thư viện số' : 'Search the Digital Library by ISBN or title'}
+                      placeholder={language === 'vi' ? 'Nhập tên sách để tìm trong Thư viện số' : 'Search the Digital Library by book title'}
                     />
                   </label>
                   <button type="button" onClick={() => {

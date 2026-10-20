@@ -219,7 +219,7 @@ export const LibraryService = {
     }));
   },
   async books(query = {}, admin = false) {
-    query = parse(z.object({ search: searchText.optional(), categoryId: uuid.optional(), stallId: uuid.optional() }), query);
+    query = parse(z.object({ search: searchText.optional(), title: searchText.optional(), categoryId: uuid.optional(), stallId: uuid.optional() }), query);
     const where = {
       ...(!admin ? { status: "active" } : {}),
       ...(query.categoryId
@@ -227,6 +227,9 @@ export const LibraryService = {
         : {}),
       ...(query.stallId
         ? { stalls: { some: { stallId: parse(uuid, query.stallId) } } }
+        : {}),
+      ...(query.title
+        ? { title: { contains: query.title, mode: "insensitive" } }
         : {}),
       ...(query.search
         ? {
