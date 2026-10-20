@@ -419,11 +419,11 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
           <span>{records.length}</span>
           <small>{language === 'vi' ? 'Sách tại gian hàng' : 'Books in stall'}</small>
         </div>
-        <div style={{ borderLeft: pending > 0 ? '3px solid #d97706' : undefined }}>
+        <div>
           <span style={{ color: pending > 0 ? '#b45309' : undefined }}>{pending}</span>
           <small>{language === 'vi' ? 'Đang chờ duyệt' : 'Pending review'}</small>
         </div>
-        <div style={{ borderLeft: rejected > 0 ? '3px solid #dc2626' : undefined }}>
+        <div>
           <span style={{ color: rejected > 0 ? '#dc2626' : undefined }}>{rejected}</span>
           <small>{language === 'vi' ? 'Bị từ chối' : 'Rejected'}</small>
         </div>

@@ -108,45 +108,11 @@
 .adm-summary-card.is-pending .adm-summary-count {
   color: #D97706;
 }
-.adm-summary-card.is-pending.is-selected {
-  border-color: #D97706;
-  background: #FFFAF5;
+.adm-summary-card.is-selected {
+  border-color: #17382E;
+  background: #F8FAF9;
+  box-shadow: 0 4px 14px rgba(23, 56, 46, 0.08);
 }
-
-.adm-summary-card.is-approved .adm-summary-iconbox {
-  background: #ECFDF5;
-  color: #059669;
-}
-.adm-summary-card.is-approved .adm-summary-count {
-  color: #059669;
-}
-.adm-summary-card.is-approved.is-selected {
-  border-color: #059669;
-  background: #F4FDF8;
-}
-
-.adm-summary-card.is-rejected .adm-summary-iconbox {
-  background: #FEF2F2;
-  color: #DC2626;
-}
-.adm-summary-card.is-rejected .adm-summary-count {
-  color: #DC2626;
-}
-.adm-summary-card.is-rejected.is-selected {
-  border-color: #DC2626;
-  background: #FFF8F8;
-}
-
-.adm-summary-active-indicator {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-}
-.adm-summary-card.is-pending .adm-summary-active-indicator { background: #D97706; }
-.adm-summary-card.is-approved .adm-summary-active-indicator { background: #059669; }
-.adm-summary-card.is-rejected .adm-summary-active-indicator { background: #DC2626; }
 
 /* --------------------------------------------------------------------------
    Filter Toolbar
@@ -289,9 +255,7 @@
   box-shadow: 0 6px 16px rgba(17, 40, 30, 0.06);
 }
 
-.adm-application-card.is-pending-card {
-  border-left: 4px solid #D97706;
-}
+
 
 .adm-app-card-header {
   display: flex;

@@ -232,7 +232,7 @@ export const EventManagementView: React.FC<EventManagementViewProps> = ({
             onClick={onOpenCreateEvent}
           >
             <Plus size={16} />
-            <span>{language === 'vi' ? 'Đăng ký sự kiện mới' : 'Register New Event'}</span>
+            <span>{language === 'vi' ? 'Tạo sự kiện' : 'Create Event'}</span>
           </button>
         </div>
       </div>
@@ -556,7 +556,7 @@ export const EventManagementView: React.FC<EventManagementViewProps> = ({
                 onClick={() => onOpenCreateEvent()}
               >
                 <Plus size={13} />
-                <span>{language === 'vi' ? 'Đăng ký sự kiện mới' : 'Register new event'}</span>
+                <span>{language === 'vi' ? 'Tạo sự kiện' : 'Create event'}</span>
               </button>
             )}
           </div>
@@ -572,7 +572,7 @@ export const EventManagementView: React.FC<EventManagementViewProps> = ({
                     onClick={() => onOpenCreateEvent()}
                   >
                     <Plus size={14} />
-                    <span>{language === 'vi' ? 'Đăng ký sự kiện mới vào ngày này' : 'Register new event for this date'}</span>
+                    <span>{language === 'vi' ? 'Tạo sự kiện vào ngày này' : 'Create event for this date'}</span>
                   </button>
                 )}
               </div>

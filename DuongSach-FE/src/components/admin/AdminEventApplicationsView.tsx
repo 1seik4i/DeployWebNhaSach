@@ -168,7 +168,6 @@ export function AdminEventApplicationsView({ language }: { language: Language })
             <div className="adm-summary-count">{pendingCount}</div>
             <div className="adm-summary-label">{vi ? 'Chờ xét duyệt' : 'Pending Review'}</div>
           </div>
-          {status === 'pending' && <span className="adm-summary-active-indicator" />}
         </button>
 
         <button
@@ -183,7 +182,6 @@ export function AdminEventApplicationsView({ language }: { language: Language })
             <div className="adm-summary-count">{approvedCount}</div>
             <div className="adm-summary-label">{vi ? 'Đã duyệt' : 'Approved'}</div>
           </div>
-          {status === 'approved' && <span className="adm-summary-active-indicator" />}
         </button>
 
         <button
@@ -198,7 +196,6 @@ export function AdminEventApplicationsView({ language }: { language: Language })
             <div className="adm-summary-count">{rejectedCount}</div>
             <div className="adm-summary-label">{vi ? 'Đã từ chối' : 'Rejected'}</div>
           </div>
-          {status === 'rejected' && <span className="adm-summary-active-indicator" />}
         </button>
       </div>
 
@@ -293,7 +290,7 @@ export function AdminEventApplicationsView({ language }: { language: Language })
             {pagination.items.map(row => {
               const isPending = pending(row);
               return (
-                <article key={row.id} className={`adm-application-card ${isPending ? 'is-pending-card' : ''}`}>
+                <article key={row.id} className="adm-application-card">
                   <div className="adm-app-card-header">
                     <div className="adm-app-title-group">
                       <div className="adm-app-org-badge">

@@ -233,7 +233,6 @@ export const OrganizerReportsView: React.FC<OrganizerReportsViewProps> = ({
           <div className="org-reports-kpi-grid">
             {/* Card 1: Tổng lượt đăng ký */}
             <div className="org-reports-card org-reports-kpi-card">
-              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3.5, background: 'linear-gradient(90deg, #182924 0%, #2D4A3E 100%)' }} />
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.65rem' }}>
                 <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#64748B' }}>
                   {vi ? 'Tổng lượt đăng ký' : 'Total Registrations'}
@@ -255,7 +254,6 @@ export const OrganizerReportsView: React.FC<OrganizerReportsViewProps> = ({
 
             {/* Card 2: Gian hàng */}
             <div className="org-reports-card org-reports-kpi-card">
-              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3.5, background: '#E9BC63' }} />
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.65rem' }}>
                 <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#64748B' }}>
                   {vi ? 'Gian hàng' : 'Active Bookstalls'}
@@ -277,7 +275,6 @@ export const OrganizerReportsView: React.FC<OrganizerReportsViewProps> = ({
 
             {/* Card 3: Hoạt động */}
             <div className="org-reports-card org-reports-kpi-card">
-              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3.5, background: '#0284C7' }} />
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.65rem' }}>
                 <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#64748B' }}>
                   {vi ? 'Hoạt động sự kiện' : 'Activities & Workshops'}
@@ -299,7 +296,6 @@ export const OrganizerReportsView: React.FC<OrganizerReportsViewProps> = ({
 
             {/* Card 4: Đánh giá trung bình */}
             <div className="org-reports-card org-reports-kpi-card">
-              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3.5, background: '#F59E0B' }} />
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.65rem' }}>
                 <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#64748B' }}>
                   {vi ? 'Đánh giá TB' : 'Avg Rating'}

@@ -215,10 +215,10 @@ export const OrganizerFeedbackView: React.FC<{ language: Language }> = ({ langua
         {/* Card 2: Pending */}
         <div style={{
           background: '#FFFFFF',
-          border: '1px solid #FEF3C7',
+          border: '1px solid #E2EAE5',
           borderRadius: '16px',
           padding: '1.15rem 1.25rem',
-          boxShadow: '0 2px 8px rgba(217, 119, 6, 0.05)',
+          boxShadow: '0 2px 8px rgba(23, 36, 33, 0.03)',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
@@ -256,10 +256,10 @@ export const OrganizerFeedbackView: React.FC<{ language: Language }> = ({ langua
         {/* Card 3: Responded */}
         <div style={{
           background: '#FFFFFF',
-          border: '1px solid #D1FAE5',
+          border: '1px solid #E2EAE5',
           borderRadius: '16px',
           padding: '1.15rem 1.25rem',
-          boxShadow: '0 2px 8px rgba(5, 150, 105, 0.04)',
+          boxShadow: '0 2px 8px rgba(23, 36, 33, 0.03)',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
@@ -288,10 +288,10 @@ export const OrganizerFeedbackView: React.FC<{ language: Language }> = ({ langua
         {/* Card 4: Satisfaction */}
         <div style={{
           background: '#FFFFFF',
-          border: '1px solid #FEF08A',
+          border: '1px solid #E2EAE5',
           borderRadius: '16px',
           padding: '1.15rem 1.25rem',
-          boxShadow: '0 2px 8px rgba(202, 138, 4, 0.04)',
+          boxShadow: '0 2px 8px rgba(23, 36, 33, 0.03)',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
@@ -421,7 +421,6 @@ export const OrganizerFeedbackView: React.FC<{ language: Language }> = ({ langua
                 style={{
                   background: '#FFFFFF',
                   border: '1px solid #E2EAE5',
-                  borderLeft: `4px solid ${feedback.status === 'new' ? '#D97706' : feedback.status === 'responded' ? '#059669' : '#2563EB'}`,
                   borderRadius: '12px',
                   padding: '1.25rem 1.5rem',
                   boxShadow: '0 2px 6px rgba(23, 36, 33, 0.02)',

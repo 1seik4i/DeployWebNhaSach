@@ -65,21 +65,6 @@
   overflow: hidden;
 }
 
-.partner-stat-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: #E1E8E4;
-  transition: background 220ms ease;
-}
-
-.partner-stat-card.stat-card-events::before { background: #3B82F6; }
-.partner-stat-card.stat-card-booths::before { background: #059669; }
-.partner-stat-card.stat-card-activities::before { background: #D4A343; }
-.partner-stat-card.stat-card-reports::before { background: #8B5CF6; }
 
 .partner-stat-card:hover {
   transform: translateY(-3px);
@@ -2129,7 +2114,6 @@
   margin: -0.5rem 0 1.75rem;
   padding: 1rem 1.35rem;
   border: 1px solid #E6D8B6;
-  border-left: 4px solid #D4A343;
   border-radius: 14px;
   background: linear-gradient(135deg, #FAF7EE 0%, #F5EED8 100%);
   color: #17382E;

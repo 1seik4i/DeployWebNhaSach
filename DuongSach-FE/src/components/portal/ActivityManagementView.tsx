@@ -445,7 +445,7 @@ export const ActivityManagementView: React.FC<ActivityManagementViewProps> = ({
           style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px', borderRadius: 8, fontSize: '0.86rem', fontWeight: 600 }}
         >
           <Plus size={16} />
-          <span>{vi ? 'Đăng ký sự kiện mới' : 'Register New Event'}</span>
+          <span>{vi ? 'Tạo sự kiện' : 'Create Event'}</span>
         </button>
       </div>
 

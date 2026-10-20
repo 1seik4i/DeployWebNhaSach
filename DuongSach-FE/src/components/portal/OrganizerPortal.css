@@ -813,19 +813,6 @@
   overflow: hidden;
 }
 
-.org-metric-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: #17382E;
-}
-
-.org-metric-card.gold::before { background: #E9BC63; }
-.org-metric-card.red::before { background: #C84C32; }
-.org-metric-card.blue::before { background: #0284C7; }
 
 .org-metric-card strong {
   font-family: var(--font-serif, "Cinzel", "Playfair Display", Georgia, serif);
