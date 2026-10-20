@@ -38,7 +38,7 @@ const coverUrlSchema = z
   .transform((v) => (v && v.trim() ? v.trim() : 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=400&q=80'));
 
 export const bookInput = z.object({
-  isbn: z.string().trim().min(1).max(32),
+  isbn: z.string().trim().regex(/^[0-9]{1,32}$/, "ISBN chỉ được chứa chữ số"),
   title: text,
   titleEn: nullableText(200).optional(),
   author: text,

@@ -1996,7 +1996,7 @@ export function AdminDigitalLibraryView({ language }: {
                     <div className="admin-book-form-grid">
                         <label>
                             ISBN *
-                            <input name="isbn" autoComplete="off" value={form.isbn} onChange={e => setForm({ ...form, isbn: e.target.value })} required maxLength={32} placeholder="VD: 9786041000009"/>
+                            <input name="isbn" autoComplete="off" inputMode="numeric" pattern="[0-9]+" value={form.isbn} onChange={e => setForm({ ...form, isbn: e.target.value.replace(/[^0-9]/g, '') })} required maxLength={32} placeholder="VD: 9786041000009"/>
                         </label>
                         <label>
                             {language === 'vi' ? 'Tên sách *' : 'Title *'}

@@ -325,7 +325,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
     if (!Number.isInteger(inventory) || inventory < 0 || inventory > 2147483647 ||
         (sold !== undefined && (!Number.isInteger(sold) || sold < 0 || sold > 2147483647)) ||
         (year !== undefined && (!Number.isInteger(year) || year < 1 || year > 2200)) ||
-        !form.isbn.trim() || form.isbn.trim().length > 32 || !form.title.trim() || !form.author.trim()) {
+        !/^[0-9]{1,32}$/.test(form.isbn.trim()) || !form.title.trim() || !form.author.trim()) {
       setModalNotice({ type: 'error', title: 'Dữ liệu không hợp lệ', message: 'Kiểm tra ISBN, tên sách, tác giả, năm xuất bản và số lượng nguyên không âm.' });
       return;
     }
@@ -969,8 +969,10 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
                 <input 
                   value={form.isbn} 
                   maxLength={32}
+                  inputMode="numeric"
+                  pattern="[0-9]+"
                   readOnly={modal === 'view' || Boolean(match)} 
-                  onChange={e => setForm({ ...form, isbn: e.target.value })} 
+                  onChange={e => setForm({ ...form, isbn: e.target.value.replace(/[^0-9]/g, '') })}
                   required 
                   placeholder="VD: 9786041000009"
                 />
