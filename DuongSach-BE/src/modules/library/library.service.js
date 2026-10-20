@@ -219,7 +219,7 @@ export const LibraryService = {
     }));
   },
   async books(query = {}, admin = false) {
-    query = parse(z.object({ search: searchText.optional(), title: searchText.optional(), categoryId: uuid.optional(), stallId: uuid.optional() }), query);
+    query = parse(z.object({ search: searchText.optional(), searchMode: z.enum(["title_isbn"]).optional(), title: searchText.optional(), categoryId: uuid.optional(), stallId: uuid.optional() }), query);
     const where = {
       ...(!admin ? { status: "active" } : {}),
       ...(query.categoryId
@@ -233,7 +233,7 @@ export const LibraryService = {
         : {}),
       ...(query.search
         ? {
-            OR: ["title", "isbn", "author"].map((k) => ({
+            OR: (query.searchMode === "title_isbn" ? ["title", "isbn"] : ["title", "isbn", "author"]).map((k) => ({
               [k]: { contains: String(query.search), mode: "insensitive" },
             })),
           }

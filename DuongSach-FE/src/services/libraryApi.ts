@@ -66,7 +66,7 @@ export const libraryApi = {
   getMyAssignedStall: () => apiClient.get<AssignedStall>('/partner/assigned-stall'),
   getMyStallBooks: (_stallId?: string) => apiClient.get<StallBookRecord[]>('/partner/books'),
   getMyBookSubmissions: (_stallId?: string) => apiClient.get<BookSubmission[]>('/partner/book-submissions'),
-  searchGlobalBooks: (value: string) => apiClient.get<Book[]>(`/public/books?title=${encodeURIComponent(value.trim())}`),
+  searchGlobalBooks: (value: string) => apiClient.get<Book[]>(`/public/books?search=${encodeURIComponent(value.trim())}&searchMode=title_isbn`),
   findGlobalBookByIsbn: async (value: string) => {
     const rows = await apiClient.get<Book[]>(`/public/books?search=${encodeURIComponent(value.trim())}`);
     const needle = value.trim().toLocaleLowerCase('vi');
