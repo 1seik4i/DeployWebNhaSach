@@ -607,14 +607,6 @@ export const Header: React.FC<HeaderProps> = ({
                   >
                     {language === 'vi' ? 'Đăng nhập' : 'Sign in' }
                   </Link>
-                  <Link
-                    to="/lien-he"
-                    className="dropdown-auth-btn outline"
-                    role="menuitem"
-                    onClick={() => setAccountDropdownOpen(false)}
-                  >
-                    {language === 'vi' ? 'Đăng ký' : 'Register'}
-                  </Link>
                 </div>
               )}
             </div>
