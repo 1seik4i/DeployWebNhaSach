@@ -7,7 +7,6 @@ import {
   BarChart3, 
   Bell, 
   User, 
-  Search, 
   LogOut, 
   Menu, 
   X, 
@@ -46,7 +45,6 @@ export const PartnerLayout: React.FC<PartnerLayoutProps> = ({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [notifDropdownOpen, setNotifDropdownOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
 
   // Close popups on click outside or Esc
   React.useEffect(() => {
@@ -139,12 +137,7 @@ export const PartnerLayout: React.FC<PartnerLayoutProps> = ({
     return location.pathname.startsWith(itemPath);
   };
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/partner/activities?search=${encodeURIComponent(searchQuery.trim())}`);
-    }
-  };
+
 
   const latestNotifications = notifications.slice(0, 4);
 
@@ -176,17 +169,6 @@ export const PartnerLayout: React.FC<PartnerLayoutProps> = ({
         </div>
 
         <div className="top-bar-right">
-          {/* Global Quick Search Bar */}
-          <form className="partner-top-search" onSubmit={handleSearchSubmit}>
-            <Search size={16} className="search-icon" />
-            <input
-              type="text"
-              placeholder={language === 'vi' ? 'Tìm kiếm gian hàng, hoạt động...' : 'Search booths, activities...'}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </form>
-
           {/* Notifications Bell Dropdown */}
           <div className="partner-notif-menu">
             <button 

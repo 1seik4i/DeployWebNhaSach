@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { 
-  Search, 
   Bell, 
   Menu, 
   ChevronDown, 
@@ -44,7 +43,6 @@ export const AdminTopBar: React.FC<AdminTopBarProps> = ({
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notifDropdownOpen, setNotifDropdownOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
   const notifDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -71,9 +69,7 @@ export const AdminTopBar: React.FC<AdminTopBarProps> = ({
     };
   }, []);
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-  };
+
 
   const latestNotifs = notifications.slice(0, 4);
 
@@ -101,19 +97,8 @@ export const AdminTopBar: React.FC<AdminTopBarProps> = ({
         </div>
       </div>
 
-      {/* 2. Right: Quick Search, Bell, User Capsule */}
+      {/* 2. Right: Bell, User Capsule */}
       <div className="admin-topbar-right">
-        {/* Global Quick Search Bar */}
-        <form className="admin-top-search" onSubmit={handleSearchSubmit}>
-          <Search size={16} className="search-icon" />
-          <input 
-            type="text" 
-            placeholder={language === 'vi' ? 'Tìm tài khoản, phân quyền, cấu hình...' : 'Search users, roles, settings...'} 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </form>
-
         {/* Notifications Bell Dropdown */}
         <div style={{ position: 'relative' }} ref={notifDropdownRef}>
           <button
