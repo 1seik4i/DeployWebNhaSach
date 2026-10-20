@@ -208,7 +208,7 @@ export const AdminAuditLogsView: React.FC<AdminAuditLogsViewProps> = ({ logs }) 
       {/* 1. Header with Stats Bar */}
       <div className="adm-page-header">
         <div>
-          <h1 className="adm-page-title">Nhật ký Hoạt động (Audit Logs)</h1>
+          <h1 className="adm-page-title">Nhật ký Hoạt động</h1>
           <p className="adm-page-subtitle">
             Giám sát toàn diện mọi thao tác thay đổi vị trí bản đồ, cập nhật gian hàng, phân quyền và điều hành hệ thống.
           </p>

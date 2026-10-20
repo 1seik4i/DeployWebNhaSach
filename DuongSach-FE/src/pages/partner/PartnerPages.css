@@ -2208,3 +2208,17 @@
     font: inherit;
   }
 }
+.partner-event-status-legend {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.25rem;
+  padding: 0.85rem 1.25rem;
+  border-top: 1px solid #eef2f0;
+  color: #475569;
+  font-size: 0.76rem;
+}
+.partner-event-status-legend-label { color: #688279; font-weight: 600; }
+.partner-event-status-legend-item { display: inline-flex; align-items: center; gap: 0.4rem; }
+.partner-event-status-legend-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+

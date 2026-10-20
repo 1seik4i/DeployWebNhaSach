@@ -158,15 +158,15 @@ export const Footer: React.FC<FooterProps> = ({ language }) => {
             <div className="yg-nav-dual-grid">
               <ul className="yg-nav-list">
                 <li><Link to="/">{isVi ? 'Trang chủ' : 'Home'}</Link></li>
-                <li><Link to="/journey">{isVi ? 'Về Đường Sách' : 'About Us'}</Link></li>
-                <li><Link to="/booths">{isVi ? 'Gian hàng ki-ốt' : 'Book Stalls'}</Link></li>
-                <li><Link to="/events">{isVi ? 'Lịch sự kiện' : 'Events'}</Link></li>
-                <li><Link to="/library">{isVi ? 'Thư viện số' : 'Digital Library'}</Link></li>
+                <li><Link to="/hanh-trinh">{isVi ? 'Về Đường Sách' : 'About Us'}</Link></li>
+                <li><Link to="/gian-hang">{isVi ? 'Gian hàng ki-ốt' : 'Book Stalls'}</Link></li>
+                <li><Link to="/su-kien">{isVi ? 'Lịch sự kiện' : 'Events'}</Link></li>
+                <li><Link to="/thu-vien-so">{isVi ? 'Thư viện số' : 'Digital Library'}</Link></li>
               </ul>
               <ul className="yg-nav-list">
-                <li><Link to="/news">{isVi ? 'Bản tin & Sự kiện' : 'News & Media'}</Link></li>
-                <li><Link to="/organization">{isVi ? 'Bộ máy tổ chức' : 'Organization'}</Link></li>
-                <li><Link to="/contact">{isVi ? 'Liên hệ & Góp ý' : 'Contact & Feedback'}</Link></li>
+                <li><Link to="/tin-tuc">{isVi ? 'Bản tin & Sự kiện' : 'News & Media'}</Link></li>
+                <li><Link to="/bo-may-to-chuc">{isVi ? 'Bộ máy tổ chức' : 'Organization'}</Link></li>
+                <li><Link to="/lien-he">{isVi ? 'Liên hệ & Góp ý' : 'Contact & Feedback'}</Link></li>
                 <li><a href="/#ban-do">{isVi ? 'Bản đồ 3D' : '3D Street Map'}</a></li>
                 <li><Link to="/partner/login">{isVi ? 'Dành cho đối tác' : 'Partner Portal'}</Link></li>
               </ul>

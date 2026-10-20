@@ -323,6 +323,16 @@ export const EventManagementView: React.FC<EventManagementViewProps> = ({
           </div>
         </div>
 
+        <div className="event-status-legend" aria-label={language === 'vi' ? 'Chú thích trạng thái sự kiện' : 'Event status legend'}>
+          <span className="event-status-legend-label">{language === 'vi' ? 'Chú thích:' : 'Legend:'}</span>
+          {(['happening', 'upcoming', 'completed', 'draft'] as const).map(status => (
+            <span key={status} className="event-status-legend-item">
+              <span aria-hidden="true" className="event-status-legend-dot" style={{ backgroundColor: getEventStatusColor(status) }} />
+              {getStatusLabel(status)}
+            </span>
+          ))}
+        </div>
+
         {/* Calendar Weekday Header */}
         <div className="cal-grid-weekdays">
           <div><span className="cal-weekday-desktop">{language === 'vi' ? 'Thứ 2' : 'Mon'}</span><span className="cal-weekday-mobile">T2</span></div>

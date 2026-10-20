@@ -3,7 +3,13 @@
 .event-coverflow-stage { position: relative; height: clamp(310px, 33vw, 430px); overflow: hidden; perspective: 950px; transform-style: preserve-3d; outline: none; touch-action: pan-y; user-select: none; }
 .event-coverflow-stage:focus-visible { outline: 3px solid #b4863c; outline-offset: 3px; }
 .event-coverflow-slide { position: absolute; top: 3%; left: 50%; width: clamp(210px, 27vw, 340px); height: 94%; padding: 0; overflow: hidden; border: 1px solid rgba(255,255,255,.65); border-radius: 8px; background: #17382e; box-shadow: 0 16px 34px rgba(20,40,33,.23); color: #fff; cursor: pointer; text-align: left; transform-style: preserve-3d; backface-visibility: hidden; -webkit-backface-visibility: hidden; will-change: transform, opacity; transition: transform 520ms cubic-bezier(.22,1,.36,1), opacity 420ms ease, box-shadow 420ms ease; }
-.event-coverflow-slide.is-selected { box-shadow: 0 22px 46px rgba(20,40,33,.32); }
+.event-coverflow-stage { height: clamp(350px, 37vw, 480px); }
+.event-coverflow-slide {
+  top: 8%;
+  height: 84%;
+  transition: transform 520ms cubic-bezier(.22,1,.36,1), opacity 420ms ease, filter 420ms ease, box-shadow 420ms ease;
+}
+.event-coverflow-slide.is-selected { box-shadow: 0 24px 48px rgba(20,40,33,.36); border-color: rgba(233,188,99,.65); }
 .event-coverflow-slide img { width: 100%; height: 100%; display: block; object-fit: cover; }
 .event-coverflow-week-badge { position: absolute; top: .7rem; left: .7rem; display: grid; place-items: center; min-width: 4.25rem; min-height: 2.15rem; padding: .35rem .45rem; background: #e7b552; color: #17382e; border: 1px solid rgba(255,255,255,.62); border-radius: 2px; font-size: .7rem; font-weight: 800; line-height: 1.1; text-align: center; box-shadow: 0 4px 14px rgba(16, 36, 29, .2); }
 .event-coverflow-today-badge { position: absolute; top: .7rem; left: .7rem; display: flex; align-items: center; justify-content: center; gap: 4px; padding: .35rem .65rem; background: linear-gradient(135deg, #e11d48, #be123c); color: #ffffff; border: 1.5px solid rgba(255,255,255,.9); border-radius: 4px; font-size: .75rem; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; box-shadow: 0 4px 16px rgba(225, 29, 72, .45); animation: pulse-today 2s infinite ease-in-out; }

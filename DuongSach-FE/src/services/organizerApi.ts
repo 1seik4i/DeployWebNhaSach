@@ -151,6 +151,7 @@ export const organizerApi = {
   },
   getEventLocations: (eventId?: string) => apiClient.get<Array<{ id: string; name: string; capacity: number }>>(`/admin/event-locations${eventId ? `?eventId=${encodeURIComponent(eventId)}` : ''}`),
   updateEvent: (id: string, data: unknown) => apiClient.put(`/admin/events/${encodeURIComponent(id)}`, data),
+  deleteEvent: (id: string) => apiClient.delete(`/admin/events/${encodeURIComponent(id)}`),
   updateEventSettings: (id: string, data: { boothDeadline?: string; activityDeadline?: string; participantDeadline?: string; cancellationCutoff?: string }) => apiClient.put(`/admin/events/${encodeURIComponent(id)}/settings`, {
     boothRequestDeadline: data.boothDeadline || null,
     proposalDeadline: data.activityDeadline || null,
@@ -181,6 +182,7 @@ export const organizerApi = {
   updateActivity: (id: string, data: unknown) => apiClient.patch(`/admin/activities/${encodeURIComponent(id)}`, data),
   deleteActivity: (id: string) => apiClient.delete<void>(`/admin/activities/${encodeURIComponent(id)}`),
   deleteProposal: (id: string) => apiClient.delete<void>(`/admin/activity-proposals/${encodeURIComponent(id)}`),
+  createActivityFromProposal: (id: string) => apiClient.post<{ id: string }>(`/admin/activity-proposals/${encodeURIComponent(id)}/create-activity`, {}),
 
   async getPartnerApplications(eventId?: string): Promise<OrganizerPartnerApplication[]> {
     const rows = await apiClient.get<any[]>(`/admin/partner-applications${eventId ? `?eventId=${encodeURIComponent(eventId)}` : ''}`);

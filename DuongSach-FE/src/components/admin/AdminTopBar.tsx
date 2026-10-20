@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { 
-  Search, 
   Bell, 
   Menu, 
   ChevronDown, 
@@ -39,14 +38,12 @@ export const AdminTopBar: React.FC<AdminTopBarProps> = ({
   onMarkNotifRead,
   onOpenNotifications,
   onNavigateTab,
-  onSearchUsers,
   onOpenProfile,
   onLogout,
   onOpenMobileMenu
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notifDropdownOpen, setNotifDropdownOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
   const notifDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -73,14 +70,6 @@ export const AdminTopBar: React.FC<AdminTopBarProps> = ({
     };
   }, []);
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const query = searchQuery.normalize('NFC').trim();
-    const command = query.toLocaleLowerCase('vi-VN');
-    if (['vai trò', 'phân quyền', 'roles'].includes(command)) onNavigateTab?.('roles');
-    else if (['cấu hình', 'cài đặt', 'settings'].includes(command)) onNavigateTab?.('settings');
-    else onSearchUsers(query);
-  };
 
   const latestNotifs = notifications.slice(0, 4);
 
@@ -108,20 +97,9 @@ export const AdminTopBar: React.FC<AdminTopBarProps> = ({
         </div>
       </div>
 
-      {/* 2. Right: Quick Search, Bell, User Capsule */}
+      {/* 2. Right: Bell, User Capsule */}
       <div className="admin-topbar-right">
-        {/* Global Quick Search Bar */}
-        <form className="admin-top-search" onSubmit={handleSearchSubmit}>
-          <Search size={16} className="search-icon" />
-          <input maxLength={200}
-            type="text" 
-            placeholder={language === 'vi' ? 'Tìm tài khoản, phân quyền, cấu hình...' : 'Search users, roles, settings...'} 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </form>
-
-        {/* Notifications Bell Dropdown */}
+{/* Notifications Bell Dropdown */}
         <div style={{ position: 'relative' }} ref={notifDropdownRef}>
           <button
             type="button"

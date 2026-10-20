@@ -1,6 +1,8 @@
 import { useUrlTab } from '../../hooks/useUrlTab';
+import { useModalBehavior } from '../../hooks/useModalBehavior';
 import { ListPagination, useListPagination } from '../../components/ui/ListPagination';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   AlertCircle,
   AlertTriangle,
@@ -11,9 +13,11 @@ import {
   CornerDownRight, 
   Edit3, 
   Eye, 
+  FileImage,
   ImagePlus, 
   Info, 
   Layers, 
+  Link2,
   Plus, 
   RotateCcw, 
   Search, 
@@ -127,6 +131,11 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
   const [viewingSubmission, setViewingSubmission] = useState<BookSubmission | null>(null);
   const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
   const [modalNotice, setModalNotice] = useState<ModalNotice | null>(null);
+
+  useModalBehavior(Boolean(modal), () => setModal(null));
+  useModalBehavior(Boolean(viewingSubmission), () => setViewingSubmission(null));
+  useModalBehavior(Boolean(confirmAction), () => setConfirmAction(null));
+  useModalBehavior(Boolean(modalNotice), () => setModalNotice(null));
 
   const [form, setForm] = useState<FormState>(blankForm);
   const [match, setMatch] = useState<Book | null>(null);
@@ -837,7 +846,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
       )}
 
       {/* Modal Thêm / Chỉnh sửa / Gửi lại sách */}
-      {modal && (
+      {modal && createPortal(
         <div 
           className="partner-book-modal" 
           role="dialog" 
@@ -955,7 +964,6 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
                   </span>
                 </div>
               )}
-
               <label>
                 ISBN *
                 <input 
@@ -1034,44 +1042,105 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
 
               <div className="form-wide partner-cover-upload-section">
                 <span className="partner-cover-label">{language === 'vi' ? 'Ảnh bìa sách' : 'Book Cover'}</span>
-                <div className="partner-cover-upload-wrapper">
+                <div className="partner-cover-upload-card">
+                  {/* Khung ảnh xem trước bìa sách chuẩn tỉ lệ */}
                   <div className="partner-cover-preview-box">
                     {form.coverUrl ? (
-                      <img src={form.coverUrl} alt="Preview" className="partner-cover-img-preview" onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
+                      <img 
+                        src={form.coverUrl} 
+                        alt="Preview" 
+                        className="partner-cover-img-preview" 
+                        onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} 
+                      />
                     ) : (
-                      <div className="partner-cover-no-img"><ImagePlus size={20}/><span>{language === 'vi' ? 'Chưa có ảnh' : 'No image'}</span></div>
+                      <div className="partner-cover-no-img">
+                        <ImagePlus size={20} className="partner-cover-empty-icon" />
+                        <span>{language === 'vi' ? 'Chưa có ảnh' : 'No image'}</span>
+                      </div>
                     )}
                   </div>
+
+                  {/* Cột các điều khiển ảnh bìa nằm thẳng hàng ngang */}
                   <div className="partner-cover-controls">
-                    {modal !== 'view' && !match && (
-                      <div className="partner-cover-file-actions">
-                        <label className="partner-upload-btn">
-                          <Upload size={14}/>
-                          <span>{language === 'vi' ? 'Tải ảnh từ máy tính' : 'Upload from device'}</span>
-                          <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => { const file = e.target.files?.[0]; if (file) handleCoverUpload(file); }} />
-                        </label>
-                        {coverFileName && <span className="partner-cover-filename">{coverFileName}</span>}
-                        {form.coverUrl && (
-                          <button type="button" className="partner-cover-reset-btn" onClick={() => { setForm(prev => ({ ...prev, coverUrl: '' })); setCoverFileName(''); setCoverError(''); }}>
-                            {language === 'vi' ? 'Đặt lại mặc định' : 'Reset'}
+                    <div className="partner-cover-actions-row">
+                      <div className="partner-cover-url-box">
+                        <Link2 size={16} className="partner-cover-url-icon" />
+                        <input 
+                          type="text"
+                          name="partnerCoverUrl"
+                          autoComplete="off"
+                          data-lpignore="true"
+                          value={form.coverUrl.startsWith('data:') ? '' : form.coverUrl} 
+                          readOnly={modal === 'view' || Boolean(match)} 
+                          onChange={e => { setForm({ ...form, coverUrl: e.target.value }); setCoverFileName(''); setCoverError(''); }} 
+                          placeholder={form.coverUrl.startsWith('data:') 
+                            ? (language === 'vi' ? 'Đang dùng ảnh tải lên từ máy tính' : 'Using uploaded image from device') 
+                            : (language === 'vi' ? 'Dán đường dẫn ảnh (URL https://... hoặc /duong_sach_logo.png)' : 'Paste image URL or enter path...')}
+                        />
+                        {form.coverUrl && !form.coverUrl.startsWith('data:') && modal !== 'view' && !match && (
+                          <button 
+                            type="button" 
+                            className="partner-cover-clear-url" 
+                            onClick={() => setForm(curr => ({ ...curr, coverUrl: '' }))}
+                            title={language === 'vi' ? 'Xóa URL' : 'Clear URL'}
+                          >
+                            <X size={14} />
                           </button>
                         )}
                       </div>
-                    )}
-                    <div className="partner-cover-url-input">
-                      <span className="partner-cover-or-text">{modal === 'view' || match ? (language === 'vi' ? 'Đường dẫn ảnh bìa:' : 'Cover URL:') : (language === 'vi' ? 'Hoặc dán URL ảnh trực tuyến:' : 'Or paste online image URL:')}</span>
-                      <input 
-                        type="text"
-                        name="partnerCoverUrl"
-                        autoComplete="off"
-                        data-lpignore="true"
-                        value={form.coverUrl.startsWith('data:') ? '' : form.coverUrl} 
-                        readOnly={modal === 'view' || Boolean(match)} 
-                        onChange={e => { setForm({ ...form, coverUrl: e.target.value }); setCoverFileName(''); setCoverError(''); }} 
-                        placeholder={form.coverUrl.startsWith('data:') ? (language === 'vi' ? 'Đang dùng ảnh đã tải lên từ máy tính' : 'Using uploaded image from device') : "https://... hoặc /duong_sach_logo.png"}
-                      />
+
+                      {modal !== 'view' && !match && (
+                        <label 
+                          className="partner-upload-btn" 
+                          title={language === 'vi' ? 'Tải ảnh lên từ máy tính' : 'Upload image from device'}
+                          aria-label={language === 'vi' ? 'Tải ảnh lên' : 'Upload image'}
+                        >
+                          <Upload size={18} />
+                          <input 
+                            type="file" 
+                            accept="image/*" 
+                            style={{ display: 'none' }} 
+                            onChange={(e) => { const file = e.target.files?.[0]; if (file) handleCoverUpload(file); }} 
+                          />
+                        </label>
+                      )}
+
+                      {form.coverUrl && modal !== 'view' && !match && (
+                        <button 
+                          type="button" 
+                          className="partner-cover-btn-delete"
+                          onClick={() => { setForm({ ...form, coverUrl: '' }); setCoverFileName(''); setCoverError(''); }} 
+                          title={language === 'vi' ? 'Xóa ảnh bìa hiện tại' : 'Remove cover image'}
+                          aria-label={language === 'vi' ? 'Xóa ảnh' : 'Remove image'}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
                     </div>
-                    {coverError && <p className="partner-cover-error-msg">{coverError}</p>}
+
+                    <div className="partner-cover-footer-row">
+                      {coverFileName ? (
+                        <div className="partner-cover-file-info">
+                          <FileImage size={13} className="partner-file-badge-icon" />
+                          <span className="partner-cover-filename" title={coverFileName}>{coverFileName}</span>
+                          <button 
+                            type="button" 
+                            className="partner-cover-reset-btn" 
+                            onClick={() => { setForm(prev => ({ ...prev, coverUrl: '' })); setCoverFileName(''); setCoverError(''); }}
+                            title={language === 'vi' ? 'Xóa ảnh đã tải lên' : 'Remove uploaded image'}
+                          >
+                            <X size={12} />
+                            <span>{language === 'vi' ? 'Gỡ ảnh' : 'Remove'}</span>
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="partner-cover-format-hint">
+                          <Info size={13} className="partner-hint-icon" />
+                          <span>{language === 'vi' ? 'Hỗ trợ JPG, PNG, WEBP (tối đa 5MB) hoặc liên kết ảnh trực tuyến' : 'Supports JPG, PNG, WEBP (up to 5MB) or online image URL'}</span>
+                        </span>
+                      )}
+                      {coverError && <p className="partner-cover-error-msg">{coverError}</p>}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1103,11 +1172,12 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
               </footer>
             )}
           </form>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Modal Xem chi tiết yêu cầu gửi duyệt */}
-      {viewingSubmission && (
+      {viewingSubmission && createPortal(
         <div 
           className="partner-book-modal" 
           role="dialog" 
@@ -1177,11 +1247,12 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
               )}
             </footer>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Modal Xác nhận (Gỡ sách hoặc Hủy yêu cầu) */}
-      {confirmAction && (
+      {confirmAction && createPortal(
         <div 
           className="partner-book-modal" 
           role="dialog" 
@@ -1212,11 +1283,12 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Modal Thông báo CRUD cho Partner */}
-      {modalNotice && (
+      {modalNotice && createPortal(
         <div 
           className="partner-book-modal" 
           role="dialog" 
@@ -1235,7 +1307,8 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
               {language === 'vi' ? 'Đã hiểu' : 'OK'}
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

@@ -1,3 +1,5 @@
+import { AdminEventEditModal } from './admin/AdminEventEditModal';
+import { facilityRequest } from '../services/facilities';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { adminTabPath, isAdminTab, resolveAdminTab } from '../utils/adminNavigation';
 import { promptModal } from '../services/notificationModal';
@@ -124,6 +126,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
 
   // Modals
   const [isCreateActivityOpen, setIsCreateActivityOpen] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<OrganizerEvent | null>(null);
+  const [editVenues, setEditVenues] = useState<Array<{ id: string; name: string }>>([]);
   const [registrationLocations, setRegistrationLocations] = useState<Array<{ id: string; name: string; capacity: number }>>([]);
   useEffect(() => {
     if (!isCreateActivityOpen) return;
@@ -415,11 +419,32 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
             <ActivityManagementView
               language={language}
               activities={activitiesList}
+              onOpenCalendarEvent={(id) => { setSelectedEventId(id); setActiveTab('events'); }}
+              onEditCalendarEvent={async (id) => {
+                const event = eventsList.find(item => item.id === id);
+                if (!event) return;
+                const result = await facilityRequest<{ data: Array<{ id: string; name: string }> }>('venues');
+                setEditVenues(result.data);
+                setEditingEvent(event);
+              }}
+              onDeleteCalendarEvent={async (id) => {
+                await organizerApi.deleteEvent(id);
+                if (selectedEventId === id) setSelectedEventId(null);
+                await refreshAdminData();
+              }}
+              onApproveCalendarEvent={async (id) => {
+                await organizerApi.publishEvent(id);
+                await refreshAdminData();
+              }}
               proposals={activityProposals}
               events={eventsList}
               selectedEventId={selectedEventId || ''}
               onSelectEventId={(id) => setSelectedEventId(id || null)}
               onPublishActivity={async (id) => { await organizerApi.publishActivity(id); await refreshAdminData(); }}
+              onApproveActivity={async (id) => { await organizerApi.publishActivity(id); await refreshAdminData(); }}
+              onRejectActivity={async (id) => { await organizerApi.updateActivity(id, { status: 'cancelled' }); await refreshAdminData(); }}
+              onUpdateActivity={async (updated) => { await organizerApi.updateActivity(updated.id, updated); await refreshAdminData(); }}
+              onCreateActivityFromProposal={async (id) => { await organizerApi.createActivityFromProposal(id); await refreshAdminData(); }}
               onOpenCreateActivity={() => setIsCreateActivityOpen(true)}
               onDeleteActivity={async (id) => { await organizerApi.deleteActivity(id); await refreshAdminData(); }}
               onDeleteProposal={async (id) => { await organizerApi.deleteProposal(id); await refreshAdminData(); }}
@@ -519,6 +544,18 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
       </div>
 
       {/* Merged Management Modals */}
+      {editingEvent && <AdminEventEditModal
+        key={editingEvent.id}
+        event={editingEvent}
+        language={language}
+        locations={editVenues}
+        onClose={() => setEditingEvent(null)}
+        onSave={async data => {
+          await organizerApi.updateEvent(editingEvent.id, data);
+          await refreshAdminData();
+          setEditingEvent(null);
+        }}
+      />}
       <EventRegistrationModal
         language={language}
         isOpen={isCreateActivityOpen}

@@ -41,6 +41,7 @@ import {
 import { partnerApi } from './services/partnerApi';
 import { publicApi } from './services/publicApi';
 import './App.css';
+import './landing-responsive.css';
 
 const storedSessionRole = (): string => {
   try {
@@ -57,13 +58,13 @@ export function App() {
   const location = useLocation();
   const navigate = useNavigate();
   const landingScrollPositionRef = useRef<number | null>(null);
-  const isBooths = /^\/gian-hang(?:\/|$)/.test(location.pathname);
-  const isEvents = /^\/su-kien(?:\/|$)/.test(location.pathname);
-  const isNews = /^\/(?:tin-tuc|tin-tuc-su-kien)(?:\/|$)/.test(location.pathname);
-  const isJourney = /^\/hanh-trinh(?:\/|$)/.test(location.pathname);
-  const isOrganization = /^\/bo-may-to-chuc(?:\/|$)/.test(location.pathname);
-  const isContact = /^\/lien-he(?:\/|$)/.test(location.pathname);
-  const isLibrary = /^\/thu-vien-so(?:\/|$)/.test(location.pathname);
+  const isBooths = /^\/(?:gian-hang|booths)(?:\/|$)/.test(location.pathname);
+  const isEvents = /^\/(?:su-kien|events)(?:\/|$)/.test(location.pathname);
+  const isNews = /^\/(?:tin-tuc|tin-tuc-su-kien|news)(?:\/|$)/.test(location.pathname);
+  const isJourney = /^\/(?:hanh-trinh|journey)(?:\/|$)/.test(location.pathname);
+  const isOrganization = /^\/(?:bo-may-to-chuc|organization)(?:\/|$)/.test(location.pathname);
+  const isContact = /^\/(?:lien-he|contact)(?:\/|$)/.test(location.pathname);
+  const isLibrary = /^\/(?:thu-vien-so|library)(?:\/|$)/.test(location.pathname);
   const isAdminRoute = /^\/admin(?:\/|$)/.test(location.pathname);
   const isPartnerRoute = /^\/partner(?:\/|$)/.test(location.pathname);
   const isSlidePageOpen = isBooths || isEvents || isNews || isJourney || isOrganization || isContact;

@@ -1,6 +1,8 @@
 import { useUrlTab } from '../../hooks/useUrlTab';
+import { useModalBehavior } from '../../hooks/useModalBehavior';
 import { ListPagination, useListPagination } from '../ui/ListPagination';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   AlertCircle,
   AlertTriangle,
@@ -12,8 +14,11 @@ import {
   Download,
   Edit3, 
   Eye, 
+  FileImage,
   GripVertical, 
-  Info,
+  ImagePlus,
+  Info, 
+  Link2,
   Plus, 
   Printer,
   QrCode,
@@ -169,6 +174,19 @@ export function AdminDigitalLibraryView({ language }: {
     // Stalls tab state
     const [stallId, setStallId] = useState('all');
     const [stockStatus, setStockStatus] = useState<StockStatus>('all');
+
+    // Prevent background scrolling and enable Escape-to-close for all modals
+    useModalBehavior(editing !== undefined, () => setEditing(undefined));
+    useModalBehavior(Boolean(viewingBook), () => setViewingBook(null));
+    useModalBehavior(Boolean(viewingStallsBook), () => setViewingStallsBook(null));
+    useModalBehavior(Boolean(deletingBook), () => setDeletingBook(null));
+    useModalBehavior(Boolean(modalNotice), () => setModalNotice(null));
+    useModalBehavior(Boolean(qrModalBook), () => setQrModalBook(null));
+    useModalBehavior(Boolean(rankingModalBook), () => setRankingModalBook(null));
+    useModalBehavior(addingBookToRank, () => setAddingBookToRank(false));
+    useModalBehavior(Boolean(editingTaxonomy), () => setEditingTaxonomy(null));
+    useModalBehavior(Boolean(deletingTaxonomy), () => setDeletingTaxonomy(null));
+    useModalBehavior(Boolean(reviewing), () => { setReviewing(null); setRejecting(false); });
 
     const refresh = useCallback(() => Promise.all([
         libraryApi.getAllBooks(), 
@@ -1960,7 +1978,7 @@ export function AdminDigitalLibraryView({ language }: {
         )}
 
         {/* Modal Thêm / Chỉnh sửa sách */}
-        {editing !== undefined && (
+        {editing !== undefined && createPortal(
             <div 
                 className="admin-library-modal" 
                 role="dialog" 
@@ -2029,44 +2047,110 @@ export function AdminDigitalLibraryView({ language }: {
                         </label>
 
                         <div className="admin-form-wide admin-cover-upload-section">
-                            <label className="admin-cover-label">
-                                <span>{language === 'vi' ? 'Ảnh bìa sách' : 'Book Cover'}</span>
-                                {coverFileName && <span style={{ fontSize: '0.75rem', color: '#065F46', fontWeight: 500 }}>{language === 'vi' ? 'Đã tải lên: ' : 'Uploaded: '}{coverFileName}</span>}
-                            </label>
-                            <div className="admin-cover-upload-wrapper">
+                            <span className="admin-cover-label">{language === 'vi' ? 'Ảnh bìa sách' : 'Book Cover'}</span>
+                            <div className="admin-cover-upload-card">
+                                {/* Khung ảnh xem trước bìa sách chuẩn tỉ lệ */}
                                 <div className="admin-cover-preview-box">
                                     {form.coverUrl ? (
-                                        <img src={form.coverUrl} alt="Cover Preview" className="admin-cover-img-preview" onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
+                                        <img 
+                                            src={form.coverUrl} 
+                                            alt="Cover Preview" 
+                                            className="admin-cover-img-preview" 
+                                            onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} 
+                                        />
                                     ) : (
-                                        <div className="admin-cover-no-img"><span>{language === 'vi' ? 'Chưa có ảnh' : 'No image'}</span></div>
+                                        <div className="admin-cover-no-img">
+                                            <ImagePlus size={20} className="admin-cover-empty-icon" />
+                                            <span>{language === 'vi' ? 'Chưa có ảnh' : 'No image'}</span>
+                                        </div>
                                     )}
                                 </div>
+
+                                {/* Các điều khiển ảnh bìa nằm thẳng trên 1 hàng */}
                                 <div className="admin-cover-controls">
-                                    <div className="admin-cover-file-actions">
-                                        <label className="admin-upload-btn">
-                                            <Upload size={14} />
-                                            <span>{language === 'vi' ? 'Tải ảnh từ máy tính' : 'Upload from device'}</span>
-                                            <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => { const file = e.target.files?.[0]; if (file) handleCoverUpload(file); e.target.value = ''; }}/>
+                                    <div className="admin-cover-actions-row">
+                                        <div className="admin-cover-url-box">
+                                            <Link2 size={16} className="admin-cover-url-icon" />
+                                            <input 
+                                                maxLength={10000000}
+                                                type="text"
+                                                name="bookCoverUrl"
+                                                autoComplete="off"
+                                                data-lpignore="true"
+                                                value={form.coverUrl.startsWith('data:') ? '' : form.coverUrl} 
+                                                onChange={e => { setForm({ ...form, coverUrl: e.target.value }); setCoverFileName(''); setCoverError(''); }} 
+                                                placeholder={form.coverUrl.startsWith('data:') 
+                                                    ? (language === 'vi' ? 'Đang dùng ảnh tải lên từ máy tính' : 'Using uploaded image from device') 
+                                                    : (language === 'vi' ? 'Dán đường dẫn ảnh (URL https://... hoặc /duong_sach_logo.png)' : 'Paste image URL or enter path...')}
+                                            />
+                                            {form.coverUrl && !form.coverUrl.startsWith('data:') && (
+                                                <button 
+                                                    type="button" 
+                                                    className="admin-cover-clear-url" 
+                                                    onClick={() => setForm(curr => ({ ...curr, coverUrl: '' }))}
+                                                    title={language === 'vi' ? 'Xóa URL' : 'Clear URL'}
+                                                >
+                                                    <X size={14} />
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        <label 
+                                            className="admin-upload-btn" 
+                                            title={language === 'vi' ? 'Tải ảnh lên từ máy tính' : 'Upload image from device'}
+                                            aria-label={language === 'vi' ? 'Tải ảnh lên' : 'Upload image'}
+                                        >
+                                            <Upload size={18} />
+                                            <input 
+                                                type="file" 
+                                                accept="image/*" 
+                                                style={{ display: 'none' }} 
+                                                onChange={e => { const file = e.target.files?.[0]; if (file) handleCoverUpload(file); e.target.value = ''; }}
+                                            />
                                         </label>
+
                                         {form.coverUrl && (
-                                            <button type="button" onClick={() => { setForm({ ...form, coverUrl: '' }); setCoverFileName(''); }} style={{ fontSize: '0.75rem', padding: '0.4rem 0.7rem', border: '1px solid #d1d5db', background: '#fff', borderRadius: '6px', cursor: 'pointer' }}>
-                                                {language === 'vi' ? 'Xóa ảnh' : 'Clear image'}
+                                            <button 
+                                                type="button" 
+                                                className="admin-cover-btn-delete"
+                                                onClick={() => { setForm({ ...form, coverUrl: '' }); setCoverFileName(''); setCoverError(''); }} 
+                                                title={language === 'vi' ? 'Xóa ảnh bìa hiện tại' : 'Remove cover image'}
+                                                aria-label={language === 'vi' ? 'Xóa ảnh' : 'Remove image'}
+                                            >
+                                                <Trash2 size={16} />
                                             </button>
                                         )}
                                     </div>
-                                    <div className="admin-cover-url-input">
-                                        <span className="admin-cover-or-text">{language === 'vi' ? 'Hoặc dán URL ảnh trực tuyến:' : 'Or paste cover image URL:'}</span>
-                                        <input maxLength={10000000}
-                                            type="text"
-                                            name="bookCoverUrl"
-                                            autoComplete="off"
-                                            data-lpignore="true"
-                                            value={form.coverUrl.startsWith('data:') ? '' : form.coverUrl} 
-                                            onChange={e => { setForm({ ...form, coverUrl: e.target.value }); setCoverFileName(''); setCoverError(''); }} 
-                                            placeholder={form.coverUrl.startsWith('data:') ? (language === 'vi' ? 'Đang dùng ảnh đã tải lên từ máy tính' : 'Using uploaded image from device') : "https://... hoặc /duong_sach_logo.png"}
-                                        />
+
+                                    <div className="admin-cover-footer-row">
+                                        {coverFileName ? (
+                                            <div className="admin-cover-file-info">
+                                                <FileImage size={13} className="admin-file-badge-icon" />
+                                                <span className="admin-cover-filename-badge" title={coverFileName}>{coverFileName}</span>
+                                                <button 
+                                                    type="button" 
+                                                    className="admin-cover-reset-btn" 
+                                                    onClick={() => { setForm(prev => ({ ...prev, coverUrl: '' })); setCoverFileName(''); setCoverError(''); }}
+                                                    title={language === 'vi' ? 'Hủy ảnh tải lên' : 'Remove uploaded file'}
+                                                >
+                                                    <X size={12} />
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <span className="admin-cover-hint-text">
+                                                {language === 'vi' 
+                                                    ? 'Dán đường dẫn ảnh trực tuyến hoặc tải tệp từ máy tính (khuyến nghị tỉ lệ 2:3, tối đa 5MB).' 
+                                                    : 'Paste an online image URL or upload from device (ratio 2:3, max 5MB).'}
+                                            </span>
+                                        )}
+
+                                        {coverError && (
+                                            <span className="admin-cover-error-pill">
+                                                <AlertCircle size={13} />
+                                                {coverError}
+                                            </span>
+                                        )}
                                     </div>
-                                    {coverError && <p className="admin-cover-error-msg">{coverError}</p>}
                                 </div>
                             </div>
                         </div>
@@ -2100,11 +2184,12 @@ export function AdminDigitalLibraryView({ language }: {
                         <button className="admin-library-primary" type="submit">{language === 'vi' ? 'Lưu thông tin sách' : 'Save book'}</button>
                     </div>
                 </form>
-            </div>
+            </div>,
+            document.body
         )}
 
         {/* Modal Xem chi tiết sách */}
-        {viewingBook && (
+        {viewingBook && createPortal(
             <div 
                 className="admin-library-modal" 
                 role="dialog" 
@@ -2246,11 +2331,12 @@ export function AdminDigitalLibraryView({ language }: {
                         </button>
                     </div>
                 </div>
-            </div>
+            </div>,
+            document.body
         )}
 
         {/* Modal Xác nhận Xóa / Lưu trữ sách */}
-        {deletingBook && (
+        {deletingBook && createPortal(
             <div 
                 className="admin-library-modal" 
                 role="dialog" 
@@ -2305,11 +2391,12 @@ export function AdminDigitalLibraryView({ language }: {
                         </button>
                     </div>
                 </div>
-            </div>
+            </div>,
+            document.body
         )}
 
         {/* Modal Xem xét / Kiểm duyệt yêu cầu sách */}
-        {reviewing && (
+        {reviewing && createPortal(
             <div 
                 className="admin-library-modal" 
                 role="dialog" 
@@ -2381,11 +2468,12 @@ export function AdminDigitalLibraryView({ language }: {
                         </div>
                     )}
                 </div>
-            </div>
+            </div>,
+            document.body
         )}
 
         {/* Modal Sửa Danh mục / Nhãn */}
-        {editingTaxonomy && (
+        {editingTaxonomy && createPortal(
             <div 
                 className="admin-library-modal" 
                 role="dialog" 
@@ -2444,11 +2532,12 @@ export function AdminDigitalLibraryView({ language }: {
                         </button>
                     </div>
                 </form>
-            </div>
+            </div>,
+            document.body
         )}
 
         {/* Modal Xác nhận Xóa / Lưu trữ Danh mục / Nhãn */}
-        {deletingTaxonomy && (
+        {deletingTaxonomy && createPortal(
             <div 
                 className="admin-library-modal" 
                 role="dialog" 
@@ -2514,11 +2603,12 @@ export function AdminDigitalLibraryView({ language }: {
                         </button>
                     </div>
                 </div>
-            </div>
+            </div>,
+            document.body
         )}
 
         {/* Modal Danh sách Gian hàng có sách */}
-        {viewingStallsBook && (
+        {viewingStallsBook && createPortal(
             <div className="admin-library-modal" role="dialog" aria-modal="true" onClick={() => setViewingStallsBook(null)}>
                 <div className="admin-stalls-popup-modal" onClick={e => e.stopPropagation()}>
                     <div className="admin-form-head">
@@ -2661,11 +2751,12 @@ export function AdminDigitalLibraryView({ language }: {
                         </button>
                     </div>
                 </div>
-            </div>
+            </div>,
+            document.body
         )}
 
         {/* Modal Thông báo CRUD (Success / Error / Notice Modal) */}
-        {modalNotice && (
+        {modalNotice && createPortal(
             <div 
                 className="admin-library-modal" 
                 role="dialog" 
@@ -2684,11 +2775,12 @@ export function AdminDigitalLibraryView({ language }: {
                         {language === 'vi' ? 'Đã hiểu' : 'OK'}
                     </button>
                 </div>
-            </div>
+            </div>,
+            document.body
         )}
 
         {/* Modal Thiết lập Thứ hạng Sách */}
-        {rankingModalBook && (
+        {rankingModalBook && createPortal(
             <div className="admin-library-modal" role="dialog" aria-modal="true" onClick={() => setRankingModalBook(null)}>
                 <form className="admin-ranking-edit-modal" onSubmit={handleSaveBookRanking} onClick={e => e.stopPropagation()}>
                     <div className="admin-form-head">
@@ -2799,11 +2891,12 @@ export function AdminDigitalLibraryView({ language }: {
                         </button>
                     </div>
                 </form>
-            </div>
+            </div>,
+            document.body
         )}
 
         {/* Modal Thêm Sách vào Bảng Xếp Hạng */}
-        {addingBookToRank && (
+        {addingBookToRank && createPortal(
             <div className="admin-library-modal" role="dialog" aria-modal="true" onClick={() => setAddingBookToRank(false)}>
                 <form className="admin-ranking-add-modal" onSubmit={handleAddBookToCurrentRank} onClick={e => e.stopPropagation()}>
                     <div className="admin-form-head">
@@ -2892,11 +2985,12 @@ export function AdminDigitalLibraryView({ language }: {
                         </button>
                     </div>
                 </form>
-            </div>
+            </div>,
+            document.body
         )}
 
         {/* Modal Mã QR & In tem sách */}
-        {qrModalBook && (() => {
+        {qrModalBook && createPortal((() => {
             const bookStallsList = getBookStalls(qrModalBook.book);
             const activeStall = bookStallsList.find(s => (s.id || s.stallId) === qrModalBook.selectedStallId);
             const qrUrl = qrModalBook.selectedStallId && qrModalBook.selectedStallId !== 'all'
@@ -2930,7 +3024,7 @@ export function AdminDigitalLibraryView({ language }: {
                                             {language === 'vi' ? 'Tất cả / Chung (Mở chi tiết sách chung tại Đường Sách)' : 'General (All Book Street stalls)'}
                                         </option>
                                         {bookStallsList.map(s => (
-                                            <option key={s.id || s.stallId} value={s.id || s.stallId}>
+                                             <option key={s.id || s.stallId} value={s.id || s.stallId}>
                                                 {s.stallName} ({s.stallCode || '—'}) — {language === 'vi' ? `Tồn: ${s.inventoryQuantity}` : `Stock: ${s.inventoryQuantity}`}
                                             </option>
                                         ))}
@@ -2999,7 +3093,7 @@ export function AdminDigitalLibraryView({ language }: {
                     </div>
                 </div>
             );
-        })()}
+        })(), document.body)}
     </div>;
 }
 function Tools({ query, setQuery, placeholder }: {

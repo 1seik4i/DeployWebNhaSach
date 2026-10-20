@@ -22,7 +22,7 @@ interface AdminRolesPermissionsViewProps {
 
 // These permissions are not configurable in the corresponding role's UI.
 const isPermissionVisible = (roleId: AdminRoleType, permission: AdminPermissionItem) => {
-  if (permission.code === 'account.login') return false;
+  if (permission.code === 'account.login' || permission.module === 'system') return false;
   if (roleId !== 'partner') return true;
   return !['content', 'system'].includes(permission.module)
     && ![

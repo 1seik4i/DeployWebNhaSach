@@ -11,11 +11,9 @@ import {
   Share2,
   ChevronRight,
   X,
-  Sparkles,
   Newspaper,
   ArrowRight,
   Flame,
-  CheckCircle,
   BookOpen
 } from 'lucide-react';
 import { Language } from '../types';
@@ -59,8 +57,6 @@ export const NewsExperience: React.FC<NewsExperienceProps> = ({ language, open }
 
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [newsletterEmail, setNewsletterEmail] = useState('');
-  const [newsletterSuccess, setNewsletterSuccess] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
 
   const [articles, setArticles] = useState<NewsArticle[]>(() => landingContentService.getNews());
@@ -163,14 +159,6 @@ export const NewsExperience: React.FC<NewsExperienceProps> = ({ language, open }
     if (!activeArticle) return [];
     return articles.filter(a => a.id !== activeArticle.id).slice(0, 4);
   }, [activeArticle, articles]);
-
-  const handleSubscribeNewsletter = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newsletterEmail) return;
-    setNewsletterSuccess(true);
-    setNewsletterEmail('');
-    setTimeout(() => setNewsletterSuccess(false), 5000);
-  };
 
   const handleCopyLink = (article: NewsArticle) => {
     if (navigator.clipboard) {
@@ -562,50 +550,6 @@ export const NewsExperience: React.FC<NewsExperienceProps> = ({ language, open }
             </section>
           </>
         )}
-
-        {/* Newsletter Bento Box */}
-        <section className="news-newsletter-bento">
-          <div className="news-container">
-            <div className="news-newsletter-card">
-              <div className="newsletter-text-block">
-                <div className="newsletter-tag-pill">
-                  <Sparkles size={14} />
-                  <span>{vi ? 'BẢN TIN VĂN HÓA ĐỌC HÀNG TUẦN' : 'WEEKLY NEWSLETTER'}</span>
-                </div>
-                <h3 className="newsletter-main-title">
-                  {vi ? 'Đăng ký nhận bản tin tri thức & thư mời sự kiện' : 'Subscribe to Weekly Book Street News'}
-                </h3>
-                <p className="newsletter-sub-desc">
-                  {vi
-                    ? 'Nhận tổng hợp những tác phẩm chọn lọc, thông cáo báo chí, tọa đàm văn hóa và lịch ký tặng sách mới nhất qua email.'
-                    : 'Get curated book recommendations, cultural stories, and exclusive event invitations delivered to your inbox.'}
-                </p>
-              </div>
-
-              <div className="newsletter-form-wrap">
-                <form onSubmit={handleSubscribeNewsletter} className="newsletter-input-group">
-                  <input maxLength={254}
-                    type="email"
-                    required
-                    className="newsletter-input-field"
-                    placeholder={vi ? 'Nhập email của bạn...' : 'Enter your email address...'}
-                    value={newsletterEmail}
-                    onChange={(e) => setNewsletterEmail(e.target.value)}
-                  />
-                  <button type="submit" className="newsletter-submit-button">
-                    {vi ? 'Đăng ký' : 'Subscribe'}
-                  </button>
-                </form>
-                {newsletterSuccess && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: '#D4A359', fontSize: '0.86rem', fontWeight: 600 }}>
-                    <CheckCircle size={15} />
-                    <span>{vi ? 'Cảm ơn bạn đã đăng ký nhận bản tin!' : 'Successfully subscribed!'}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </section>
       </main>
     </div>
   );

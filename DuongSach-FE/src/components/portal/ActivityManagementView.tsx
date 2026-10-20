@@ -26,13 +26,15 @@ import {
   Building2,
   Layers,
   Sparkles,
-  Trash2
+  Trash2,
+  Edit3
 } from 'lucide-react';
 import { Language } from '../../types';
 import { OrganizerActivityItem, OrganizerActivityProposal, OrganizerEvent } from '../../types/organizer';
 
 type ReviewActivity = OrganizerActivityItem & {
   proposalId?: string;
+  calendarEventId?: string;
   boothCode?: string;
   boothName?: string;
   contactName?: string;
@@ -45,12 +47,16 @@ type ReviewActivity = OrganizerActivityItem & {
 
 interface ActivityManagementViewProps {
   language: Language;
-  activities: OrganizerActivityItem[];
+  activities?: OrganizerActivityItem[];
   proposals?: OrganizerActivityProposal[];
   events?: OrganizerEvent[];
   selectedEventId?: string;
   onSelectEventId?: (eventId: string) => void;
   onOpenCreateActivity: () => void;
+  onOpenCalendarEvent?: (eventId: string) => void;
+  onEditCalendarEvent?: (eventId: string) => void | Promise<void>;
+  onDeleteCalendarEvent?: (eventId: string) => Promise<void>;
+  onApproveCalendarEvent?: (eventId: string) => Promise<void>;
   onApproveActivity?: (id: string) => void;
   onRejectActivity?: (id: string) => void;
   onPublishActivity?: (id: string) => void;
@@ -61,26 +67,41 @@ interface ActivityManagementViewProps {
   onApproveProposal?: (proposalId: string) => void | Promise<void>;
   onRejectProposal?: (proposalId: string, note?: string) => void | Promise<void>;
   onRequestProposalSupplement?: (proposalId: string, note: string) => void | Promise<void>;
+  onCreateActivityFromProposal?: (proposalId: string) => void | Promise<void>;
 }
 
 export const ActivityManagementView: React.FC<ActivityManagementViewProps> = ({
   language,
-  activities,
+  activities = [],
   proposals = [],
   events = [],
   selectedEventId = '',
   onSelectEventId,
   onOpenCreateActivity,
+  onOpenCalendarEvent,
+  onEditCalendarEvent,
+  onDeleteCalendarEvent,
+  onApproveCalendarEvent,
   onApproveActivity,
   onRejectActivity,
+  onPublishActivity,
   onUpdateActivity,
   onDeleteActivity,
   onDeleteProposal,
   onApproveProposal,
   onRejectProposal,
-  onRequestProposalSupplement
+  onRequestProposalSupplement,
+  onCreateActivityFromProposal
 }) => {
   const vi = language === 'vi';
+  const [busyEventId, setBusyEventId] = useState<string | null>(null);
+  const runEventAction = async (id: string, action: () => void | Promise<void>) => {
+    if (busyEventId) return;
+    setBusyEventId(id);
+    try { await action(); }
+    catch (error) { void notifyModal(error instanceof Error ? error.message : (vi ? 'Không thể thực hiện thao tác.' : 'Unable to complete action.')); }
+    finally { setBusyEventId(null); }
+  };
   const [activeTab, setActiveTab] = useUrlTab(['all', 'pending', 'approved', 'cancelled'], 'all', 'section');
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -98,13 +119,29 @@ export const ActivityManagementView: React.FC<ActivityManagementViewProps> = ({
   useModalBehavior(Boolean(rejectTarget), () => setRejectTarget(null));
   const [rejectFeedbackNote, setRejectFeedbackNote] = useState('');
 
+  const formatActivityType = (kind: string, isVi: boolean) => {
+    switch (kind?.toLowerCase()) {
+      case 'talkshow': return 'Talkshow';
+      case 'workshop': return 'Workshop';
+      case 'launch': return isVi ? 'Ra mắt sách' : 'Book Launch';
+      case 'exhibition': return isVi ? 'Triển lãm' : 'Exhibition';
+      case 'minigame': return 'Mini Game';
+      case 'signing': return isVi ? 'Ký tặng sách' : 'Book Signing';
+      case 'panel': case 'tọa đàm': return isVi ? 'Tọa đàm' : 'Panel';
+      case 'art': case 'nghệ thuật': return isVi ? 'Nghệ thuật' : 'Art';
+      default: return kind || (isVi ? 'Hoạt động' : 'Activity');
+    }
+  };
+
+  // Combine partner proposals, official activities, and calendar events
+  const uniqueEvents = Array.from(new Map(events.map(event => [event.id, event])).values());
   const reviewActivities: ReviewActivity[] = [
-    ...proposals.map(proposal => ({
+    ...proposals.map((proposal): ReviewActivity => ({
       id: `proposal:${proposal.id}`,
       proposalId: proposal.id,
       eventId: proposal.eventId,
       title: proposal.title,
-      type: proposal.kind,
+      type: formatActivityType(proposal.kind, vi),
       dateStr: proposal.dateStr,
       timeStr: proposal.timeStr,
       location: proposal.location,
@@ -129,7 +166,32 @@ export const ActivityManagementView: React.FC<ActivityManagementViewProps> = ({
       requiredEquipments: proposal.requiredEquipments,
       submittedAt: proposal.submittedAt,
     })),
-    ...activities,
+    ...activities.map((act): ReviewActivity => ({
+      ...act,
+      type: formatActivityType(act.type, vi),
+    })),
+    ...uniqueEvents.map((event): ReviewActivity => ({
+      id: `event:${event.id}`,
+      calendarEventId: event.id,
+      eventId: event.id,
+      title: event.title,
+      type: vi ? 'Sự kiện' : 'Event',
+      dateStr: event.dateRange || event.startDate,
+      startAt: event.startAt,
+      endAt: event.endAt,
+      timeStr: event.timeStr || '',
+      location: event.location,
+      capacity: event.maxCapacity || 0,
+      registeredCount: event.registrationsCount,
+      attendedCount: 0,
+      partnerName: '',
+      speaker: '',
+      status: event.status === 'happening' ? 'ongoing' : event.status === 'upcoming' ? 'approved' : event.status,
+      statusLabelVi: event.statusLabelVi,
+      isPublished: Boolean(event.isPublished),
+      thumbnail: event.imageUrl,
+      description: event.description,
+    })),
   ];
 
   const isPendingLike = (status: string) => status === 'pending' || status === 'need_revision' || status === 'draft';
@@ -156,6 +218,10 @@ export const ActivityManagementView: React.FC<ActivityManagementViewProps> = ({
   const pagination = useListPagination(filteredActivities, `${selectedEventId}:${activeTab}:${typeFilter}:${searchQuery}`, 8);
 
   const handleOpenDetail = (act: ReviewActivity) => {
+    if (act.calendarEventId && onOpenCalendarEvent) {
+      onOpenCalendarEvent(act.calendarEventId);
+      return;
+    }
     setSelectedActivity(act);
     setModalStatus(act.status);
     setModalNote(act.reviewNote || '');
@@ -515,15 +581,18 @@ export const ActivityManagementView: React.FC<ActivityManagementViewProps> = ({
             <option value="Talkshow">Talkshow</option>
             <option value="Workshop">Workshop</option>
             <option value="Mini Game">Mini Game</option>
-            <option value="Nghệ thuật">{vi ? 'Nghệ thuật' : 'Art'}</option>
+            <option value="Ra mắt sách">{vi ? 'Ra mắt sách' : 'Book Launch'}</option>
+            <option value="Triển lãm">{vi ? 'Triển lãm' : 'Exhibition'}</option>
             <option value="Ký tặng sách">{vi ? 'Ký tặng sách' : 'Book Signing'}</option>
             <option value="Tọa đàm">{vi ? 'Tọa đàm' : 'Panel'}</option>
+            <option value="Nghệ thuật">{vi ? 'Nghệ thuật' : 'Art'}</option>
+            <option value={vi ? 'Sự kiện' : 'Event'}>{vi ? 'Sự kiện' : 'Event'}</option>
           </select>
         </div>
       </div>
 
       {/* 3. Conflict Alert Banner if any conflict detected */}
-      {activities.some(a => a.hasConflict) && (
+      {reviewActivities.some(a => a.hasConflict) && (
         <div style={{
           background: '#FFFBEB',
           border: '1px solid #FDE68A',
@@ -616,28 +685,32 @@ export const ActivityManagementView: React.FC<ActivityManagementViewProps> = ({
                 <span>{vi ? 'Chi tiết' : 'Details'}</span>
               </button>
 
-              {act.status !== 'pending' && ((act.proposalId && onDeleteProposal) || (!act.proposalId && onDeleteActivity)) && (
-                <button
-                  type="button"
-                  className="btn-org-secondary org-act-btn org-act-btn-delete"
-                  onClick={() => void handleDeleteActivity(act)}
-                  title={vi ? (act.proposalId ? 'Xóa đề xuất' : 'Xóa hoạt động') : (act.proposalId ? 'Delete proposal' : 'Delete activity')}
-                >
-                  <Trash2 size={14} />
-                  <span>{vi ? 'Xóa' : 'Delete'}</span>
-                </button>
-              )}
+              {act.calendarEventId && <>
+                {onEditCalendarEvent && <button type="button" className="btn-org-secondary org-act-btn" disabled={Boolean(busyEventId)} onClick={() => void runEventAction(act.calendarEventId!, () => onEditCalendarEvent(act.calendarEventId!))}>
+                  <Edit3 size={14} /><span>{vi ? 'Sửa' : 'Edit'}</span>
+                </button>}
+                {act.status === 'draft' && onApproveCalendarEvent && <button type="button" className="btn-org-primary org-act-btn" disabled={Boolean(busyEventId)} onClick={() => void runEventAction(act.calendarEventId!, async () => {
+                  if (await confirmModal(vi ? `Duyệt và công bố sự kiện “${act.title}”?` : `Approve and publish “${act.title}”?`)) await onApproveCalendarEvent(act.calendarEventId!);
+                })}>
+                  <Check size={14} /><span>{busyEventId === act.calendarEventId ? (vi ? 'Đang xử lý…' : 'Processing…') : (vi ? 'Duyệt' : 'Approve')}</span>
+                </button>}
+                {onDeleteCalendarEvent && <button type="button" className="btn-org-secondary org-act-btn org-act-btn-delete" disabled={Boolean(busyEventId)} onClick={() => void runEventAction(act.calendarEventId!, async () => {
+                  if (await confirmModal(vi ? `Xóa sự kiện “${act.title}” khỏi lịch và danh sách?` : `Delete “${act.title}” from the calendar and list?`)) await onDeleteCalendarEvent(act.calendarEventId!);
+                })}>
+                  <Trash2 size={14} /><span>{vi ? 'Xóa' : 'Delete'}</span>
+                </button>}
+              </>}
 
-              {act.status === 'pending' && (
+              {!act.calendarEventId && (act.status === 'pending' || act.status === 'draft') && (
                 <>
                   <button
                     type="button"
                     className="btn-org-primary org-act-btn org-act-btn-approve"
                     onClick={() => handleDirectApprove(act)}
-                    title={vi ? 'Phê duyệt hoạt động này' : 'Approve activity'}
+                    title={vi ? 'Phê duyệt / Công bố hoạt động này' : 'Approve / Publish activity'}
                   >
                     <Check size={14} />
-                    <span>{vi ? 'Duyệt' : 'Approve'}</span>
+                    <span>{vi ? (act.status === 'draft' ? 'Công bố' : 'Duyệt') : (act.status === 'draft' ? 'Publish' : 'Approve')}</span>
                   </button>
 
                   <button
@@ -650,6 +723,22 @@ export const ActivityManagementView: React.FC<ActivityManagementViewProps> = ({
                     <span>{vi ? 'Từ chối' : 'Reject'}</span>
                   </button>
                 </>
+              )}
+
+              {act.proposalId && act.status === 'approved' && onCreateActivityFromProposal && (
+                <button
+                  type="button"
+                  className="btn-org-primary org-act-btn org-act-btn-approve"
+                  onClick={async () => {
+                    if (await confirmModal(vi ? `Tạo hoạt động chính thức từ đề xuất "${act.title}"?` : `Create official activity from proposal "${act.title}"?`)) {
+                      await onCreateActivityFromProposal(act.proposalId!);
+                    }
+                  }}
+                  title={vi ? 'Tạo hoạt động chính thức từ đề xuất đã duyệt' : 'Create activity from approved proposal'}
+                >
+                  <Plus size={14} />
+                  <span>{vi ? 'Tạo HĐ' : 'Create'}</span>
+                </button>
               )}
 
               {act.status === 'need_revision' && (
@@ -665,6 +754,18 @@ export const ActivityManagementView: React.FC<ActivityManagementViewProps> = ({
                 >
                   <MessageSquare size={14} />
                   <span>{vi ? 'Ghi chú & không duyệt' : 'Note & reject'}</span>
+                </button>
+              )}
+
+              {!act.calendarEventId && ((act.proposalId && onDeleteProposal) || (!act.proposalId && onDeleteActivity)) && (
+                <button
+                  type="button"
+                  className="btn-org-secondary org-act-btn org-act-btn-delete"
+                  onClick={() => void handleDeleteActivity(act)}
+                  title={vi ? (act.proposalId ? 'Xóa đề xuất' : 'Xóa hoạt động') : (act.proposalId ? 'Delete proposal' : 'Delete activity')}
+                >
+                  <Trash2 size={14} />
+                  <span>{vi ? 'Xóa' : 'Delete'}</span>
                 </button>
               )}
             </div>

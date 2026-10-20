@@ -68,6 +68,7 @@ export const Header: React.FC<HeaderProps> = ({
   const isNewsPage = /^\/(?:tin-tuc|tin-tuc-su-kien)(?:\/|$)/.test(location.pathname);
   const isOrganizationPage = /^\/bo-may-to-chuc(?:\/|$)/.test(location.pathname);
   const isContactPage = /^\/lien-he(?:\/|$)/.test(location.pathname);
+  const isLibraryPage = /^\/(?:thu-vien-so|library)(?:\/|$)/.test(location.pathname);
 
   const closeAllDropdownsImmediately = () => {
     if (homeCloseTimeoutRef.current) {
@@ -174,6 +175,10 @@ export const Header: React.FC<HeaderProps> = ({
   ], []);
 
   useEffect(() => {
+    if (isLibraryPage) {
+      setActiveSection('thu-vien-so');
+      return;
+    }
     if (isBoothsPage) {
       setActiveSection('gian-hang');
       return;
@@ -201,7 +206,7 @@ export const Header: React.FC<HeaderProps> = ({
     if (isHomePage) {
       setActiveSection('trang-chu');
     }
-  }, [isHomePage, isJourneyPage, isBoothsPage, isEventsPage, isNewsPage, isOrganizationPage, isContactPage, location.pathname]);
+  }, [isHomePage, isJourneyPage, isBoothsPage, isEventsPage, isNewsPage, isLibraryPage, isOrganizationPage, isContactPage, location.pathname]);
 
   // Close all dropdown menus immediately whenever header hides
   useEffect(() => {
@@ -317,7 +322,6 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
             <div className="ticket-brand-text">
               <span className="brand-title-serif">ĐƯỜNG SÁCH</span>
-              <span className="brand-sub-gold">TRỰC TUYẾN</span>
             </div>
           </Link>
 
@@ -404,6 +408,17 @@ export const Header: React.FC<HeaderProps> = ({
                       }}
                     >
                       <span>{language === 'vi' ? 'Sự kiện văn hóa' : 'Events'}</span>
+                    </Link>
+                    <Link
+                      to="/thu-vien-so"
+                      className="ticket-subnav-item"
+                      role="menuitem"
+                      onClick={() => {
+                        keepHeaderVisibleDuringNavigation();
+                        setHomeDropdownOpen(false);
+                      }}
+                    >
+                      <span>{language === 'vi' ? 'Thư viện số & Tra cứu' : 'Digital Library'}</span>
                     </Link>
                     <Link
                       to="/tin-tuc"
@@ -547,6 +562,21 @@ export const Header: React.FC<HeaderProps> = ({
               >
                 <span className="ticket-compact-text">
                   {language === 'vi' ? 'Tin tức' : 'News'}
+                </span>
+              </Link>
+
+              {/* 4. Menu Điều hướng: Thư viện số (Direct Link) */}
+              <Link
+                to="/thu-vien-so"
+                onMouseEnter={closeAllDropdownsImmediately}
+                className={`ticket-nav-compact-link ${activeSection === 'thu-vien-so' ? 'is-current' : ''}`}
+                onClick={() => {
+                  keepHeaderVisibleDuringNavigation();
+                  closeAllDropdownsImmediately();
+                }}
+              >
+                <span className="ticket-compact-text">
+                  {language === 'vi' ? 'Thư viện số' : 'Digital Library'}
                 </span>
               </Link>
 
@@ -819,6 +849,21 @@ export const Header: React.FC<HeaderProps> = ({
 
               <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '0.75rem' }}>
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <li>
+                    <Link 
+                      to="/thu-vien-so"
+                      onClick={() => {
+                        keepHeaderVisibleDuringNavigation();
+                        setMobileMenuOpen(false);
+                      }}
+                      className={`mobile-nav-link-item${activeSection === 'thu-vien-so' ? ' is-current' : ''}`}
+                    >
+                      <span className="ticket-item-circle" style={{ width: '34px', height: '34px' }}>
+                        <BookOpen size={15} />
+                      </span>
+                      <span>{language === 'vi' ? 'Thư viện số' : 'Digital Library'}</span>
+                    </Link>
+                  </li>
                   {navLinksAfterAbout.map((item) => {
                     const isCurrent = activeSection === item.id;
                     const linkHref = item.isRoute ? item.href : (isHomePage ? item.href : `/${item.href}`);
