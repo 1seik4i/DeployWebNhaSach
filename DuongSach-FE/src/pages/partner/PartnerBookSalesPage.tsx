@@ -130,6 +130,12 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
 
   const [form, setForm] = useState<FormState>(blankForm);
   const [match, setMatch] = useState<Book | null>(null);
+  const [lookupQuery, setLookupQuery] = useState('');
+  const [lookupResults, setLookupResults] = useState<Book[]>([]);
+  const [lookupLoading, setLookupLoading] = useState(false);
+  const [lookupError, setLookupError] = useState(false);
+  const [lookupOpen, setLookupOpen] = useState(false);
+  const [lookupRequest, setLookupRequest] = useState(0);
   const [coverFileName, setCoverFileName] = useState('');
   const [coverError, setCoverError] = useState('');
 
@@ -169,10 +175,59 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
   const rejected = submissions.filter(item => item.status === 'REJECTED').length;
   const lowStock = records.filter(item => item.stall.inventoryQuantity <= 4).length;
 
+  useEffect(() => {
+    const value = lookupQuery.trim();
+    if (modal !== 'add' || !value || !lookupOpen) {
+      return;
+    }
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      libraryApi.searchGlobalBooks(value)
+        .then(books => {
+          if (!cancelled) setLookupResults(books);
+        })
+        .catch(() => {
+          if (!cancelled) {
+            setLookupResults([]);
+            setLookupError(true);
+          }
+        })
+        .finally(() => {
+          if (!cancelled) setLookupLoading(false);
+        });
+    }, lookupRequest ? 0 : 300);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [lookupQuery, lookupOpen, lookupRequest, modal]);
+
+  const selectExisting = (book: Book) => {
+    setMatch(book);
+    setLookupOpen(false);
+    setLookupResults([]);
+    setLookupLoading(false);
+    setForm(value => ({
+      ...value,
+      isbn: book.isbn,
+      title: book.title,
+      author: book.author,
+      publisher: book.publisher || '',
+      publicationYear: String(book.publicationYear || ''),
+      categoryId: book.categoryId || '',
+      coverUrl: book.coverUrl,
+      description: book.description || ''
+    }));
+  };
+
   const openAdd = () => {
     setCurrent(null);
     setCurrentSubmission(null);
     setMatch(null);
+    setLookupQuery('');
+    setLookupResults([]);
+    setLookupOpen(false);
+    setLookupError(false);
     setForm(blankForm);
     setCoverFileName('');
     setCoverError('');
@@ -251,29 +306,6 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
     };
     reader.onerror = () => setCoverError(language === 'vi' ? 'Không thể đọc tệp ảnh.' : 'Could not read image file.');
     reader.readAsDataURL(file);
-  };
-
-  const findExisting = async () => {
-    if (!form.isbn.trim() && !form.title.trim()) return;
-    try {
-      const found = await libraryApi.findGlobalBookByIsbn(form.isbn || form.title);
-      setMatch(found || null);
-      if (found) {
-        setForm(value => ({
-          ...value,
-          isbn: found.isbn,
-          title: found.title,
-          author: found.author,
-          publisher: found.publisher || '',
-          publicationYear: String(found.publicationYear || ''),
-          categoryId: found.categoryId || '',
-          coverUrl: found.coverUrl,
-          description: found.description || ''
-        }));
-      }
-    } catch {
-      // ignore
-    }
   };
 
   const save = async (e: React.FormEvent) => {
@@ -853,15 +885,63 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
                 <div className="partner-book-lookup">
                   <label>
                     ISBN / {language === 'vi' ? 'Tên sách' : 'Title'}
-                    <input maxLength={32}
-                      value={form.isbn} 
-                      onChange={e => { setForm({ ...form, isbn: e.target.value }); setMatch(null); }} 
-                      placeholder={language === 'vi' ? 'Nhập ISBN để tìm sách có sẵn trong Thư viện số' : 'Enter ISBN to search existing library'}
+                    <input maxLength={200}
+                      value={lookupQuery}
+                      onChange={e => {
+                        setLookupQuery(e.target.value);
+                        const hasQuery = Boolean(e.target.value.trim());
+                        setLookupOpen(hasQuery);
+                        setLookupLoading(hasQuery);
+                        setLookupResults([]);
+                        setLookupError(false);
+                        setLookupRequest(0);
+                        if (match) {
+                          setMatch(null);
+                          setForm(current => ({ ...blankForm, inventoryQuantity: current.inventoryQuantity, soldQuantity: current.soldQuantity }));
+                        }
+                      }}
+                      onFocus={() => {
+                        if (lookupQuery.trim() && !match) {
+                          setLookupOpen(true);
+                          setLookupLoading(true);
+                        }
+                      }}
+                      onKeyDown={e => { if (e.key === 'Escape') setLookupOpen(false); }}
+                      role="combobox"
+                      aria-autocomplete="list"
+                      aria-expanded={lookupOpen}
+                      aria-controls="partner-book-lookup-results"
+                      placeholder={language === 'vi' ? 'Nhập ISBN hoặc tên sách để tìm trong Thư viện số' : 'Search the Digital Library by ISBN or title'}
                     />
                   </label>
-                  <button type="button" onClick={findExisting}>
+                  <button type="button" onClick={() => {
+                    if (lookupQuery.trim()) {
+                      setLookupOpen(true);
+                      setLookupLoading(true);
+                      setLookupError(false);
+                      setLookupRequest(value => value + 1);
+                    }
+                  }}>
                     <Search size={16}/>{language === 'vi' ? 'Tìm kiếm' : 'Find Book'}
                   </button>
+                  {lookupOpen && lookupQuery.trim() && (
+                    <div className="partner-book-lookup-results" id="partner-book-lookup-results" role="listbox" aria-label={language === 'vi' ? 'Sách tìm thấy' : 'Matching books'}>
+                      {lookupLoading ? (
+                        <p>{language === 'vi' ? 'Đang tìm sách...' : 'Searching books...'}</p>
+                      ) : lookupError ? (
+                        <p>{language === 'vi' ? 'Không thể tìm sách. Vui lòng thử lại.' : 'Search failed. Please try again.'}</p>
+                      ) : lookupResults.length ? (
+                        lookupResults.map(book => (
+                          <button key={book.id} type="button" role="option" aria-selected={false} onClick={() => selectExisting(book)}>
+                            <img src={book.coverUrl || '/duong_sach_logo.png'} alt="" />
+                            <span><strong>{book.title}</strong><small>{book.author} · ISBN: {book.isbn}</small></span>
+                          </button>
+                        ))
+                      ) : (
+                        <p>{language === 'vi' ? 'Không có sách phù hợp. Bạn có thể nhập thông tin sách mới ở bên dưới.' : 'No matching books. You can enter a new book below.'}</p>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -869,7 +949,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
                 <div className="existing-book-match">
                   <CheckCircle2 size={20}/>
                   <span>
-                    <small>{language === 'vi' ? 'Đã tìm thấy sách trong Thư viện số TP.HCM' : 'Found in Digital Library'}</small>
+                    <small>{language === 'vi' ? 'Đã chọn sách trong Thư viện số TP.HCM' : 'Selected from Digital Library'}</small>
                     <strong>{match.title}</strong>
                     <em>{match.author} · ISBN: {match.isbn}</em>
                   </span>

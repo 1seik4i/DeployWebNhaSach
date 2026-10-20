@@ -621,3 +621,65 @@
 
 
 
+/* Search suggestions stay inside the modal's scroll area on small screens. */
+.partner-book-lookup-results {
+  grid-column: 1 / -1;
+  max-height: 250px;
+  overflow-y: auto;
+  border: 1px solid #d5dcd8;
+  border-radius: 7px;
+  background: #fff;
+}
+
+.partner-book-lookup-results p {
+  margin: 0;
+  padding: .8rem;
+  color: #5d6c66;
+  font-size: .8rem;
+}
+
+.partner-book-lookup .partner-book-lookup-results button {
+  display: flex;
+  width: 100%;
+  height: auto;
+  align-items: center;
+  justify-content: flex-start;
+  gap: .75rem;
+  padding: .55rem .75rem;
+  border: 0;
+  border-bottom: 1px solid #edf0ee;
+  border-radius: 0;
+  text-align: left;
+  cursor: pointer;
+}
+
+.partner-book-lookup .partner-book-lookup-results button:hover,
+.partner-book-lookup .partner-book-lookup-results button:focus-visible {
+  background: #edf8f2;
+}
+
+.partner-book-lookup-results img {
+  width: 36px;
+  height: 50px;
+  flex: none;
+  object-fit: cover;
+  border-radius: 3px;
+}
+
+.partner-book-lookup-results span {
+  display: grid;
+  min-width: 0;
+  gap: .2rem;
+}
+
+.partner-book-lookup-results strong,
+.partner-book-lookup-results small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.partner-book-lookup-results small {
+  color: #62736a;
+  font-size: .7rem;
+}
