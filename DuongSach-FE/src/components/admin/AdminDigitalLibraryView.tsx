@@ -2017,7 +2017,7 @@ export function AdminDigitalLibraryView({ language }: {
                             </select>
                         </label>
                         <label>
-                            {language === 'vi' ? 'Số lượng tồn kho ban đầu' : 'Initial Inventory'}
+                            {language === 'vi' ? 'Số lượng sách đưa vào kho' : 'Initial Inventory'}
                             <input 
                                 type="number" 
                                 min="0" 

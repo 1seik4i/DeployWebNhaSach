@@ -1082,7 +1082,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
               </label>
 
               <label>
-                {language === 'vi' ? 'Số lượng tồn kho ban đầu *' : 'Initial Inventory *'}
+                {language === 'vi' ? 'Số lượng sách đưa vào kho *' : 'Initial Inventory *'}
                 <input type="number" min="0" max="2147483647" step="1" value={form.inventoryQuantity} readOnly={modal === 'view'} onChange={e => setForm({ ...form, inventoryQuantity: e.target.value })} required/>
               </label>
               
