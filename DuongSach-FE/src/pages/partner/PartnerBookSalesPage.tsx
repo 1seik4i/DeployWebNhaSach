@@ -64,7 +64,7 @@ const blankForm: FormState = {
   categoryId: '',
   coverUrl: '',
   description: '',
-  inventoryQuantity: '10',
+  inventoryQuantity: '',
   soldQuantity: ''
 };
 
@@ -90,7 +90,7 @@ const submissionToForm = (sub: BookSubmission): FormState => ({
   categoryId: String(sub.proposedData.categoryId || ''),
   coverUrl: String(sub.proposedData.coverUrl || ''),
   description: String(sub.proposedData.description || ''),
-  inventoryQuantity: String(sub.inventoryQuantity ?? 10),
+  inventoryQuantity: String(sub.inventoryQuantity ?? ''),
   soldQuantity: String(sub.soldQuantity ?? '')
 });
 
@@ -322,10 +322,10 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
     const inventory = Number(form.inventoryQuantity);
     const sold = form.soldQuantity.trim() === '' ? undefined : Number(form.soldQuantity);
     const year = form.publicationYear.trim() === '' ? undefined : Number(form.publicationYear);
-    if (!Number.isInteger(inventory) || inventory < 0 || inventory > 2147483647 ||
+    if (!form.inventoryQuantity.trim() || !Number.isInteger(inventory) || inventory < 0 || inventory > 2147483647 ||
         (sold !== undefined && (!Number.isInteger(sold) || sold < 0 || sold > 2147483647)) ||
-        (year !== undefined && (!Number.isInteger(year) || year < 1 || year > 2200)) ||
-        !/^[0-9]{1,32}$/.test(form.isbn.trim()) || !form.title.trim() || !form.author.trim()) {
+        (year !== undefined && (!Number.isInteger(year) || year < 1 || year > new Date().getFullYear() + 1)) ||
+        !/^(?:[0-9]{10}|[0-9]{13})$/.test(form.isbn.trim()) || !form.title.trim() || !form.author.trim()) {
       setModalNotice({ type: 'error', title: 'Dữ liệu không hợp lệ', message: 'Kiểm tra ISBN, tên sách, tác giả, năm xuất bản và số lượng nguyên không âm.' });
       return;
     }
@@ -968,9 +968,9 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
                 ISBN *
                 <input 
                   value={form.isbn} 
-                  maxLength={32}
+                  maxLength={13}
                   inputMode="numeric"
-                  pattern="[0-9]+"
+                  pattern="(?:[0-9]{10}|[0-9]{13})"
                   readOnly={modal === 'view' || Boolean(match)} 
                   onChange={e => setForm({ ...form, isbn: e.target.value.replace(/[^0-9]/g, '') })}
                   required 
@@ -1018,7 +1018,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
                 <input 
                   type="number" 
                   min="1"
-                  max="2200"
+                  max={new Date().getFullYear() + 1}
                   step="1"
                   value={form.publicationYear} 
                   readOnly={modal === 'view' || Boolean(match)} 

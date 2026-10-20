@@ -44,6 +44,11 @@ describe('email editing permissions', () => {
     expect(prisma.organization.update).not.toHaveBeenCalled();
     expect(prisma.user.update).not.toHaveBeenCalled();
   });
+  it('allows a partner organization contact landline', async () => {
+    const response = await request(app).patch('/api/partner/profile').send({ phone: '(028) 3829 5123' });
+    expect(response.status).toBe(200);
+    expect(prisma.organization.update).toHaveBeenCalledWith(expect.objectContaining({ data: { phone: '02838295123' } }));
+  });
   it('continues to allow partner edits to other profile fields', async () => {
     const response = await request(app).patch('/api/partner/profile').send({ name: 'Updated name' });
     expect(response.status).toBe(200);

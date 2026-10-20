@@ -1996,7 +1996,7 @@ export function AdminDigitalLibraryView({ language }: {
                     <div className="admin-book-form-grid">
                         <label>
                             ISBN *
-                            <input name="isbn" autoComplete="off" inputMode="numeric" pattern="[0-9]+" value={form.isbn} onChange={e => setForm({ ...form, isbn: e.target.value.replace(/[^0-9]/g, '') })} required maxLength={32} placeholder="VD: 9786041000009"/>
+                            <input name="isbn" autoComplete="off" inputMode="numeric" pattern="(?:[0-9]{10}|[0-9]{13})" value={form.isbn} onChange={e => setForm({ ...form, isbn: e.target.value.replace(/[^0-9]/g, '') })} required maxLength={13} placeholder="VD: 9786041000009"/>
                         </label>
                         <label>
                             {language === 'vi' ? 'Tên sách *' : 'Title *'}
@@ -2012,7 +2012,7 @@ export function AdminDigitalLibraryView({ language }: {
                         </label>
                         <label>
                             {language === 'vi' ? 'Năm xuất bản' : 'Publication year'}
-                            <input type="number" min={1} max={2200} step={1} value={form.publicationYear || ''} onChange={e => setForm({ ...form, publicationYear: Number(e.target.value) || undefined })} placeholder="VD: 2024"/>
+                            <input type="number" min={1} max={new Date().getFullYear() + 1} step={1} value={form.publicationYear || ''} onChange={e => setForm({ ...form, publicationYear: Number(e.target.value) || undefined })} placeholder="VD: 2024"/>
                         </label>
                         <label>
                             {language === 'vi' ? 'Phân loại danh mục' : 'Category'}
@@ -2027,7 +2027,7 @@ export function AdminDigitalLibraryView({ language }: {
                         {/* Stall assignment & initial inventory */}
                         <label>
                             {language === 'vi' ? 'Gán gian hàng phân phối' : 'Assign Distribution Stall'}
-                            <select value={form.stallId || ''} onChange={e => setForm({ ...form, stallId: e.target.value })}>
+                            <select value={form.stallId || ''} onChange={e => setForm({ ...form, stallId: e.target.value, inventoryQuantity: e.target.value ? form.inventoryQuantity : 0 })}>
                                 <option value="">{language === 'vi' ? '— Không gán gian hàng ban đầu —' : '— No initial stall —'}</option>
                                 {stalls.map(s => (
                                     <option key={s.id} value={s.id}>{s.name} ({s.code})</option>
@@ -2041,9 +2041,11 @@ export function AdminDigitalLibraryView({ language }: {
                                 min="0" 
                                 max="2147483647"
                                 step="1"
+                                disabled={!form.stallId}
                                 value={form.inventoryQuantity ?? 0} 
                                 onChange={e => setForm({ ...form, inventoryQuantity: Number(e.target.value) })}
                             />
+                            {!form.stallId && <small>{language === 'vi' ? 'Chọn gian hàng để nhập số lượng sách.' : 'Select a stall to enter the book quantity.'}</small>}
                         </label>
 
                         <div className="admin-form-wide admin-cover-upload-section">

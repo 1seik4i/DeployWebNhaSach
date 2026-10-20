@@ -38,14 +38,14 @@ const coverUrlSchema = z
   .transform((v) => (v && v.trim() ? v.trim() : 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=400&q=80'));
 
 export const bookInput = z.object({
-  isbn: z.string().trim().regex(/^[0-9]{1,32}$/, "ISBN chỉ được chứa chữ số"),
+  isbn: z.string().trim().regex(/^(?:[0-9]{10}|[0-9]{13})$/, "ISBN phải gồm 10 hoặc 13 chữ số"),
   title: text,
   titleEn: nullableText(200).optional(),
   author: text,
   publisher: nullableText(200).optional(),
   coverUrl: coverUrlSchema.optional(),
   description: z.union([z.string().trim().max(20000), z.literal(""), z.null(), z.undefined()]).transform((v) => (v && v.trim() ? v.trim() : null)).optional(),
-  publicationYear: nullableInt(1, 2200).optional(),
+  publicationYear: nullableInt(1, new Date().getFullYear() + 1).optional(),
   categoryId: nullableUuid.optional(),
   labelIds: z.array(uuid).max(50).optional(),
   status: z.enum(["active", "draft", "archived"]).optional(),
@@ -260,6 +260,8 @@ export const LibraryService = {
       id ? bookInput.partial().strict() : bookInput.strict(),
       input,
     );
+    if (data.inventoryQuantity > 0 && !data.stallId)
+      throw ApiError.validation("Cần chọn gian hàng trước khi nhập số lượng sách vào kho");
     return transaction(async (tx) => {
       const b = await saveBook(tx, id, data);
       await audit(tx, user, id ? "update" : "create", "Book", b.id);
