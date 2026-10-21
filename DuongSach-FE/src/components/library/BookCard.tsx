@@ -10,14 +10,17 @@ interface BookCardProps {
   exposeBookId?: boolean;
   compact?: boolean;
   carouselClone?: boolean;
+  showRanking?: boolean;
+  rankOverride?: number;
+  rankingLabel?: string;
 }
-export function BookCard({ book, language, mode, onClick, exposeBookId = true, compact = false, carouselClone = false }: BookCardProps) {
-  const rank = mode === 'weekly_hot' 
+export function BookCard({ book, language, mode, onClick, exposeBookId = true, compact = false, carouselClone = false, showRanking = true, rankOverride, rankingLabel }: BookCardProps) {
+  const rank = !showRanking ? undefined : rankOverride ?? (mode === 'weekly_hot'
     ? book.weeklyRank 
     : mode === 'bestseller' 
       ? book.bestsellerRank 
-      : (book.bestsellerRank || book.weeklyRank);
-  const effectiveMode = mode || (book.bestsellerRank ? 'bestseller' : book.weeklyRank ? 'weekly_hot' : undefined);
+      : (book.bestsellerRank || book.weeklyRank));
+  const effectiveMode = !showRanking ? undefined : mode || (rankOverride || book.bestsellerRank ? 'bestseller' : book.weeklyRank ? 'weekly_hot' : undefined);
   const category = language === 'en' && book.category?.nameEn
     ? book.category.nameEn
     : book.category?.name || (language === 'vi' ? 'Chưa phân loại' : 'Unclassified');
@@ -37,7 +40,7 @@ export function BookCard({ book, language, mode, onClick, exposeBookId = true, c
         {rank && <span className={`library-rank ${rank <= 10 ? 'is-top-ten' : ''}`}><span>{language === 'vi' ? 'Hạng' : 'Rank'}</span>{String(rank).padStart(2, '0')}</span>}
         {effectiveMode && <span className={`library-card-badge ${effectiveMode === 'weekly_hot' ? 'is-hot' : ''}`}>
           {effectiveMode === 'weekly_hot' ? <Flame size={11} /> : <Trophy size={11} />}
-          {effectiveMode === 'weekly_hot' ? (language === 'vi' ? 'Hot tuần' : 'Weekly hot') : (language === 'vi' ? 'Bán chạy' : 'Bestseller')}
+          {rankingLabel || (effectiveMode === 'weekly_hot' ? (language === 'vi' ? 'Hot tuần' : 'Weekly hot') : (language === 'vi' ? 'Bán chạy' : 'Bestseller'))}
         </span>}
       </span>
       <span className="library-book-copy">

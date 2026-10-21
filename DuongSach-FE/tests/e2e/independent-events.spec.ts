@@ -29,7 +29,6 @@ for (const role of ['admin', 'partner'] as const) {
     await page.getByRole('button', { name: role === 'admin' ? 'Tạo sự kiện' : 'Đăng ký sự kiện mới', exact: true }).first().click();
     const form = page.locator('[data-event-registration-form]');
     await expect(form).toBeVisible();
-    await form.getByRole('textbox', { name: 'Đối tượng tham gia', exact: true }).fill('Bạn đọc');
     await form.getByPlaceholder('Ví dụ: Giao lưu tác giả & Ký tặng sách mới').fill(`Independent ${role} event`);
     await page.getByRole('textbox', { name: 'Ngày bắt đầu', exact: true }).fill('21/10/2030');
     await page.getByRole('textbox', { name: 'Ngày kết thúc', exact: true }).fill('22/10/2030');

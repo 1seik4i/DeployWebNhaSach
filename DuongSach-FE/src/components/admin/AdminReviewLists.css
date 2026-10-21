@@ -1,0 +1,21 @@
+@import '../portal/ActivityRegisterView.css';
+.admin-review-page .review-table { width:100%; border-collapse:collapse; display:block; }
+.admin-review-page .review-table thead,.admin-review-page .review-table tbody { display:block; }
+.admin-review-page .review-table th,.admin-review-page .review-table td { text-align:left; min-width:0; padding:0; vertical-align:middle; }
+.admin-review-page .review-suggestions { grid-template-columns:minmax(230px,2.2fr) minmax(160px,1.2fr) minmax(105px,.7fr) minmax(115px,.8fr) 10rem; }
+.admin-review-page .review-suggestions .ar-actions { grid-template-columns:1fr; }
+.admin-review-page .review-applications { grid-template-columns:minmax(200px,1.5fr) minmax(200px,1.6fr) minmax(100px,.7fr) minmax(110px,.8fr) 15.5rem; }
+.review-title { font:600 .92rem/1.45 Arial,Helvetica,sans-serif; color:#203229; display:block; border:0; padding:0; background:none; text-align:left; cursor:pointer; overflow-wrap:anywhere; }
+.review-secondary { display:block; color:#7c8279; margin-top:.35rem; font-size:.73rem; line-height:1.5; overflow-wrap:anywhere; }
+.review-preview { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; }
+.review-date { font-size:.78rem; font-variant-numeric:tabular-nums; }
+.review-notice { display:flex; align-items:center; gap:.5rem; padding:.85rem 1rem; background:#edf2e9; color:#3a4b3a; border-left:3px solid #8a9a86; font-size:.82rem; margin:1rem 0; }
+.review-notice button { margin-left:auto; border:0; background:transparent; cursor:pointer; color:inherit; }
+.review-field { display:grid; gap:.5rem; font-size:.78rem; margin-top:1.2rem; }
+.review-field select,.review-field textarea { padding:.75rem; border:1px solid #d3cec4; border-radius:4px; background:white; color:#3a4b3a; font:400 .85rem/1.5 Arial,Helvetica,sans-serif; width:100%; box-sizing:border-box; }
+.review-field textarea { resize:vertical; }
+.review-hint { font-size:.76rem; line-height:1.6; color:#7c8279; margin:1.2rem 0 0; }
+.review-role { color:#4f6b4a; font-weight:600; }
+.admin-review-page .ar-state { font-size:.8rem; }
+@media(max-width:1200px) { .admin-review-page .review-suggestions,.admin-review-page .review-applications { grid-template-columns:minmax(180px,1.6fr) minmax(150px,1.3fr) minmax(100px,.8fr) minmax(110px,.8fr); }.admin-review-page .ar-actions { grid-column:1/-1; }.admin-review-page .review-suggestions .ar-actions { grid-template-columns:10rem; } }
+@media(max-width:680px) { .admin-review-page .review-suggestions,.admin-review-page .review-applications { grid-template-columns:minmax(0,1fr) minmax(0,1fr); }.admin-review-page .review-primary-cell { grid-column:1/-1; }.admin-review-page .review-status-cell { grid-column:1; }.admin-review-page .review-table .ar-actions { grid-column:1/-1; }.admin-review-page .ar-tabs { gap:1.1rem; }.admin-review-page .review-table th { display:none; } }

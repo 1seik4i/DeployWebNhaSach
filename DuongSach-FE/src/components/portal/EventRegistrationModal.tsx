@@ -93,7 +93,6 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting || isReadingImage) return;
-    if (!targetAudience.trim()) { setError(language === 'vi' ? 'Vui lòng nhập đối tượng tham gia.' : 'Please enter the target audience.'); return; }
     if (!title.trim() || title.trim().length > 200) {
       setError(language === 'vi' ? 'Vui lòng nhập tên sự kiện' : 'Please enter event title');
       return;
@@ -147,7 +146,7 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
       statusLabelVi: 'Đã duyệt',
       isPublished,
       thumbnail,
-      targetAudience: targetAudience.trim(),
+      targetAudience: targetAudience.trim() || undefined,
       description: description.trim(),
       devices: selectedEquipment.map(name => ({ name, quantity: 1 }))
     };
@@ -214,11 +213,6 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
         {/* Modal Body */}
         <form onSubmit={handleSubmit} data-event-registration-form>
           <div className="org-modal-body" style={{ padding: '1.5rem 1.75rem', maxHeight: 'calc(85vh - 140px)', overflowY: 'auto' }}>
-            <div className="org-form-group" style={{ marginBottom: '1.25rem' }}>
-              <label>{language === 'vi' ? 'Đối tượng tham gia *' : 'Target audience *'}
-                <input style={{ width: '100%', padding: '.65rem', border: '1px solid #D1D5DB', borderRadius: 8 }} aria-label={language === 'vi' ? 'Đối tượng tham gia' : 'Target audience'} required maxLength={2000} value={targetAudience} onChange={event => setTargetAudience(event.target.value)} />
-              </label>
-            </div>
             {error && (
               <div style={{
                 padding: '0.75rem 1rem',
@@ -237,12 +231,6 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
                 <span>{error}</span>
               </div>
             )}
-
-            {organization && <div style={{ padding: '1rem', background: '#F8FAF9', marginBottom: '1rem', borderRadius: '8px' }}>
-              <strong>{organization.name}</strong>
-              <p>{organization.representativeName} · {organization.phone} · {organization.email}</p>
-              <small>{language === 'vi' ? 'Đăng ký được gửi Ban Quản Lý phê duyệt trước khi công bố.' : 'Registration is reviewed by management before publication.'}</small>
-            </div>}
             {/* 1. Event Title */}
             <div style={{ marginBottom: '1.1rem' }}>
               <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 650, color: '#1F2937', marginBottom: '0.4rem' }}>

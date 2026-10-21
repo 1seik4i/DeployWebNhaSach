@@ -17,6 +17,7 @@ import {
 } from "../../utils/contract.js";
 import { checkSchedule } from "../event/operations.routes.js";
 import { eventOpenForPartnerParticipation } from '../event/partner-participation.js';
+import { proposalMetadata } from '../../utils/eventImage.js';
 
 const router = Router(),
   admin = [authenticate, authorize("admin")],
@@ -40,7 +41,7 @@ async function openEvent(tx, eventId, deadline) {
     throw ApiError.conflict("Đã hết hạn đăng ký");
   return event;
 }
-async function notifyOrg(tx, orgId, title, message, link = "/partner/booths") {
+async function notifyOrg(tx, orgId, title, message, link = "/partner/booths", kind = "booth") {
   const users = await tx.organizationMember.findMany({
     where: { organizationId: orgId },
   });
@@ -49,7 +50,7 @@ async function notifyOrg(tx, orgId, title, message, link = "/partner/booths") {
       userId: u.userId,
       title,
       message,
-      kind: "booth",
+      kind,
       link,
     })),
   });
@@ -115,13 +116,21 @@ router.post(
 router.get(
   "/admin/partner-applications",
   ...admin,
-  run((r) =>
-    prisma.partnerApplication.findMany({
+  run(async (r) => {
+    const rows = await prisma.partnerApplication.findMany({
       where: eventFilter(r),
-      include: { organization: true, event: true },
+      include: { organization: true, event: { include: {
+        proposals: { where: { status: 'approved' }, select: { organizationId: true, managementNotes: true } },
+      } } },
       orderBy: { createdAt: "desc" },
-    }),
-  ),
+    });
+    return rows.map(({ event, ...row }) => ({
+      ...row,
+      event: event ? { ...event, proposals: undefined } : event,
+      participationRole: event?.proposals?.some(p => p.organizationId === row.organizationId && proposalMetadata(p.managementNotes).standaloneEvent)
+        ? 'organizer' : 'participant',
+    }));
+  }),
 );
 for (const action of ["approve", "reject"])
   router.post(
@@ -130,7 +139,7 @@ for (const action of ["approve", "reject"])
     run((r) =>
       transaction(async (tx) => {
         const id = parse(uuid, r.params.id),
-          row = await tx.partnerApplication.findUnique({ where: { id } });
+          row = await tx.partnerApplication.findUnique({ where: { id }, include: { event: { select: { title: true } } } });
         if (!row) throw ApiError.notFound();
         if (!["submitted", "need_changes"].includes(row.status))
           throw ApiError.conflict("Đơn đã được xử lý");
@@ -149,9 +158,10 @@ for (const action of ["approve", "reject"])
         await notifyOrg(
           tx,
           row.organizationId,
-          "Kết quả đăng ký sự kiện",
-          note || "Đơn đăng ký đã được duyệt",
-          "/partner/events",
+          action === 'approve' ? 'Đăng ký tham gia sự kiện đã được duyệt' : 'Đăng ký tham gia sự kiện không được duyệt',
+          `Hồ sơ tham gia sự kiện${row.event?.title ? ` "${row.event.title}"` : ''} ${action === 'approve' ? 'đã được duyệt' : 'không được duyệt'}.${note ? ` Ghi chú: ${note}` : ''}`,
+          `/partner/events?eventId=${row.eventId}`,
+          'event',
         );
         return result;
       }),
@@ -163,6 +173,9 @@ router.get(
   run(async (r) => {
     const org = await organization(r.user.id),
       where = eventFilter(r);
+    const directAssignment = await prisma.userStallAssignment.findFirst({
+      where: { userId: r.user.id }, select: { stallId: true },
+    });
     const booths = await prisma.booth.findMany({
       where: { isDeleted: false },
       include: {
@@ -181,7 +194,8 @@ router.get(
       orderBy: { code: "asc" },
     });
     return booths.map((b) => {
-      const a = b.assignments[0];
+      const a = b.assignments.find(item => item.organizationId === org.id) || b.assignments[0];
+      const directlyAssigned = directAssignment?.stallId === b.id;
       return {
         id: b.id,
         code: b.code,
@@ -192,13 +206,13 @@ router.get(
         status:
           b.opStatus === "unavailable"
             ? "unavailable"
-            : a
+            : a || directlyAssigned
               ? "assigned"
               : b.requests.length
                 ? "on_hold"
                 : "available",
-        assignedOrgId: a?.organizationId,
-        assignedOrgName: a?.organization.name,
+        assignedOrgId: directlyAssigned ? org.id : a?.organizationId,
+        assignedOrgName: directlyAssigned ? org.name : a?.organization.name,
         imageUrl: b.imageUrl || "",
         description: b.description || "",
         categories: b.category ? [b.category] : [],
@@ -317,8 +331,8 @@ for (const action of ["approve", "reject"])
         await notifyOrg(
           tx,
           row.organizationId,
-          "Kết quả đăng ký gian hàng",
-          note || "Gian hàng đã được phân bổ",
+          action === 'approve' ? 'Đăng ký gian hàng đã được duyệt' : 'Đăng ký gian hàng không được duyệt',
+          `${action === 'approve' ? 'Gian hàng đã được phân bổ' : 'Yêu cầu gian hàng không được duyệt'} cho sự kiện "${row.event.title}".${note ? ` Ghi chú: ${note}` : ''}`,
         );
         await audit(tx, r.user, action, "BoothRequest", id);
         return result;

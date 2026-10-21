@@ -852,6 +852,15 @@
   flex-shrink: 0;
 }
 
+.admin-book-detail-cover-wrap.is-clickable {
+  cursor: pointer;
+}
+
+.admin-book-detail-cover-wrap.is-clickable:hover .admin-book-detail-cover {
+  transform: scale(1.03);
+  box-shadow: 0 10px 26px rgba(23, 56, 46, 0.22);
+}
+
 .admin-book-detail-cover {
   width: 145px;
   height: 210px;
@@ -862,6 +871,7 @@
   box-shadow: 0 8px 22px rgba(23, 56, 46, 0.15);
   background: #f1ede6;
   flex-shrink: 0;
+  transition: transform 160ms ease, box-shadow 160ms ease;
 }
 
 .admin-book-detail-status {
@@ -1895,10 +1905,10 @@
 
 /* Column for Book Cover in Table */
 .admin-col-cover {
-  width: 68px !important;
-  min-width: 68px !important;
-  max-width: 68px !important;
-  padding: 0.65rem 0.35rem !important;
+  width: 100px !important;
+  min-width: 100px !important;
+  max-width: 100px !important;
+  padding: 0.8rem 0.5rem !important;
   text-align: center !important;
   vertical-align: middle !important;
   box-sizing: border-box;
@@ -1910,25 +1920,25 @@
 
 /* Polished Book Cover Thumbnail */
 .admin-book-cover {
-  width: 44px !important;
-  height: 62px !important;
-  min-width: 44px !important;
-  max-width: 44px !important;
+  width: 72px !important;
+  height: 102px !important;
+  min-width: 72px !important;
+  max-width: 72px !important;
   aspect-ratio: 2 / 3;
   object-fit: cover;
-  border-radius: 4px;
-  border: 1px solid #dcd3c7;
-  box-shadow: 0 2px 5px rgba(23, 56, 46, 0.1);
+  border-radius: 7px;
+  border: 1px solid #d5cdc1;
+  box-shadow: 0 4px 12px rgba(23, 56, 46, 0.14), 0 1px 3px rgba(0, 0, 0, 0.06);
   background: #f1ede6;
   display: block;
   margin: 0 !important;
   flex-shrink: 0;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .admin-book-cover:hover {
   transform: scale(1.05);
-  box-shadow: 0 4px 10px rgba(23, 56, 46, 0.18);
+  box-shadow: 0 8px 18px rgba(23, 56, 46, 0.22);
 }
 
 /* Book Cell in Stalls and Rankings Tables */
@@ -3115,3 +3125,7 @@ td.is-clickable:hover .admin-book-title-clean,
   color: #64748b;
   font-weight: 600;
 }
+.admin-category-select { cursor:pointer; font:inherit; max-width:100%; padding-right:1.4rem; }
+.admin-category-select:disabled { cursor:wait; opacity:.65; }
+.admin-category-select:focus-visible { outline:2px solid #16704e; outline-offset:3px; }
+

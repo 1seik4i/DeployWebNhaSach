@@ -24,6 +24,7 @@ import { PartnerDashboard } from './pages/partner/PartnerDashboard';
 import { EventApplicationPage } from './pages/partner/EventApplicationPage';
 import { BoothSelectionPage } from './pages/partner/BoothSelectionPage';
 import { BoothManagementPage } from './pages/partner/BoothManagementPage';
+import { UnassignedBoothPage } from './pages/partner/UnassignedBoothPage';
 import { ActivityProposalPage } from './pages/partner/ActivityProposalPage';
 import { PartnerActivityDetailPage } from './pages/partner/PartnerActivityDetailPage';
 import { PartnerReportsPage } from './pages/partner/PartnerReportsPage';
@@ -216,10 +217,10 @@ export function App() {
         const activeApp = apps.find(item => item.status === 'approved') || apps[0] || null;
         const eventId = activeApp?.eventId;
         const [booths, locations, activities, reports] = await Promise.all([
-          eventId ? partnerApi.getBooths(eventId) : Promise.resolve([]),
+          partnerApi.getBooths(),
           eventId ? partnerApi.getEventLocations(eventId) : Promise.resolve([]),
           partnerApi.getActivityProposals(),
-          eventId ? partnerApi.getReports(eventId) : Promise.resolve(null),
+          partnerApi.getReports(),
         ]);
         if (cancelled) return;
         setPartnerOrg(org);
@@ -298,7 +299,7 @@ export function App() {
   const handleSelectPartnerBooth = async (boothId: string) => {
     if (!partnerOrg || !partnerApp) return;
     await partnerApi.requestBooth({ eventId: partnerApp.eventId, boothId });
-    setPartnerBooths(await partnerApi.getBooths(partnerApp.eventId));
+    setPartnerBooths(await partnerApi.getBooths());
   };
 
   const handleAddPartnerActivity = async (newAct: Omit<PartnerActivityProposal, 'id'>) => {
@@ -324,7 +325,7 @@ export function App() {
       devices: newAct.requiredEquipments.map(name => ({ name, quantity: 1 })),
     });
     const [activities, reports] = await Promise.all([
-      partnerApi.getActivityProposals(partnerApp.eventId), partnerApi.getReports(partnerApp.eventId),
+      partnerApi.getActivityProposals(partnerApp.eventId), partnerApi.getReports(),
     ]);
     setPartnerActivities(activities);
     setPartnerReports(reports);
@@ -451,7 +452,7 @@ export function App() {
               booth={assignedBooth}
               onOpenAttendanceModal={() => setActiveAttendanceActivityId(partnerActivities[0]?.id || '')}
               onRequestCancel={(reason) => partnerApi.requestBoothCancellation(assignedBooth.id, reason || '')}
-            /> : <p className="app-loading-state">Tổ chức chưa được phân bổ gian hàng cho sự kiện này.</p>
+            /> : <UnassignedBoothPage language={language} />
           } />
           <Route path="/partner/booths/select" element={
             <BoothSelectionPage

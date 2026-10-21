@@ -2,7 +2,7 @@ import { EventRegistrationModal, EventRegistrationData } from '../../components/
 import { eventRegistrationPayload } from '../../services/eventRegistration';
 import { useModalBehavior } from '../../hooks/useModalBehavior';
 import React, { useEffect, useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { 
   Calendar as CalendarIcon, 
   ChevronLeft, 
@@ -47,6 +47,7 @@ export interface ScheduledEventItem extends OrganizerEvent {
   badgeColor: string;
   categoryTag: string;
   hostOrgName?: string;
+  participationStatus?: string;
   speaker?: string;
   equipment?: string[];
   expectedAttendees?: string;
@@ -68,6 +69,8 @@ export const EventApplicationPage: React.FC<EventApplicationPageProps> = ({
   locations,
 }) => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const notificationEventId = searchParams.get('eventId');
   const vietnamDateKey = () => {
     const parts = new Intl.DateTimeFormat('en-US', {
       timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit',
@@ -89,6 +92,14 @@ export const EventApplicationPage: React.FC<EventApplicationPageProps> = ({
 
   // Event Detail Popup Modal State
   const [detailModalEvent, setDetailModalEvent] = useState<ScheduledEventItem | null>(null);
+  useEffect(() => {
+    if (!notificationEventId) return;
+    const event = scheduledEvents.find(item => item.id === `event:${notificationEventId}`);
+    if (event) {
+      setDetailModalEvent(event);
+      setSelectedEvent(event);
+    }
+  }, [notificationEventId, scheduledEvents]);
 
   // Day Events List Modal State (Apple Calendar style expanded day popover)
   const [dayOverviewModal, setDayOverviewModal] = useState<{ dateStr: string; day: number; events: ScheduledEventItem[] } | null>(null);
@@ -117,6 +128,7 @@ export const EventApplicationPage: React.FC<EventApplicationPageProps> = ({
       const today = vietnamDateKey();
       const schedule = items as unknown as ScheduledEventItem[];
       setScheduledEvents(schedule);
+      setDetailModalEvent(prev => prev ? schedule.find(item => item.id === prev.id) || prev : null);
       setSelectedEvent(prev => {
         if (prev) {
           const found = schedule.find(item => item.id === prev.id);
@@ -149,6 +161,7 @@ export const EventApplicationPage: React.FC<EventApplicationPageProps> = ({
   };
 
   const applyToPublishedEvent = async (item: ScheduledEventItem) => {
+    if (item.participationStatus === 'approved') return;
     if (!item.id.startsWith('event:')) {
       showToast(language === 'vi' ? 'Đây là một hoạt động trong lịch; hãy chọn sự kiện chính để đăng ký tham gia.' : 'Select the parent event to apply.');
       return;
@@ -850,7 +863,7 @@ export const EventApplicationPage: React.FC<EventApplicationPageProps> = ({
               <img 
                 src={detailModalEvent.imageUrl} 
                 alt={detailModalEvent.title} 
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', background: '#F3F4F6' }}
               />
               <button
                 type="button"
@@ -978,14 +991,16 @@ export const EventApplicationPage: React.FC<EventApplicationPageProps> = ({
                   type="button"
                   className="btn-part-primary"
                   onClick={() => void applyToPublishedEvent(detailModalEvent)}
-                  disabled={!detailModalEvent.id.startsWith('event:') || (detailModalEvent.status !== 'happening' && detailModalEvent.status !== 'upcoming')}
+                  disabled={detailModalEvent.participationStatus === 'approved' || !detailModalEvent.id.startsWith('event:') || (detailModalEvent.status !== 'happening' && detailModalEvent.status !== 'upcoming')}
                   title={language === 'vi' ? 'Sự kiện đang diễn ra hoặc sắp diễn ra luôn nhận đăng ký tham gia, không áp dụng hạn đăng ký.' : 'Ongoing and upcoming events accept applications without a registration deadline.'}
                   style={{
                     boxShadow: '0 4px 14px rgba(23, 56, 46, 0.22)'
                   }}
                 >
-                  <PlusCircle size={16} />
-                  <span>{language === 'vi' ? 'Đăng ký tham gia sự kiện này' : 'Apply to This Event'}</span>
+                  {detailModalEvent.participationStatus === 'approved' ? <CheckCircle2 size={16} /> : <PlusCircle size={16} />}
+                  <span>{detailModalEvent.participationStatus === 'approved'
+                    ? (language === 'vi' ? 'Đã tham gia' : 'Joined')
+                    : (language === 'vi' ? 'Đăng ký tham gia sự kiện này' : 'Apply to This Event')}</span>
                 </button>
               </div>
             </div>

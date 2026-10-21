@@ -24,10 +24,20 @@ for (const role of ["admin", "partner"])
     run(async (r) => {
       const org = role === "partner" ? await organization(r.user.id) : null,
         eventId = r.query.eventId ? parse(uuid, r.query.eventId) : undefined;
+      const partnerEvents = org ? await prisma.event.findMany({
+        where: { isDeleted: false, status: { not: 'draft' }, OR: [
+          { applications: { some: { organizationId: org.id, status: 'approved' } } },
+          { proposals: { some: { organizationId: org.id, status: 'approved' } } },
+        ] },
+        select: { id: true, title: true }, orderBy: { startAt: 'desc' },
+      }) : null;
+      if (org && eventId && !partnerEvents.some(event => event.id === eventId)) {
+        throw ApiError.forbidden('Chỉ được xem báo cáo sự kiện của đối tác đã được duyệt');
+      }
       const activities = await prisma.activity.findMany({
         where: {
           ...(org ? { organizationId: org.id } : {}),
-          ...(eventId ? { eventId } : {}),
+          ...(eventId ? { eventId } : org ? { eventId: { in: partnerEvents.map(event => event.id) } } : {}),
         },
         include: {
           registrations: { select: { status: true } },
@@ -42,13 +52,6 @@ for (const role of ["admin", "partner"])
           },
         },
       });
-      if (org && eventId && !activities.length) {
-        const application = await prisma.partnerApplication.findUnique({
-          where: { eventId_organizationId: { eventId, organizationId: org.id } },
-          select: { id: true },
-        });
-        if (!application) throw ApiError.forbidden("Không có quyền xem báo cáo sự kiện này");
-      }
       const registrations = activities.flatMap((a) => a.registrations),
         activityRatings = activities.flatMap((activity) =>
           activity.ratings.map((rating) => ({
@@ -65,10 +68,10 @@ for (const role of ["admin", "partner"])
       const event = eventId
         ? await prisma.event.findUnique({ where: { id: eventId } })
         : null;
-      const accessibleEvents = eventId ? [] : await prisma.event.findMany({
+      const accessibleEvents = partnerEvents || (eventId ? [] : await prisma.event.findMany({
         where: { isDeleted: false, ...(org ? { applications: { some: { organizationId: org.id, status: 'approved' } } } : {}) },
         select: { id: true },
-      });
+      }));
       const reportEventIds = eventId ? [eventId] : [...new Set([...activities.map(activity => activity.eventId), ...accessibleEvents.map(row => row.id)])];
       const publicTotals = await prisma.publicEventRegistration.aggregate({ where: { eventId: { in: reportEventIds } }, _sum: { attendeesCount: true } });
       const publicParticipants = publicTotals._sum.attendeesCount || 0;
@@ -93,6 +96,7 @@ for (const role of ["admin", "partner"])
       ].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
       const ratings = feedbacks.map((feedback) => feedback.rating);
       return {
+        ...(org ? { availableEvents: partnerEvents } : {}),
         eventId: eventId || "",
         eventName: event?.title || "Tất cả sự kiện",
         totalParticipants: registrations.length + publicParticipants,
@@ -105,6 +109,7 @@ for (const role of ["admin", "partner"])
             status: "active",
             ...(org ? { organizationId: org.id } : {}),
             ...(eventId ? { eventId } : {}),
+            ...(org && !eventId ? { eventId: { in: partnerEvents.map(event => event.id) } } : {}),
           },
         }),
         attendanceRate: registrations.length + publicParticipants

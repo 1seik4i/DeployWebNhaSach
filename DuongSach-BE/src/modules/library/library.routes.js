@@ -8,6 +8,7 @@ import { ApiResponse } from "../../utils/ApiResponse.js";
 import { ApiError } from "../../utils/ApiError.js";
 import { audit, parse, text, transaction, uuid } from "../../utils/contract.js";
 import { LibraryService as service, assignedStall } from "./library.service.js";
+import { BookshelfService } from './bookshelf.service.js';
 
 const router = Router();
 const admin = [authenticate, authorize("admin")];
@@ -39,6 +40,11 @@ router.use("/partner", (req, res, next) => {
 });
 const run = (fn) =>
   asyncHandler(async (req, res) => ApiResponse.success(res, await fn(req)));
+router.get('/public/bookshelves', run(() => BookshelfService.list()));
+router.get('/admin/bookshelves', ...admin, run(() => BookshelfService.list(true)));
+router.post('/admin/bookshelves', ...admin, run(r => BookshelfService.save(null, r.body, r.user)));
+router.patch('/admin/bookshelves/:id', ...admin, run(r => BookshelfService.save(parse(text, r.params.id), r.body, r.user)));
+router.delete('/admin/bookshelves/:id', ...admin, run(r => BookshelfService.remove(parse(text, r.params.id), r.user)));
 router.get(
   "/public/books",
   run((r) => service.books(r.query)),

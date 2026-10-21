@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Check, ChevronRight, Inbox, MessageSquare, RefreshCw, Search, X } from 'lucide-react';
+import { Check, ChevronRight, Inbox, RefreshCw, Search, X } from 'lucide-react';
 import { ListPagination, useListPagination } from '../ui/ListPagination';
 import { apiClient } from '../../services/apiClient';
 import { useModalBehavior } from '../../hooks/useModalBehavior';
 import type { Language } from '../../types';
-import './AdminEventSuggestionsView.css';
+import './AdminReviewLists.css';
+import { createPortal } from 'react-dom';
 
 type Suggestion = { id: string; fullName: string; phone: string; content: string; status: string; internalNote?: string; createdAt?: string };
 const statuses: Record<string, [string, string]> = {
@@ -70,67 +71,37 @@ export function AdminEventSuggestionsView({ language }: { language: Language }) 
     `${row.fullName} ${row.phone} ${row.content}`.normalize('NFC').toLocaleLowerCase('vi-VN').includes(query.trim().normalize('NFC').toLocaleLowerCase('vi-VN')));
   const pagination = useListPagination(visible, `${filter}:${query}`, 8);
   const label = (value: string) => statuses[value]?.[vi ? 0 : 1] || value;
-  const date = (value?: string) => value ? new Date(value).toLocaleDateString(vi ? 'vi-VN' : 'en-GB') : '—';
-  const summaries = [
-    { id: 'all', name: vi ? 'Tổng đề xuất' : 'All suggestions', count: rows.length, icon: Inbox },
-    { id: 'new', name: vi ? 'Chờ tiếp nhận' : 'Awaiting review', count: rows.filter(row => row.status === 'new').length, icon: MessageSquare },
-    { id: 'approved', name: vi ? 'Đã chấp thuận' : 'Approved', count: rows.filter(row => row.status === 'approved').length, icon: Check },
-  ];
+  const date = (value?: string) => value ? new Date(value).toLocaleDateString(vi ? 'vi-VN' : 'en-GB', { timeZone: 'Asia/Ho_Chi_Minh' }) : '—';
 
-  return <div className="event-suggestions">
-    <header className="es-heading">
-      <div><h1>{vi ? 'Đề xuất sự kiện' : 'Event suggestions'}</h1>
-        <p>{vi ? 'Tiếp nhận ý tưởng từ khách tham quan, liên hệ và theo dõi kết quả xử lý.' : 'Review visitor ideas, contact contributors and track progress.'}</p>
-      </div>
-      <button className="adm-btn adm-btn-secondary" onClick={() => void load()}><RefreshCw size={16}/>{vi ? 'Làm mới' : 'Refresh'}</button>
-    </header>
-    <div className="es-summary">{summaries.map(item => <button key={item.id} className={`es-metric ${filter === item.id ? 'is-active' : ''}`} onClick={() => setFilter(item.id)}>
-      <span className={`es-metric-icon is-${item.id}`}><item.icon size={21}/></span>
-      <span><span className="es-metric-label">{item.name}</span><strong>{item.count}</strong></span>
-    </button>)}</div>
-    {error && <p className="es-error" role="alert">{error}</p>}
-    {notice && <p className="es-notice" role="status">{notice}</p>}
-    <section className="es-list" aria-label={vi ? 'Danh sách đề xuất' : 'Suggestions'}>
-      <div className="es-toolbar">
-        <label className="es-search"><Search size={17}/><input maxLength={200} aria-label={vi ? 'Tìm đề xuất' : 'Search suggestions'} placeholder={vi ? 'Tìm tên sự kiện, người gửi, số điện thoại…' : 'Search event, contributor or phone…'} value={query} onChange={e => setQuery(e.target.value)}/></label>
-        <select aria-label={vi ? 'Lọc trạng thái' : 'Filter status'} value={filter} onChange={e => setFilter(e.target.value)}>
-          <option value="all">{vi ? 'Tất cả trạng thái' : 'All statuses'}</option>
-          {Object.keys(statuses).map(value => <option key={value} value={value}>{label(value)}</option>)}
-        </select>
-      </div>
-      <div className="es-table-scroll"><table>
-        <thead><tr><th>{vi ? 'Đề xuất' : 'Suggestion'}</th><th>{vi ? 'Người gửi' : 'Contributor'}</th><th>{vi ? 'Ngày gửi' : 'Submitted'}</th><th>{vi ? 'Trạng thái' : 'Status'}</th><th>{vi ? 'Thao tác' : 'Action'}</th></tr></thead>
-        <tbody>{pagination.items.map(row => <tr key={row.id}>
-          <td><strong className="es-title">{titleOf(row)}</strong><span className="es-preview">{row.internalNote || (vi ? 'Chưa có ghi chú xử lý' : 'No internal note')}</span></td>
-          <td><span className="es-person">{row.fullName}</span><span className="es-preview">{row.phone}</span></td>
-          <td className="es-date">{date(row.createdAt)}</td>
-          <td><span className={`es-badge is-${row.status}`}>{label(row.status)}</span></td>
-          <td><button className="es-open" onClick={() => open(row)}>{vi ? 'Xem chi tiết' : 'View details'}<ChevronRight size={15}/></button></td>
+  return <div className="organizer-content activity-register admin-review-page">
+    <header className="ar-header"><div><h1>{vi ? 'Đề xuất sự kiện' : 'Event suggestions'}</h1><p>{vi ? 'Tiếp nhận ý tưởng, theo dõi liên hệ và kết quả xử lý.' : 'Review ideas, follow up with contributors and record decisions.'}</p></div><button className="ar-button" disabled={loading || saving} onClick={() => void load()}><RefreshCw size={16}/>{vi ? 'Làm mới' : 'Refresh'}</button></header>
+    <nav className="ar-tabs" aria-label={vi ? 'Trạng thái đề xuất' : 'Suggestion status'}>{['all', ...Object.keys(statuses)].map(value => <button key={value} className={filter === value ? 'is-active' : ''} aria-pressed={filter === value} onClick={() => setFilter(value)}>{value === 'all' ? (vi ? 'Tất cả' : 'All') : label(value)}<span>{value === 'all' ? rows.length : rows.filter(row => row.status === value).length}</span></button>)}</nav>
+    <div className="ar-filters"><label className="ar-search"><Search size={17}/><input maxLength={200} aria-label={vi ? 'Tìm đề xuất' : 'Search suggestions'} placeholder={vi ? 'Tên sự kiện, người gửi, số điện thoại…' : 'Event, contributor or phone…'} value={query} onChange={e => setQuery(e.target.value)}/></label><select aria-label={vi ? 'Lọc trạng thái' : 'Filter status'} value={filter} onChange={e => setFilter(e.target.value)}><option value="all">{vi ? 'Tất cả trạng thái' : 'All statuses'}</option>{Object.keys(statuses).map(value => <option key={value} value={value}>{label(value)}</option>)}</select></div>
+    {error && <p className="ar-error" role="alert">{error}</p>}
+    {notice && <p className="review-notice" role="status"><Check size={16}/>{notice}</p>}
+    <section className="ar-register" aria-label={vi ? 'Danh sách đề xuất' : 'Suggestions'} aria-busy={loading}>
+      <table className="review-table"><thead><tr className="ar-columns review-suggestions"><th>{vi ? 'Đề xuất' : 'Suggestion'}</th><th>{vi ? 'Người gửi' : 'Contributor'}</th><th>{vi ? 'Ngày gửi' : 'Submitted'}</th><th>{vi ? 'Trạng thái' : 'Status'}</th><th>{vi ? 'Thao tác' : 'Actions'}</th></tr></thead>
+        <tbody>{pagination.items.map(row => <tr className="ar-row review-suggestions" key={row.id}>
+          <td className="review-primary-cell"><button className="review-title" onClick={() => open(row)}>{titleOf(row)}</button>{row.internalNote && <span className="review-secondary review-preview">{row.internalNote}</span>}</td>
+          <td><span className="ar-organizer">{row.fullName}</span><span className="review-secondary">{row.phone}</span></td>
+          <td className="review-date">{date(row.createdAt)}</td>
+          <td className="review-status-cell"><span className={`ar-status ${['new', 'contacted'].includes(row.status) ? 'is-pending' : row.status === 'approved' ? 'is-approved' : 'is-closed'}`}>{label(row.status)}</span></td>
+          <td className="ar-actions"><button className="ar-button" onClick={() => open(row)}>{vi ? 'Xem chi tiết' : 'View details'}<ChevronRight size={15}/></button></td>
         </tr>)}</tbody>
-      </table></div>
-      {!visible.length && <div className="es-empty"><Inbox size={32}/><strong>{loading ? (vi ? 'Đang tải đề xuất…' : 'Loading…') : (vi ? 'Không có đề xuất phù hợp' : 'No matching suggestions')}</strong><p>{vi ? 'Đề xuất từ trang Liên hệ sẽ xuất hiện tại đây. Thử thay đổi bộ lọc nếu cần.' : 'Suggestions from the Contact page appear here. Try adjusting the filters.'}</p></div>}
-      {visible.length > 0 && (
-        <ListPagination
-          page={pagination.page}
-          totalPages={pagination.totalPages}
-          onChange={pagination.setPage}
-          vi={vi}
-        />
-      )}
+      </table>
+      {!visible.length && <div className="ar-empty"><Inbox size={28}/><h2>{loading ? (vi ? 'Đang tải đề xuất…' : 'Loading…') : (vi ? 'Không có đề xuất phù hợp' : 'No matching suggestions')}</h2><p>{vi ? 'Thử thay đổi trạng thái hoặc từ khóa tìm kiếm.' : 'Try another status or search term.'}</p></div>}
     </section>
-    {selected && <div className="es-overlay" onClick={() => { if (!saving) setSelected(null); }}>
-      <form className="es-dialog" role="dialog" aria-modal="true" aria-labelledby="es-dialog-title" onClick={e => e.stopPropagation()} onSubmit={save}>
-        <header><div><span className="es-eyebrow">{vi ? 'CHI TIẾT ĐỀ XUẤT' : 'SUGGESTION DETAILS'}</span><h2 id="es-dialog-title">{titleOf(selected)}</h2></div><button type="button" aria-label={vi ? 'Đóng' : 'Close'} disabled={saving} onClick={() => setSelected(null)}><X size={21}/></button></header>
-        <div className="es-dialog-body">
-          <div className="es-contact"><div><small>{vi ? 'Người liên hệ' : 'Contact'}</small><strong>{selected.fullName}</strong></div><div><small>{vi ? 'Số điện thoại' : 'Phone'}</small><strong>{selected.phone}</strong></div><div><small>{vi ? 'Ngày gửi' : 'Submitted'}</small><strong>{date(selected.createdAt)}</strong></div></div>
-          <h3>{vi ? 'Nội dung đề xuất' : 'Proposal'}</h3><p className="es-content">{selected.content}</p>
-          <label className="es-field">{vi ? 'Trạng thái' : 'Status'}<select value={status} disabled={saving} onChange={e => setStatus(e.target.value)}>{Object.keys(statuses).map(value => <option key={value} value={value}>{label(value)}</option>)}</select></label>
-          <label className="es-field">{vi ? 'Ghi chú xử lý' : 'Internal note'}<textarea value={note} maxLength={10000} rows={4} disabled={saving} onChange={e => setNote(e.target.value)} placeholder={vi ? 'Ghi lại kết quả liên hệ hoặc lý do xử lý…' : 'Contact outcome or decision notes…'}/></label>
-          <p className="es-hint">{vi ? 'Chấp thuận đề xuất không tự tạo hay công bố sự kiện. Sau khi thống nhất nội dung, tạo sự kiện tại Lịch & Sự kiện.' : 'Approval does not create or publish an event. Create it in Events Management after confirming the details.'}</p>
-          {saveError && <p className="es-error" role="alert">{saveError}</p>}
-        </div>
-        <footer><button type="button" className="adm-btn adm-btn-secondary" disabled={saving} onClick={() => setSelected(null)}>{vi ? 'Hủy' : 'Cancel'}</button><button className="adm-btn adm-btn-primary" disabled={saving}><Check size={16}/>{saving ? (vi ? 'Đang lưu…' : 'Saving…') : (vi ? 'Lưu xử lý' : 'Save changes')}</button></footer>
-      </form>
-    </div>}
+    {visible.length > 0 && <ListPagination page={pagination.page} totalPages={pagination.totalPages} onChange={pagination.setPage} vi={vi}/>}
+    {selected && createPortal(<div className="ar-overlay" onClick={() => { if (!saving) setSelected(null); }}><form className="ar-detail" role="dialog" aria-modal="true" aria-labelledby="es-dialog-title" onClick={e => e.stopPropagation()} onSubmit={save}>
+      <header><span>{vi ? 'Chi tiết đề xuất' : 'Suggestion details'}</span><button className="ar-icon-button" type="button" aria-label={vi ? 'Đóng' : 'Close'} disabled={saving} onClick={() => setSelected(null)}><X size={21}/></button></header>
+      <div className="ar-detail-body"><div className="ar-detail-title"><h2 id="es-dialog-title">{titleOf(selected)}</h2><span className={`ar-status ${selected.status === 'approved' ? 'is-approved' : ['new', 'contacted'].includes(selected.status) ? 'is-pending' : 'is-closed'}`}>{label(selected.status)}</span></div>
+        <dl className="ar-facts"><div><dt>{vi ? 'Người liên hệ' : 'Contact'}</dt><dd>{selected.fullName}</dd></div><div><dt>{vi ? 'Số điện thoại' : 'Phone'}</dt><dd>{selected.phone}</dd></div><div><dt>{vi ? 'Ngày gửi' : 'Submitted'}</dt><dd>{date(selected.createdAt)}</dd></div></dl>
+        <section className="ar-detail-section"><h3>{vi ? 'Nội dung đề xuất' : 'Proposal'}</h3><p>{selected.content}</p></section>
+        <label className="review-field">{vi ? 'Trạng thái' : 'Status'}<select aria-label={vi ? 'Trạng thái' : 'Status'} value={status} disabled={saving} onChange={e => setStatus(e.target.value)}>{Object.keys(statuses).map(value => <option key={value} value={value}>{label(value)}</option>)}</select></label>
+        <label className="review-field">{vi ? 'Ghi chú xử lý' : 'Internal note'}<textarea value={note} maxLength={10000} rows={4} disabled={saving} onChange={e => setNote(e.target.value)} placeholder={vi ? 'Kết quả liên hệ hoặc lý do xử lý…' : 'Contact outcome or decision notes…'}/></label>
+        <p className="review-hint">{vi ? 'Đây là ý tưởng từ khách tham quan. Chấp thuận không tự tạo sự kiện; nội dung, lịch và địa điểm cần được xác nhận trước.' : 'Visitor ideas require confirmation of the program, time and location before an event is created.'}</p>
+        {saveError && <p className="ar-error" role="alert">{saveError}</p>}
+      </div><footer><button type="button" className="ar-button" disabled={saving} onClick={() => setSelected(null)}>{vi ? 'Hủy' : 'Cancel'}</button><button className="ar-button ar-primary" disabled={saving}><Check size={16}/>{saving ? (vi ? 'Đang lưu…' : 'Saving…') : (vi ? 'Lưu xử lý' : 'Save changes')}</button></footer>
+    </form></div>, document.body)}
   </div>;
 }

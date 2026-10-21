@@ -236,6 +236,7 @@ export const PartnerLayout: React.FC<PartnerLayoutProps> = ({
                         </div>
                         <div className="notif-item-content">
                           <h4 className="notif-item-title">{notif.title}</h4>
+                          {notif.message && <p style={{ margin: '0.25rem 0', fontSize: '0.78rem', color: '#637771', lineHeight: 1.5 }}>{notif.message}</p>}
                           <span className="notif-item-time">{notif.time}</span>
                         </div>
                       </div>

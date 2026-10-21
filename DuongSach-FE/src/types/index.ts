@@ -249,6 +249,7 @@ export interface PartnerTodoItem {
 }
 
 export interface PartnerNotification {
+  message?: string;
   id: string;
   title: string;
   time: string;
@@ -258,6 +259,7 @@ export interface PartnerNotification {
 }
 
 export interface PartnerReportStats {
+  availableEvents?: Array<{ id: string; title: string }>;
   eventId: string;
   eventName: string;
   totalParticipants: number;

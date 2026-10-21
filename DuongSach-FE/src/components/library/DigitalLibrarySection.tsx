@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BookOpen, ChevronLeft, ChevronRight, Search, Trophy, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import type { Book, Language } from '../../types';
-import { libraryApi } from '../../services/libraryApi';
+import type { Book, BookCategory, Language } from '../../types';
+import { libraryApi, type Bookshelf } from '../../services/libraryApi';
 import { BookCover } from './BookCover';
 import { LibraryBookSkeleton } from '../ui/SkeletonCard';
 import './DigitalLibrary.css';
@@ -10,6 +10,10 @@ import './DigitalLibrary.css';
 export function DigitalLibrarySection({ language }: { language: Language }) {
   const navigate = useNavigate();
   const [books, setBooks] = useState<Book[]>([]);
+  const [shelves, setShelves] = useState<Bookshelf[]>([]);
+  const [categories, setCategories] = useState<BookCategory[]>([]);
+  const [selectedShelf, setSelectedShelf] = useState('all');
+  const [loadError, setLoadError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [query, setQuery] = useState('');
   const [canScrollBack, setCanScrollBack] = useState(false);
@@ -19,29 +23,35 @@ export function DigitalLibrarySection({ language }: { language: Language }) {
   useEffect(() => {
     const load = () => {
       setIsLoading(true);
-      Promise.all([libraryApi.getBooks(), libraryApi.getRankings()])
-        .then(([items, rankings]) => {
-          const rankedById = new Map<string, Partial<Book>>();
-          [...rankings.bestsellers, ...rankings.weeklyHot].forEach(book => {
-            rankedById.set(book.id, { ...rankedById.get(book.id), ...book });
-          });
-          setBooks(items.map(book => ({ ...book, ...rankedById.get(book.id) })));
+      setLoadError('');
+      Promise.all([libraryApi.getBooks(), libraryApi.getBookshelves(), libraryApi.getCategories()])
+        .then(([items, rows, categoryRows]) => {
+          setBooks(items);
+          setShelves(rows);
+          const activeCategories = categoryRows.filter(category => category.status === 'active' && category.name !== 'Chưa phân loại');
+          setCategories(activeCategories);
+          setSelectedShelf(id => id === 'all' || rows.some(row => row.id === id) || activeCategories.some(category => `category:${category.id}` === id) ? id : 'all');
         })
+        .catch(error => setLoadError(error instanceof Error ? error.message : 'Không thể tải thư viện'))
         .finally(() => {
           setIsLoading(false);
         });
     };
     load();
     const handler = () => void load();
+    const storageHandler = (event: StorageEvent) => { if (event.key === libraryApi.changeEvent) load(); };
     window.addEventListener(libraryApi.changeEvent, handler);
-    return () => window.removeEventListener(libraryApi.changeEvent, handler);
+    window.addEventListener('focus', handler);
+    window.addEventListener('storage', storageHandler);
+    return () => { window.removeEventListener(libraryApi.changeEvent, handler); window.removeEventListener('focus', handler); window.removeEventListener('storage', storageHandler); };
   }, []);
 
-  const visible = useMemo(() => {
-    return [...books]
-      .sort((a, b) => (a.bestsellerRank || 999) - (b.bestsellerRank || 999))
-      .slice(0, 12);
-  }, [books]);
+  const activeShelf = useMemo(() => {
+    const category = categories.find(row => `category:${row.id}` === selectedShelf);
+    if (category) return { id: selectedShelf, name: language === 'en' ? category.nameEn || category.name : category.name, ranked: false, books: books.filter(book => book.categoryId === category.id) };
+    return shelves.find(shelf => shelf.id === selectedShelf);
+  }, [categories, shelves, selectedShelf, books, language]);
+  const visible = useMemo(() => (activeShelf ? activeShelf.books : books).slice(0, 12), [activeShelf, books]);
   const updateControls = useCallback(() => {
     const track = trackRef.current;
     if (!track) return;
@@ -173,27 +183,34 @@ export function DigitalLibrarySection({ language }: { language: Language }) {
           </button>
         </form>
 
+        <div className="library-bookshelf-tabs" role="tablist" aria-label={language === 'vi' ? 'Tủ sách' : 'Bookshelves'}>
+          <button role="tab" aria-selected={selectedShelf === 'all'} onClick={() => setSelectedShelf('all')}>{language === 'vi' ? 'Tất cả sách' : 'All books'}</button>
+          {shelves.map(shelf => <button key={shelf.id} role="tab" aria-selected={selectedShelf === shelf.id} onClick={() => setSelectedShelf(shelf.id)}>{shelf.name}</button>)}
+          {categories.map(category => <button key={`category:${category.id}`} role="tab" aria-selected={selectedShelf === `category:${category.id}`} onClick={() => setSelectedShelf(`category:${category.id}`)}>{language === 'en' ? category.nameEn || category.name : category.name}</button>)}
+        </div>
+        {loadError && <p role="alert">{loadError}</p>}
+        {!isLoading && !loadError && !visible.length && <p className="library-shelf-empty">{language === 'vi' ? 'Tủ sách chưa có sách.' : 'This shelf has no books yet.'}</p>}
         <div className="library-ranking-shell">
-          <button type="button" className="library-carousel-control is-prev" data-unavailable={!canScrollBack} disabled={!canScrollBack} onClick={() => scroll(-1)} aria-label={language === 'vi' ? 'Sách xếp hạng trước' : 'Previous ranked books'}><ChevronLeft size={19} aria-hidden="true" /></button>
-          <div ref={trackRef} className="library-ranking-track" onScroll={updateControls} aria-label={language === 'vi' ? 'Bảng xếp hạng sách' : 'Book ranking'}>
+          <button type="button" className="library-carousel-control is-prev" data-unavailable={!canScrollBack} disabled={!canScrollBack} onClick={() => scroll(-1)} aria-label={language === 'vi' ? 'Các sách trước' : 'Previous books'}><ChevronLeft size={19} aria-hidden="true" /></button>
+          <div ref={trackRef} className="library-ranking-track" onScroll={updateControls} aria-label={activeShelf?.name || (language === 'vi' ? 'Tất cả sách' : 'All books')}>
             {isLoading ? (
               Array.from({ length: 5 }).map((_, idx) => (
                 <LibraryBookSkeleton key={`skeleton-book-${idx}`} index={idx + 1} />
               ))
             ) : (
               visible.map((book, idx) => {
-                const rank = book.bestsellerRank || (idx + 1);
+                const rank = idx + 1;
                 return <Link key={book.id} to={`/thu-vien-so?book=${encodeURIComponent(book.id)}`} className="library-ranking-item">
-                  <span className="library-ranking-visual">
-                    <span className={`library-ranking-number ${rank >= 10 ? 'is-double-digit' : ''}`} aria-label={`${language === 'vi' ? 'Hạng' : 'Rank'} ${rank}`}>{rank}</span>
+                  <span className={`library-ranking-visual ${activeShelf?.ranked ? '' : 'is-unranked'}`}>
+                    {activeShelf?.ranked && <span className={`library-ranking-number ${rank >= 10 ? 'is-double-digit' : ''}`} aria-label={`${language === 'vi' ? 'Hạng' : 'Rank'} ${rank}`}>{rank}</span>}
                     <BookCover book={book} decorative language={language} />
-                    <span className="library-ranking-badge"><Trophy size={11} />{language === 'vi' ? 'Bán chạy' : 'Bestseller'}</span>
+                    {activeShelf?.ranked && <span className="library-ranking-badge"><Trophy size={11} />{activeShelf.name}</span>}
                   </span>
                 </Link>;
               })
             )}
           </div>
-          <button type="button" className="library-carousel-control is-next" data-unavailable={!canScrollForward} disabled={!canScrollForward} onClick={() => scroll(1)} aria-label={language === 'vi' ? 'Sách xếp hạng tiếp theo' : 'Next ranked books'}><ChevronRight size={19} aria-hidden="true" /></button>
+          <button type="button" className="library-carousel-control is-next" data-unavailable={!canScrollForward} disabled={!canScrollForward} onClick={() => scroll(1)} aria-label={language === 'vi' ? 'Các sách tiếp theo' : 'Next books'}><ChevronRight size={19} aria-hidden="true" /></button>
         </div>
 
         {/* Nút Xem thêm không có viền đặt dưới danh sách tương tự các tab khác */}

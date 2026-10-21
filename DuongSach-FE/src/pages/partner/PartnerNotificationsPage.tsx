@@ -125,6 +125,7 @@ export const PartnerNotificationsPage: React.FC<PartnerNotificationsPageProps> =
                   <div style={{ fontSize: '0.9rem', fontWeight: item.isRead ? 500 : 700, color: '#172421', lineHeight: 1.4 }}>
                     {item.title}
                   </div>
+                  {item.message && <p style={{ margin: '0.35rem 0', color: '#637771', fontSize: '0.84rem', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{item.message}</p>}
                   <div style={{ fontSize: '0.76rem', color: '#8C9F9A', marginTop: '0.25rem' }}>
                     {item.time}
                   </div>
@@ -135,7 +136,7 @@ export const PartnerNotificationsPage: React.FC<PartnerNotificationsPageProps> =
                     to={item.link} 
                     className="btn-part-secondary" 
                     style={{ padding: '0.35rem 0.65rem', fontSize: '0.78rem', gap: '0.3rem' }}
-                    onClick={(e) => e.stopPropagation()}
+                    onClick={(e) => { e.stopPropagation(); onMarkItemAsRead(item.id); }}
                   >
                     <span>{language === 'vi' ? 'Xem' : 'View'}</span>
                     <ExternalLink size={13} />

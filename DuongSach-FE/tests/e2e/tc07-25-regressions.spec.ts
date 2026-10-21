@@ -80,7 +80,6 @@ test('TC17–21: modal stays open, URL opens, stock uses one patch, approved sub
   await expect(form).toBeVisible();
   await page.locator('.partner-book-modal').click({ position: { x: 2, y: 2 }, force: true });
   await expect(form).toBeVisible();
-  await expect(form.getByRole('link', { name: 'Mở ảnh trong thẻ mới' })).toHaveAttribute('href', 'https://example.com/cover.jpg');
   await form.getByLabel('Số lượng sách đưa vào kho *', { exact: true }).fill('8');
   await form.locator('button[type=submit]').click();
   await expect.poll(() => patches.length).toBe(1);

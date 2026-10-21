@@ -1,3 +1,5 @@
+import { BookshelfManager } from './BookshelfManager';
+import { BookCategorySelect } from './BookCategorySelect';
 import { SafeImage } from '../ui/SafeImage';
 import { useUrlTab } from '../../hooks/useUrlTab';
 import { useModalBehavior } from '../../hooks/useModalBehavior';
@@ -69,16 +71,6 @@ const fields: [
     keyof BookInput,
     string
 ][] = [['title', 'Tên sách'], ['author', 'Tác giả'], ['isbn', 'ISBN'], ['publisher', 'Nhà xuất bản'], ['publicationYear', 'Năm xuất bản'], ['description', 'Mô tả']];
-
-function CategoryBadge({ name, status }: { name?: string; status?: string }) {
-    const isUncategorized = !name || name === 'Chưa phân loại' || status === 'archived';
-    const displayName = isUncategorized ? 'Chưa phân loại' : name;
-    return (
-        <span className={`admin-category-tag ${isUncategorized ? 'is-uncategorized' : ''}`}>
-            {displayName}
-        </span>
-    );
-}
 
 export function AdminDigitalLibraryView({ language }: {
     language: Language;
@@ -168,13 +160,15 @@ export function AdminDigitalLibraryView({ language }: {
     const [reviewing, setReviewing] = useState<BookSubmission | null>(null);
     const [rejecting, setRejecting] = useState(false);
     const [rejectionReason, setRejectionReason] = useState('');
-    const [requestStatus, setRequestStatus] = useState<'all' | 'PENDING' | 'APPROVED' | 'REJECTED'>('all');
+    const [requestStatus, setRequestStatus] = useState<'all' | 'PENDING' | 'REJECTED'>('all');
     const [requestType, setRequestType] = useState('all');
     const [requestDate, setRequestDate] = useState('');
 
     // Stalls tab state
     const [stallId, setStallId] = useState('all');
     const [stockStatus, setStockStatus] = useState<StockStatus>('all');
+
+    const [previewImage, setPreviewImage] = useState<{ url: string; title: string } | null>(null);
 
     // Prevent background scrolling and enable Escape-to-close for all modals
     useModalBehavior(editing !== undefined, () => setEditing(undefined));
@@ -188,6 +182,7 @@ export function AdminDigitalLibraryView({ language }: {
     useModalBehavior(Boolean(editingTaxonomy), () => setEditingTaxonomy(null));
     useModalBehavior(Boolean(deletingTaxonomy), () => setDeletingTaxonomy(null));
     useModalBehavior(Boolean(reviewing), () => { setReviewing(null); setRejecting(false); });
+    useModalBehavior(Boolean(previewImage), () => setPreviewImage(null));
 
     const refresh = useCallback(() => Promise.all([
         libraryApi.getAllBooks(), 
@@ -535,6 +530,7 @@ export function AdminDigitalLibraryView({ language }: {
     const handleApproveSubmission = async (item: BookSubmission) => {
         try {
             await libraryApi.approveBookSubmission(item.id);
+            setSubmissions(rows => rows.map(row => row.id === item.id ? { ...row, status: 'APPROVED' } : row));
             setModalNotice({
                 type: 'success',
                 title: language === 'vi' ? 'Phê duyệt thành công' : 'Approved Successfully',
@@ -829,6 +825,7 @@ export function AdminDigitalLibraryView({ language }: {
 
     const visibleSubmissions = useMemo(() => {
         return submissions
+            .filter(item => item.status !== 'APPROVED')
             .filter(item => requestStatus === 'all' || item.status === requestStatus)
             .filter(item => requestType === 'all' || item.type === requestType)
             .filter(item => !requestDate || item.submittedAt.slice(0, 10) === requestDate)
@@ -883,8 +880,8 @@ export function AdminDigitalLibraryView({ language }: {
     }[] = [
         { id: 'books', vi: 'Tất cả sách', en: 'All books' }, 
         { id: 'moderation', vi: 'Kiểm duyệt', en: 'Moderation' }, 
-        { id: 'rankings', vi: 'Xếp hạng', en: 'Rankings' }, 
-        { id: 'taxonomy', vi: 'Danh mục & nhãn', en: 'Categories & labels' }, 
+        { id: 'rankings', vi: 'Tủ sách', en: 'Bookshelves' }, 
+        { id: 'taxonomy', vi: 'Danh mục', en: 'Categories' }, 
         { id: 'stalls', vi: 'Gian hàng & tồn kho', en: 'Stalls & inventory' }
     ];
     return <div className="admin-library-view">
@@ -896,18 +893,6 @@ export function AdminDigitalLibraryView({ language }: {
             {tab === 'books' && (
                 <button className="admin-library-primary" onClick={openCreate}>
                     <Plus size={17}/>{language === 'vi' ? 'Thêm sách mới' : 'Add new book'}
-                </button>
-            )}
-            {tab === 'rankings' && (
-                <button 
-                    className="admin-library-primary" 
-                    onClick={() => {
-                        setAddingBookToRank(true);
-                        setSelectedBookToRank('');
-                        setNewBookRankPosition(ranked.length + 1 <= 100 ? ranked.length + 1 : 1);
-                    }}
-                >
-                    <Plus size={17}/>{language === 'vi' ? 'Thêm sách vào BXH' : 'Add book to ranking'}
                 </button>
             )}
         </header>
@@ -1029,7 +1014,7 @@ export function AdminDigitalLibraryView({ language }: {
                                             <span className="admin-author-clean">{book.author}</span>
                                         </td>
                                         <td style={{ textAlign: 'left' }}>
-                                            <CategoryBadge name={book.category?.name} status={book.category?.status} />
+                                            <BookCategorySelect book={book} categories={categories} language={language} onSaved={updated => setBooks(rows => rows.map(row => row.id === updated.id ? updated : row))} />
                                         </td>
                                         <td style={{ textAlign: 'left' }}>
                                             {bookStallList.length === 0 ? (
@@ -1180,7 +1165,7 @@ export function AdminDigitalLibraryView({ language }: {
                                             <span>ISBN:</span> <code className="admin-isbn-mono">{book.isbn}</code>
                                         </div>
                                         <div className="admin-bmc-category">
-                                            <CategoryBadge name={book.category?.name} status={book.category?.status} />
+                                            <BookCategorySelect book={book} categories={categories} language={language} onSaved={updated => setBooks(rows => rows.map(row => row.id === updated.id ? updated : row))} />
                                         </div>
                                     </div>
                                 </div>
@@ -1329,7 +1314,6 @@ export function AdminDigitalLibraryView({ language }: {
                     >
                         <option value="all">{language === 'vi' ? 'Tất cả trạng thái' : 'All statuses'}</option>
                         <option value="PENDING">{language === 'vi' ? 'Chờ duyệt' : 'Pending'}</option>
-                        <option value="APPROVED">{language === 'vi' ? 'Đã duyệt' : 'Approved'}</option>
                         <option value="REJECTED">{language === 'vi' ? 'Bị từ chối' : 'Rejected'}</option>
                     </select>
                     <select value={requestType} onChange={e => setRequestType(e.target.value)}>
@@ -1343,8 +1327,8 @@ export function AdminDigitalLibraryView({ language }: {
                     <table>
                         <thead>
                             <tr>
-                                <th style={{ width: '180px', textAlign: 'left' }}>{language === 'vi' ? 'Gian hàng' : 'Stall'}</th>
-                                <th style={{ minWidth: '200px', textAlign: 'left' }}>{language === 'vi' ? 'Sách đề xuất' : 'Proposed Book'}</th>
+                                <th style={{ width: '260px', minWidth: '260px', textAlign: 'left' }}>{language === 'vi' ? 'Gian hàng' : 'Stall'}</th>
+                                <th style={{ minWidth: '260px', textAlign: 'left' }}>{language === 'vi' ? 'Sách đề xuất' : 'Proposed Book'}</th>
                                 <th style={{ width: '140px', textAlign: 'left' }}>{language === 'vi' ? 'Người gửi' : 'Submitter'}</th>
                                 <th style={{ width: '120px', textAlign: 'left' }}>{language === 'vi' ? 'Loại yêu cầu' : 'Request'}</th>
                                 <th style={{ width: '110px', textAlign: 'center' }}>{language === 'vi' ? 'Ngày gửi' : 'Submitted'}</th>
@@ -1355,7 +1339,7 @@ export function AdminDigitalLibraryView({ language }: {
                         <tbody>
                             {submissionsPagination.items.map(item => (
                                 <tr key={item.id}>
-                                    <td style={{ textAlign: 'left' }}>
+                                    <td style={{ textAlign: 'left', minWidth: '260px', paddingRight: '1.25rem' }}>
                                         <strong>{item.stallName}</strong>
                                         <small>{item.stallCode}</small>
                                     </td>
@@ -1461,7 +1445,7 @@ export function AdminDigitalLibraryView({ language }: {
         )}
 
         {tab === 'taxonomy' && (
-            <section className="admin-taxonomy-grid">
+            <section className="admin-taxonomy-grid" style={{ gridTemplateColumns: 'minmax(0, 1fr)' }}>
                 <TaxonomySection 
                     title={language === 'vi' ? 'Danh mục' : 'Categories'} 
                     icon={<BookOpen size={17}/>} 
@@ -1507,58 +1491,6 @@ export function AdminDigitalLibraryView({ language }: {
                             onRestore: () => handleRestoreTaxonomy('category', item),
                             onDelete: () => setDeletingTaxonomy({
                                 type: 'category',
-                                id: item.id,
-                                name: item.name,
-                                status: item.status,
-                                count,
-                                permanent: item.status === 'archived' && count === 0
-                            })
-                        };
-                    })}
-                />
-                <TaxonomySection 
-                    title={language === 'vi' ? 'Nhãn' : 'Labels'} 
-                    icon={<Tags size={17}/>} 
-                    value={labelName} 
-                    setValue={setLabelName} 
-                    language={language}
-                    onCreate={async () => { 
-                        if (labelName.trim()) {
-                            try {
-                                await libraryApi.createLabel({ name: labelName.trim() });
-                                setLabelName('');
-                                setModalNotice({
-                                    type: 'success',
-                                    title: language === 'vi' ? 'Tạo nhãn thành công' : 'Label Created',
-                                    message: language === 'vi' ? `Nhãn "${labelName.trim()}" đã được thêm vào hệ thống.` : 'Label created successfully.'
-                                });
-                                await refresh();
-                            } catch (err: any) {
-                                setModalNotice({
-                                    type: 'error',
-                                    title: language === 'vi' ? 'Lỗi tạo nhãn' : 'Error Creating Label',
-                                    message: err.message || (language === 'vi' ? 'Không thể tạo nhãn này.' : 'Failed to create label.')
-                                });
-                            }
-                        } 
-                    }} 
-                    rows={labels.map(item => {
-                        const count = books.filter(book => book.labelIds?.includes(item.id)).length;
-                        return {
-                            id: item.id, 
-                            name: item.name, 
-                            status: item.status, 
-                            count,
-                            onEdit: () => setEditingTaxonomy({
-                                type: 'label',
-                                id: item.id,
-                                name: item.name,
-                                status: item.status as any,
-                                count
-                            }),
-                            onRestore: () => handleRestoreTaxonomy('label', item),
-                            onDelete: () => setDeletingTaxonomy({
-                                type: 'label',
                                 id: item.id,
                                 name: item.name,
                                 status: item.status,
@@ -1774,209 +1706,7 @@ export function AdminDigitalLibraryView({ language }: {
             </section>
         )}
 
-        {tab === 'rankings' && (
-            <section className="admin-library-panel">
-                <div className="admin-ranking-note">
-                    {language === 'vi'
-                        ? 'Tối đa 100 sách được xếp hạng từ dữ liệu bán. Kéo tay nắm để ưu tiên thủ công; landing page chỉ hiển thị 12 vị trí đầu.'
-                        : 'Up to 100 books are ranked from sales. Drag the handle to set manual priority; the landing page shows only the first 12.'}
-                    {rankingSaving && <span className="admin-ranking-saving" role="status">{language === 'vi' ? 'Đang lưu…' : 'Saving…'}</span>}
-                </div>
-                <div className="admin-ranking-switch-row">
-                    <div className="admin-ranking-switch">
-                        <button className={rankingType === 'bestseller' ? 'is-active' : ''} onClick={() => setRankingType('bestseller')}>
-                            Top 100 {language === 'vi' ? 'bán chạy' : 'bestsellers'} ({books.filter(b => b.bestsellerRank !== null && b.bestsellerRank !== undefined).length})
-                        </button>
-                        <button className={rankingType === 'weekly_hot' ? 'is-active' : ''} onClick={() => setRankingType('weekly_hot')}>
-                            {language === 'vi' ? 'Hot tuần này' : 'Hot this week'} ({books.filter(b => b.weeklyRank !== null && b.weeklyRank !== undefined).length})
-                        </button>
-                    </div>
-                </div>
-                <div className="admin-library-table-wrap admin-library-desktop-table">
-                    <table className="admin-rankings-table">
-                        <thead>
-                            <tr>
-                                <th style={{ width: '75px', textAlign: 'center' }}>{language === 'vi' ? 'Hạng' : 'Rank'}</th>
-                                <th style={{ minWidth: '260px', textAlign: 'left' }}>{language === 'vi' ? 'Sách' : 'Book'}</th>
-                                <th style={{ width: '160px', textAlign: 'left' }}>{language === 'vi' ? 'Phân loại' : 'Category'}</th>
-                                <th style={{ width: '120px', textAlign: 'center' }}>{language === 'vi' ? 'Dữ liệu bán' : 'Sales data'}</th>
-                                <th style={{ width: '160px', textAlign: 'center' }}>{language === 'vi' ? 'Nguồn' : 'Source'}</th>
-                                <th style={{ width: '80px', textAlign: 'center' }}>{language === 'vi' ? 'Kéo thả' : 'Reorder'}</th>
-                                <th style={{ width: '90px', textAlign: 'center' }}>{language === 'vi' ? 'Thao tác' : 'Actions'}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {ranked.map((book, index) => {
-                                const rank = rankingType === 'bestseller' ? book.bestsellerRank : book.weeklyRank;
-                                const source = rankingType === 'bestseller' ? book.bestsellerSource : book.weeklySource;
-                                const isDragging = draggedRankIndex === index;
-                                const isOver = dragOverRankIndex === index && draggedRankIndex !== index;
-                                return (
-                                    <tr 
-                                        key={book.id} 
-                                        className={`${isDragging ? 'is-dragging' : ''} ${isOver ? 'is-drag-over' : ''}`} 
-                                        onDragOver={event => { event.preventDefault(); setDragOverRankIndex(index); }} 
-                                        onDrop={event => { event.preventDefault(); if (draggedRankIndex !== null) void handleRankDrop(draggedRankIndex, index); }}
-                                    >
-                                        <td style={{ textAlign: 'center' }}><strong className="admin-rank-number">#{rank}</strong></td>
-                                        <td style={{ textAlign: 'left' }}>
-                                            <div 
-                                                className="admin-book-cell is-clickable"
-                                                onClick={() => openView(book)}
-                                                title={language === 'vi' ? 'Nhấn để xem chi tiết sách' : 'Click to view book details'}
-                                            >
-                                                <SafeImage className="admin-book-cover" src={book.coverUrl} alt={book.title} loading="lazy" />
-                                                <div className="admin-book-cell-meta">
-                                                    <strong className="admin-book-title">{book.title}</strong>
-                                                    <small className="admin-book-meta">{book.author}</small>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td style={{ textAlign: 'left' }}><CategoryBadge name={book.category?.name} status={book.category?.status} /></td>
-                                        <td style={{ textAlign: 'center', fontWeight: 600 }}>{rankingType === 'bestseller' ? book.totalSold : book.weeklySold ?? '—'}</td>
-                                        <td style={{ textAlign: 'center' }}>
-                                            <span className={`admin-source-pill ${source}`}>
-                                                {source === 'admin' ? (language === 'vi' ? 'Admin tuyển chọn' : 'Admin selected') : (language === 'vi' ? 'Tự động từ dữ liệu bán' : 'Automatic from sales')}
-                                            </span>
-                                        </td>
-                                        <td style={{ textAlign: 'center' }}>
-                                            <button 
-                                                type="button" 
-                                                className="admin-rank-drag-handle" 
-                                                draggable={!rankingSaving} 
-                                                onDragStart={event => { event.dataTransfer.effectAllowed = 'move'; setDraggedRankIndex(index); }} 
-                                                onDragEnd={() => { setDraggedRankIndex(null); setDragOverRankIndex(null); }} 
-                                                aria-label={`${language === 'vi' ? 'Kéo để đổi hạng' : 'Drag to reorder'} ${book.title}`} 
-                                                title={language === 'vi' ? 'Nắm và kéo lên/xuống để đổi thứ hạng' : 'Drag up or down to reorder'}
-                                            >
-                                                <GripVertical size={19}/>
-                                            </button>
-                                        </td>
-                                        <td style={{ textAlign: 'center' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
-                                                <button
-                                                    type="button"
-                                                    className="admin-tax-action-btn"
-                                                    title={language === 'vi' ? 'Chỉnh sửa xếp hạng' : 'Edit rank'}
-                                                    onClick={() => setRankingModalBook({
-                                                        book,
-                                                        bestsellerRank: book.bestsellerRank ?? null,
-                                                        weeklyRank: book.weeklyRank ?? null
-                                                    })}
-                                                >
-                                                    <Edit3 size={13} />
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    className="admin-tax-action-btn is-danger"
-                                                    title={language === 'vi' ? 'Gỡ khỏi bảng xếp hạng này' : 'Remove from ranking'}
-                                                    onClick={() => handleRemoveFromRanking(book.id, book.title)}
-                                                >
-                                                    <Trash2 size={13} />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                            {!ranked.length && <tr><td colSpan={7} className="admin-library-empty">{language === 'vi' ? 'Chưa có dữ liệu xếp hạng.' : 'No ranking data is available.'}</td></tr>}
-                        </tbody>
-                    </table>
-                </div>
-
-                {/* Mobile Cards for Rankings */}
-                <div className="admin-rank-mobile-cards">
-                    {ranked.map((book, index) => {
-                        const rank = rankingType === 'bestseller' ? book.bestsellerRank : book.weeklyRank;
-                        const source = rankingType === 'bestseller' ? book.bestsellerSource : book.weeklySource;
-                        const isTop3 = (rank ?? 999) <= 3;
-                        return (
-                            <div key={book.id} className={`admin-rank-mobile-card ${isTop3 ? `is-top-${rank}` : ''}`}>
-                                <div className="admin-rmc-header">
-                                    <div className={`admin-rmc-badge ${isTop3 ? `is-top-${rank}` : ''}`}>
-                                        {isTop3 && <Trophy size={14} className="admin-rmc-trophy" />}
-                                        <span>#{rank}</span>
-                                    </div>
-                                    <span className={`admin-source-pill ${source}`}>
-                                        {source === 'admin' ? (language === 'vi' ? 'Admin tuyển chọn' : 'Admin selected') : (language === 'vi' ? 'Tự động bán chạy' : 'Auto sales')}
-                                    </span>
-                                    <div className="admin-rmc-sales">
-                                        <strong>{rankingType === 'bestseller' ? book.totalSold : book.weeklySold ?? '—'}</strong>
-                                        <small>{language === 'vi' ? 'đã bán' : 'sold'}</small>
-                                    </div>
-                                </div>
-
-                                <div className="admin-rmc-body is-clickable" onClick={() => openView(book)}>
-                                    <SafeImage className="admin-bmc-cover" src={book.coverUrl} alt={book.title} loading="lazy" />
-                                    <div className="admin-rmc-info">
-                                        <strong className="admin-book-title">{book.title}</strong>
-                                        <span className="admin-author-clean">{book.author}</span>
-                                        <div style={{ marginTop: '4px' }}>
-                                            <CategoryBadge name={book.category?.name} status={book.category?.status} />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="admin-rmc-actions">
-                                    <div className="admin-rmc-reorder-group">
-                                        <button
-                                            type="button"
-                                            className="admin-rmc-arrow-btn"
-                                            disabled={index === 0 || rankingSaving}
-                                            onClick={() => void handleRankDrop(index, index - 1)}
-                                            title={language === 'vi' ? 'Tăng thứ hạng (lên 1 bậc)' : 'Move up'}
-                                        >
-                                            <ChevronUp size={16} />
-                                            <span>{language === 'vi' ? 'Lên' : 'Up'}</span>
-                                        </button>
-                                        <button
-                                            type="button"
-                                            className="admin-rmc-arrow-btn"
-                                            disabled={index === ranked.length - 1 || rankingSaving}
-                                            onClick={() => void handleRankDrop(index, index + 1)}
-                                            title={language === 'vi' ? 'Giảm thứ hạng (xuống 1 bậc)' : 'Move down'}
-                                        >
-                                            <ChevronDown size={16} />
-                                            <span>{language === 'vi' ? 'Xuống' : 'Down'}</span>
-                                        </button>
-                                    </div>
-
-                                    <div className="admin-rmc-btn-group">
-                                        <button
-                                            type="button"
-                                            className="admin-rmc-act-btn"
-                                            onClick={() => setRankingModalBook({
-                                                book,
-                                                bestsellerRank: book.bestsellerRank ?? null,
-                                                weeklyRank: book.weeklyRank ?? null
-                                            })}
-                                            title={language === 'vi' ? 'Sửa xếp hạng' : 'Edit rank'}
-                                        >
-                                            <Edit3 size={14} />
-                                            <span>{language === 'vi' ? 'Sửa' : 'Edit'}</span>
-                                        </button>
-                                        <button
-                                            type="button"
-                                            className="admin-rmc-act-btn is-danger"
-                                            onClick={() => handleRemoveFromRanking(book.id, book.title)}
-                                            title={language === 'vi' ? 'Gỡ khỏi BXH' : 'Remove'}
-                                        >
-                                            <Trash2 size={14} />
-                                            <span>{language === 'vi' ? 'Gỡ' : 'Remove'}</span>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })}
-                    {!ranked.length && (
-                        <div className="admin-library-mobile-empty">
-                            {language === 'vi' ? 'Chưa có sách nào trong bảng xếp hạng này.' : 'No books in this ranking.'}
-                        </div>
-                    )}
-                </div>
-            </section>
-        )}
+        {tab === 'rankings' && <BookshelfManager books={books} language={language} onEditBook={openEdit} />}
 
         {/* Modal Thêm / Chỉnh sửa sách */}
         {editing !== undefined && createPortal(
@@ -2084,7 +1814,6 @@ export function AdminDigitalLibraryView({ language }: {
                                                     ? (language === 'vi' ? 'Đang dùng ảnh tải lên từ máy tính' : 'Using uploaded image from device') 
                                                     : (language === 'vi' ? 'Dán đường dẫn ảnh (URL https://... hoặc /duong_sach_logo.png)' : 'Paste image URL or enter path...')}
                                             />
-                                            {form.coverUrl && /^https?:\/\//.test(form.coverUrl) && <a href={form.coverUrl} target="_blank" rel="noopener noreferrer">{language === 'vi' ? 'Mở ảnh trong thẻ mới' : 'Open image in new tab'}</a>}
                                             {form.coverUrl && !form.coverUrl.startsWith('data:') && (
                                                 <button 
                                                     type="button" 
@@ -2207,7 +1936,15 @@ export function AdminDigitalLibraryView({ language }: {
                         <button type="button" onClick={() => setViewingBook(null)}><X size={18} /></button>
                     </div>
                     <div className="admin-book-detail-body">
-                        <div className="admin-book-detail-cover-wrap">
+                        <div 
+                            className="admin-book-detail-cover-wrap is-clickable"
+                            onClick={() => {
+                                if (viewingBook.coverUrl) {
+                                    setPreviewImage({ url: viewingBook.coverUrl, title: viewingBook.title });
+                                }
+                            }}
+                            title={language === 'vi' ? 'Nhấn để phóng to xem ảnh' : 'Click to zoom image'}
+                        >
                             <SafeImage className="admin-book-detail-cover" src={viewingBook.coverUrl} alt={viewingBook.title} />
                             {viewingBook.status && (
                                 <span className={`admin-book-detail-status ${viewingBook.status}`}>
@@ -2237,7 +1974,7 @@ export function AdminDigitalLibraryView({ language }: {
                                 <div className="admin-detail-row">
                                     <span className="admin-detail-label">{language === 'vi' ? 'Phân loại' : 'Category'}</span>
                                     <div className="admin-detail-value">
-                                        <CategoryBadge name={viewingBook.category?.name} status={viewingBook.category?.status} />
+                                        <BookCategorySelect book={viewingBook} categories={categories} language={language} onSaved={updated => { setViewingBook(updated); setBooks(rows => rows.map(row => row.id === updated.id ? updated : row)); }} />
                                     </div>
                                 </div>
                                 <div className="admin-detail-row">
@@ -2298,18 +2035,6 @@ export function AdminDigitalLibraryView({ language }: {
                     <div className="admin-form-actions">
                         <button type="button" className="admin-btn-detail-close" onClick={() => setViewingBook(null)}>
                             {language === 'vi' ? 'Đóng' : 'Close'}
-                        </button>
-                        <button 
-                            type="button" 
-                            className="admin-library-secondary"
-                            onClick={() => {
-                                const b = viewingBook;
-                                setViewingBook(null);
-                                setQrModalBook({ book: b, selectedStallId: 'all' });
-                            }}
-                        >
-                            <QrCode size={15} />
-                            <span>{language === 'vi' ? 'Mã QR & In tem' : 'QR & Print Tag'}</span>
                         </button>
                         <button 
                             type="button" 
@@ -3065,12 +2790,6 @@ export function AdminDigitalLibraryView({ language }: {
                                 </div>
                             </div>
 
-                            <div className="admin-qr-url-row">
-                                <span style={{ fontSize: '0.74rem', color: '#6b7280' }}>{language === 'vi' ? 'Đường dẫn liên kết:' : 'Target URL:'}</span>
-                                <code style={{ fontSize: '0.74rem', wordBreak: 'break-all', color: '#166534', background: '#f0fdf4', padding: '4px 8px', borderRadius: '4px', border: '1px solid #bbf7d0' }}>
-                                    {qrUrl}
-                                </code>
-                            </div>
                         </div>
 
                         <div className="admin-form-actions">
@@ -3096,6 +2815,41 @@ export function AdminDigitalLibraryView({ language }: {
                 </div>
             );
         })(), document.body)}
+
+        {/* Modal Xem ảnh bìa kích thước lớn (Lightbox) cho Admin */}
+        {previewImage && createPortal(
+            <div 
+                className="partner-image-lightbox-modal" 
+                role="dialog" 
+                aria-modal="true"
+                onClick={() => setPreviewImage(null)}
+            >
+                <div className="partner-image-lightbox-card" onClick={e => e.stopPropagation()}>
+                    <header className="partner-image-lightbox-header">
+                        <div className="partner-image-lightbox-title-box">
+                            <span className="partner-image-lightbox-label">{language === 'vi' ? 'Bìa cuốn sách' : 'Book Cover'}</span>
+                            <strong className="partner-image-lightbox-title">{previewImage.title}</strong>
+                        </div>
+                        <button 
+                            type="button" 
+                            className="partner-image-lightbox-close"
+                            onClick={() => setPreviewImage(null)}
+                            title={language === 'vi' ? 'Đóng xem ảnh' : 'Close preview'}
+                        >
+                            <X size={18} />
+                        </button>
+                    </header>
+                    <div className="partner-image-lightbox-body">
+                        <SafeImage 
+                            src={previewImage.url} 
+                            alt={previewImage.title} 
+                            className="partner-image-lightbox-img" 
+                        />
+                    </div>
+                </div>
+            </div>,
+            document.body
+        )}
     </div>;
 }
 function Tools({ query, setQuery, placeholder }: {
@@ -3146,11 +2900,11 @@ function TaxonomySection({ title, icon, value, setValue, onCreate, rows, languag
                         <div className="admin-taxonomy-info">
                             <div className="admin-taxonomy-title-row">
                                 <strong>{row.name}</strong>
-                                <span className={`admin-taxonomy-status-badge ${row.status}`}>
-                                    {row.status === 'active' 
-                                        ? (language === 'vi' ? 'Hoạt động' : 'Active') 
-                                        : (language === 'vi' ? 'Đã lưu trữ' : 'Archived')}
-                                </span>
+                                {row.status === 'archived' && (
+                                    <span className="admin-taxonomy-status-badge archived">
+                                        {language === 'vi' ? 'Đã lưu trữ' : 'Archived'}
+                                    </span>
+                                )}
                             </div>
                             <small className="admin-taxonomy-sub">
                                 {row.nameEn ? `${row.nameEn} · ` : ''}

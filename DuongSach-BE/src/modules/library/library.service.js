@@ -64,6 +64,7 @@ const includeBook = {
     include: { stall: true },
   },
 };
+export const publicBookWhere = { status: 'active', category: { is: { status: 'active', name: { not: 'Chưa phân loại' } } } };
 export const mapBook = (b) => ({
   ...b,
   labelIds: b.labels?.map((x) => x.labelId) || [],
@@ -221,7 +222,7 @@ export const LibraryService = {
   async books(query = {}, admin = false) {
     query = parse(z.object({ search: searchText.optional(), searchMode: z.enum(["title_isbn"]).optional(), title: searchText.optional(), categoryId: uuid.optional(), stallId: uuid.optional() }), query);
     const where = {
-      ...(!admin ? { status: "active" } : {}),
+      ...(!admin ? publicBookWhere : {}),
       ...(query.categoryId
         ? { categoryId: parse(uuid, query.categoryId) }
         : {}),
@@ -249,7 +250,7 @@ export const LibraryService = {
   },
   async book(id, admin = false) {
     const b = await prisma.book.findFirst({
-      where: { id: parse(uuid, id), ...(!admin ? { status: "active" } : {}) },
+      where: { id: parse(uuid, id), ...(!admin ? publicBookWhere : {}) },
       include: includeBook,
     });
     if (!b) throw ApiError.notFound("Không tìm thấy sách");
@@ -312,7 +313,7 @@ export const LibraryService = {
         where: {
           ...(bookId ? { bookId: parse(uuid, bookId) } : {}),
           stall: { isDeleted: false },
-          ...(publicOnly ? { book: { status: "active" } } : {}),
+          ...(publicOnly ? { book: publicBookWhere } : {}),
         },
         include: { stall: true },
       })
@@ -646,8 +647,8 @@ export const LibraryService = {
       return result;
     });
   },
-  async rankings() {
-    const books = await this.books();
+  async rankings(admin = false) {
+    const books = (await this.books({}, admin)).filter(book => book.status === 'active');
     const since = new Date(Date.now() - 7 * 86400000);
     const [all, week] = await Promise.all([
       prisma.bookStall.groupBy({

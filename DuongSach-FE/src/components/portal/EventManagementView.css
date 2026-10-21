@@ -597,14 +597,11 @@
 }
 
 .event-card-img {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.25s ease;
-}
-
-.event-card:hover .event-card-img {
-  transform: scale(1.03);
+  object-position: center top;
 }
 
 .event-card-badge {
@@ -776,9 +773,11 @@
 }
 
 .event-preview-hero img {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center top;
 }
 
 .event-preview-close {

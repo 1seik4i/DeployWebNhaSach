@@ -12,7 +12,8 @@ import {
   BarChart3, 
   PieChart, 
   ChevronRight,
-  FileSpreadsheet
+  FileSpreadsheet,
+  User 
 } from 'lucide-react';
 import { Language } from '../../types';
 import { OrganizerEvent } from '../../types/organizer';
@@ -576,20 +577,67 @@ export const OrganizerReportsView: React.FC<OrganizerReportsViewProps> = ({
               <h2 style={{ fontSize: '1rem', margin: 0, color: '#111827' }}>{vi ? 'Ý kiến đánh giá của người dùng' : 'User review comments'}</h2>
               <span style={{ fontSize: '0.76rem', color: '#64748B', fontWeight: 700 }}>{report.ratingCount} {vi ? 'đánh giá' : 'reviews'}</span>
             </div>
-            {(report.feedbacks || []).length ? <div style={{ display: 'grid', gap: '0.75rem' }}>
-              {pagination.items.map(item => (
-                <article key={`${item.source}-${item.id}`} style={{ border: '1px solid #E2E8F0', borderRadius: 10, padding: '0.9rem 1rem', background: '#F8FAFC' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-                    <strong style={{ color: '#1E293B' }}>{item.authorName || (vi ? 'Người dùng ẩn danh' : 'Anonymous user')}</strong>
-                    <span style={{ color: '#F59E0B', fontWeight: 800 }}>{'★'.repeat(item.rating)}{'☆'.repeat(5 - item.rating)}</span>
-                  </div>
-                  <div style={{ marginTop: 4, color: '#64748B', fontSize: '0.74rem' }}>
-                    {item.activityName || (vi ? 'Đánh giá toàn sự kiện' : 'Event review')} · {new Date(item.createdAt).toLocaleString(vi ? 'vi-VN' : 'en-GB', { timeZone: 'Asia/Ho_Chi_Minh' })}
-                  </div>
-                  <p style={{ margin: '0.65rem 0 0', color: '#334155', whiteSpace: 'pre-wrap' }}>{item.comment || (vi ? 'Không để lại ý kiến.' : 'No written comment.')}</p>
-                </article>
-              ))}
-            </div> : <p style={{ margin: 0, color: '#64748B' }}>{vi ? 'Chưa có đánh giá thực tế cho sự kiện này.' : 'No reviews for this event yet.'}</p>}
+            {(report.feedbacks || []).length ? (
+              <div className="review-feedback-list">
+                {pagination.items.map(item => {
+                  const initial = item.authorName ? item.authorName.trim().charAt(0).toUpperCase() : null;
+                  const dateObj = new Date(item.createdAt);
+                  const dateStr = dateObj.toLocaleDateString(vi ? 'vi-VN' : 'en-GB', {
+                    timeZone: 'Asia/Ho_Chi_Minh',
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit'
+                  });
+                  const timeStr = dateObj.toLocaleTimeString(vi ? 'vi-VN' : 'en-GB', {
+                    timeZone: 'Asia/Ho_Chi_Minh',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                  });
+
+                  return (
+                    <article key={`${item.source}-${item.id}`} className="review-feedback-card">
+                      <div className="review-card-header">
+                        <div className="review-author-group">
+                          <div className="review-avatar" aria-hidden="true">
+                            {initial || <User size={16} />}
+                          </div>
+                          <div className="review-author-info">
+                            <div className="review-author-name-row">
+                              <strong className="review-author-name">
+                                {item.authorName || (vi ? 'Người dùng ẩn danh' : 'Anonymous user')}
+                              </strong>
+                              <span className="review-scope-pill">
+                                {item.activityName || (vi ? 'Đánh giá sự kiện' : 'Event review')}
+                              </span>
+                            </div>
+                            <span className="review-date-text">{timeStr} · {dateStr}</span>
+                          </div>
+                        </div>
+
+                        <div className="review-stars-group" aria-label={`${item.rating}/5`}>
+                          {[1, 2, 3, 4, 5].map(starNum => (
+                            <Star
+                              key={starNum}
+                              size={14}
+                              className={starNum <= item.rating ? 'review-star filled' : 'review-star empty'}
+                            />
+                          ))}
+                        </div>
+                      </div>
+
+                      {item.comment ? (
+                        <p className="review-comment-text">{item.comment}</p>
+                      ) : (
+                        <p className="review-comment-empty">
+                          {vi ? '(Không để lại nhận xét viết tay)' : '(No written comment)'}
+                        </p>
+                      )}
+                    </article>
+                  );
+                })}
+              </div>
+            ) : <p style={{ margin: 0, color: '#64748B' }}>{vi ? 'Chưa có đánh giá thực tế cho sự kiện này.' : 'No reviews for this event yet.'}</p>}
             <ListPagination page={pagination.page} totalPages={pagination.totalPages} onChange={pagination.setPage} vi={vi} />
           </section>
         </>

@@ -3,6 +3,7 @@ import swaggerUi from 'swagger-ui-express';
 import { heritageFeedbackPaths, heritageFeedbackSchemas } from './heritage-feedback.js';
 import { completionPaths } from './completion.js';
 import { eventRegistrationPaths } from './event-registration.js';
+import { bookshelfPaths } from './bookshelves.js';
 
 const apiResponse = { type: 'object', properties: { success: { type: 'boolean' }, data: {} } };
 const errorResponse = { type: 'object', properties: { success: { type: 'boolean', example: false }, error: { type: 'object' } } };
@@ -48,6 +49,7 @@ export const swaggerDocument = {
   components: { schemas: heritageFeedbackSchemas, securitySchemes: { BearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' } } },
   paths: {
     ...eventRegistrationPaths,
+    ...bookshelfPaths,
     ...heritageFeedbackPaths,
     ...guestSubmissionPaths,
     '/health': { get: { tags: ['Hệ thống'], summary: 'Kiểm tra trạng thái API', responses: success } },

@@ -4,15 +4,15 @@ import { createPortal } from 'react-dom';
 import { ArrowLeft, ArrowRight, BookOpen, Building2, CalendarDays, ChevronLeft, ChevronRight, Funnel, Hash, Search, Sparkles, Tag, X } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import type { Book, BookCategory, BookStall, Language } from '../types';
-import { libraryApi } from '../services/libraryApi';
+import { libraryApi, type Bookshelf } from '../services/libraryApi';
 import { BookCard } from '../components/library/BookCard';
 import { BookCover } from '../components/library/BookCover';
 import { BookStallAvailability } from '../components/library/BookStallAvailability';
 import { getPaginationRange } from '../components/ui/ListPagination';
 import '../components/library/DigitalLibrary.css';
 
-type DiscoveryMode = 'shelves' | 'bestseller' | 'weekly_hot' | 'category' | 'all_books';
-type Shelf = { id: string; title: string; books: Book[]; mode?: 'bestseller' | 'weekly_hot'; actionLabel?: string; onAction?: () => void };
+type DiscoveryMode = 'custom' | 'shelves' | 'bestseller' | 'weekly_hot' | 'category' | 'all_books';
+type Shelf = { id: string; title: string; books: Book[]; ranked?: boolean; mode?: 'bestseller' | 'weekly_hot'; actionLabel?: string; onAction?: () => void };
 const SHELF_AUTOPLAY_DELAY = 6000;
 const SHELF_SCROLL_SETTLE_DELAY = 700;
 const BOOKS_PER_PAGE = 10;
@@ -102,8 +102,8 @@ function BookShelfRow({ shelf, language, onOpen, exposeBookIds }: { shelf: Shelf
     <div className="library-shelf-shell" onPointerEnter={pauseAutoplay} onPointerLeave={resumeAutoplay} onPointerDown={pauseAutoplay} onWheel={pauseAutoplay} onFocusCapture={pauseAutoplay} onBlurCapture={event => { if (!event.currentTarget.contains(event.relatedTarget)) pausedRef.current = false; }}>
       <button type="button" className="library-shelf-control is-prev" data-unavailable={!hasOverflow} disabled={!hasOverflow} onClick={() => scroll(-1)} aria-label={language === 'vi' ? `Xem thêm phía trước trong ${shelf.title}` : `Scroll back in ${shelf.title}`}><ChevronLeft size={19} aria-hidden="true" /></button>
       <div ref={trackRef} className={`library-shelf-track ${hasOverflow ? 'is-looping' : 'is-static'}`} onScroll={updateControls}>
-        {shelf.books.map(book => <BookCard key={book.id} book={book} language={language} mode={shelf.mode} exposeBookId={exposeBookIds} compact onClick={() => onOpen(book)} />)}
-        {shelf.books.map(book => <BookCard key={`loop-${book.id}`} book={book} language={language} mode={shelf.mode} exposeBookId={false} compact carouselClone onClick={() => onOpen(book)} />)}
+        {shelf.books.map((book, index) => <BookCard key={book.id} book={book} language={language} mode={shelf.mode} showRanking={shelf.ranked} rankOverride={shelf.ranked ? index + 1 : undefined} rankingLabel={shelf.ranked ? shelf.title : undefined} exposeBookId={exposeBookIds} compact onClick={() => onOpen(book)} />)}
+        {shelf.books.map((book, index) => <BookCard key={`loop-${book.id}`} book={book} language={language} mode={shelf.mode} showRanking={shelf.ranked} rankOverride={shelf.ranked ? index + 1 : undefined} rankingLabel={shelf.ranked ? shelf.title : undefined} exposeBookId={false} compact carouselClone onClick={() => onOpen(book)} />)}
       </div>
       <button type="button" className="library-shelf-control is-next" data-unavailable={!hasOverflow} disabled={!hasOverflow} onClick={() => scroll(1)} aria-label={language === 'vi' ? `Xem thêm phía sau trong ${shelf.title}` : `Scroll forward in ${shelf.title}`}><ChevronRight size={19} aria-hidden="true" /></button>
       <div className="library-shelf-line" aria-hidden="true" />
@@ -208,6 +208,8 @@ export function DigitalLibraryPage({ language }: { language: Language }) {
   } | null>(null);
 
   const [books, setBooks] = useState<Book[]>([]);
+  const [configuredShelves, setConfiguredShelves] = useState<Bookshelf[]>([]);
+  const [selectedShelfId, setSelectedShelfId] = useState('');
   const [categories, setCategories] = useState<BookCategory[]>([]);
   const [bookStalls, setBookStalls] = useState<BookStall[]>([]);
   const [discoveryMode, setDiscoveryMode] = useState<DiscoveryMode>('shelves');
@@ -236,13 +238,16 @@ export function DigitalLibraryPage({ language }: { language: Language }) {
       libraryApi.getCategories(),
       libraryApi.getAllBookStalls(),
       libraryApi.getRankings(),
+      libraryApi.getBookshelves(),
     ])
-      .then(([bookRows, categoryRows, stallRows, rankings]) => {
+      .then(([bookRows, categoryRows, stallRows, rankings, shelfRows]) => {
+        setConfiguredShelves(shelfRows);
         const rankedById = new Map<string, Partial<Book>>();
         [...rankings.bestsellers, ...rankings.weeklyHot].forEach(book => {
           rankedById.set(book.id, { ...rankedById.get(book.id), ...book });
         });
         setBooks(bookRows.map(book => ({ ...book, ...rankedById.get(book.id) })));
+        setSelected(current => current ? bookRows.find(book => book.id === current.id) || null : null);
         setCategories(categoryRows);
         setBookStalls(stallRows);
         setLoadError('');
@@ -253,8 +258,11 @@ export function DigitalLibraryPage({ language }: { language: Language }) {
   useEffect(() => {
     loadData();
     const handler = () => void loadData();
+    const storageHandler = (event: StorageEvent) => { if (event.key === libraryApi.changeEvent) loadData(); };
     window.addEventListener(libraryApi.changeEvent, handler);
-    return () => window.removeEventListener(libraryApi.changeEvent, handler);
+    window.addEventListener('focus', handler);
+    window.addEventListener('storage', storageHandler);
+    return () => { window.removeEventListener(libraryApi.changeEvent, handler); window.removeEventListener('focus', handler); window.removeEventListener('storage', storageHandler); };
   }, [loadData]);
 
   useEffect(() => {
@@ -424,59 +432,27 @@ export function DigitalLibraryPage({ language }: { language: Language }) {
 
     if (discoveryMode !== 'shelves') return [];
 
-    const bestsellers = [...contextBooks]
-      .filter(book => book.bestsellerRank)
-      .sort((a, b) => (a.bestsellerRank || 999) - (b.bestsellerRank || 999));
-    const weekly = [...contextBooks]
-      .filter(book => book.weeklyRank)
-      .sort((a, b) => (a.weeklyRank || 999) - (b.weeklyRank || 999));
-
-    const rows: Shelf[] = [];
-    if (bestsellers.length) rows.push({
-      id: 'bestsellers',
-      title: language === 'vi' ? 'Sách bán chạy' : 'Bestselling books',
-      books: bestsellers,
-      mode: 'bestseller',
-      actionLabel: language === 'vi' ? 'Xem Top 100' : 'View Top 100',
-      onAction: () => setDiscoveryMode('bestseller'),
-    });
-    if (weekly.length) rows.push({
-      id: 'weekly',
-      title: language === 'vi' ? 'Hot tuần này' : 'Hot this week',
-      books: weekly,
-      mode: 'weekly_hot',
-      actionLabel: language === 'vi' ? 'Xem tất cả' : 'View all',
-      onAction: () => setDiscoveryMode('weekly_hot'),
-    });
-
-    // Kệ sách theo từng chủ đề danh mục đang có
-    categories.forEach(item => {
+    const visibleIds = new Set(contextBooks.map(book => book.id));
+    const rows: Shelf[] = configuredShelves.map(shelf => ({
+      id: shelf.id,
+      title: shelf.name,
+      ranked: shelf.ranked,
+      books: shelf.books.filter(book => visibleIds.has(book.id)),
+    })).filter(shelf => shelf.books.length > 0);
+    categories.filter(item => item.status === 'active' && item.name !== 'Chưa phân loại').forEach(item => {
       const categoryBooks = sortedContextBooks.filter(book => book.categoryId === item.id);
       if (categoryBooks.length) rows.push({
-        id: item.id,
-        title: language === 'en' && item.nameEn ? item.nameEn : item.name,
-        books: categoryBooks,
+        id: `category:${item.id}`, title: language === 'en' ? item.nameEn || item.name : item.name,
+        ranked: false, books: categoryBooks,
         actionLabel: language === 'vi' ? 'Xem tất cả' : 'View all',
         onAction: () => { setCategory(item.id); setDiscoveryMode('category'); },
       });
     });
-
-    // Kệ sách chưa phân loại (Default tag - khi sách bị xóa tag hoặc chưa phân loại)
-    const uncategorizedBooks = sortedContextBooks.filter(book => !book.categoryId || book.category?.name === 'Chưa phân loại');
-    if (uncategorizedBooks.length) {
-      rows.push({
-        id: 'uncategorized',
-        title: language === 'vi' ? 'Sách chưa phân loại' : 'Uncategorized books',
-        books: uncategorizedBooks,
-        actionLabel: language === 'vi' ? 'Xem tất cả' : 'View all',
-        onAction: () => { setCategory('uncategorized'); setDiscoveryMode('category'); },
-      });
-    }
-
     // Kệ "Tất cả sách đang có tại Đường Sách" - luôn hiển thị đầy đủ mọi cuốn sách có sẵn
     if (sortedContextBooks.length > 0) {
       rows.push({
         id: 'all_available_books',
+        ranked: false,
         title: language === 'vi' ? 'Tất cả sách đang có tại Đường Sách' : 'All available books at Book Street',
         books: sortedContextBooks,
         actionLabel: language === 'vi' ? 'Xem danh sách đầy đủ' : 'View full list',
@@ -485,9 +461,14 @@ export function DigitalLibraryPage({ language }: { language: Language }) {
     }
 
     return rows;
-  }, [categories, category, contextBooks, discoveryMode, language, sortedContextBooks]);
+  }, [categories, category, contextBooks, discoveryMode, language, sortedContextBooks, configuredShelves, selectedShelfId]);
 
   const fullList = useMemo(() => {
+    if (discoveryMode === 'custom') {
+      const shelf = configuredShelves.find(row => row.id === selectedShelfId);
+      const ids = new Set(contextBooks.map(book => book.id));
+      return { title: shelf?.name || (language === 'vi' ? 'Tủ sách' : 'Bookshelf'), books: (shelf?.books || []).filter(book => ids.has(book.id)) };
+    }
     if (discoveryMode === 'all_books') return {
       title: language === 'vi' ? 'Tất cả sách đang có tại Đường Sách' : 'All available books at Book Street',
       books: sortedContextBooks,
@@ -513,7 +494,7 @@ export function DigitalLibraryPage({ language }: { language: Language }) {
       };
     }
     return null;
-  }, [categories, category, contextBooks, discoveryMode, language, sortedContextBooks]);
+  }, [categories, category, contextBooks, discoveryMode, language, sortedContextBooks, configuredShelves, selectedShelfId]);
 
   const clearSearch = () => {
     setQuery('');
@@ -665,7 +646,7 @@ export function DigitalLibraryPage({ language }: { language: Language }) {
               className={discoveryMode === 'shelves' ? 'is-active' : ''} 
               onClick={() => { setDiscoveryMode('shelves'); setCategory('all'); }}
             >
-              {language === 'vi' ? 'Kệ sách' : 'Bookshelves'}
+              {language === 'vi' ? 'Tủ sách' : 'Bookshelves'}
             </button>
             <button 
               type="button" 
@@ -674,20 +655,8 @@ export function DigitalLibraryPage({ language }: { language: Language }) {
             >
               {language === 'vi' ? 'Tất cả sách đang có' : 'All available books'}
             </button>
-            <button 
-              type="button" 
-              className={discoveryMode === 'bestseller' ? 'is-active' : ''} 
-              onClick={() => { setDiscoveryMode('bestseller'); setCategory('all'); setSort('rank'); }}
-            >
-              Top 100 {language === 'vi' ? 'bán chạy' : 'bestsellers'}
-            </button>
-            <button 
-              type="button" 
-              className={discoveryMode === 'weekly_hot' ? 'is-active' : ''} 
-              onClick={() => { setDiscoveryMode('weekly_hot'); setCategory('all'); setSort('weekly'); }}
-            >
-              {language === 'vi' ? 'Hot tuần này' : 'Hot this week'}
-            </button>
+            {configuredShelves.map(shelf => <button key={shelf.id} type="button" className={discoveryMode === 'custom' && selectedShelfId === shelf.id ? 'is-active' : ''} onClick={() => { setSelectedShelfId(shelf.id); setDiscoveryMode('custom'); setCategory('all'); }}>{shelf.name}</button>)}
+            {categories.filter(item => item.status === 'active' && item.name !== 'Chưa phân loại').map(item => <button key={`category:${item.id}`} type="button" className={discoveryMode === 'category' && category === item.id ? 'is-active' : ''} onClick={() => { setCategory(item.id); setDiscoveryMode('category'); }}>{language === 'en' ? item.nameEn || item.name : item.name}</button>)}
           </div>
           <span className="library-results-meta">{fullList ? fullList.books.length : contextBooks.length} {language === 'vi' ? 'tựa sách' : 'books'}</span>
         </div>
@@ -708,7 +677,6 @@ export function DigitalLibraryPage({ language }: { language: Language }) {
             >
               <option value="all">{language === 'vi' ? 'Tất cả chủ đề' : 'All categories'}</option>
               {categories.map(item => <option key={item.id} value={item.id}>{language === 'en' && item.nameEn ? item.nameEn : item.name}</option>)}
-              <option value="uncategorized">{language === 'vi' ? 'Chưa phân loại (Mặc định)' : 'Uncategorized (Default)'}</option>
             </select>
           </div>
           <div className="library-control"><label htmlFor="library-stall">{language === 'vi' ? 'Gian hàng' : 'Bookstall'}</label><select id="library-stall" value={stall} onChange={event => setStall(event.target.value)}><option value="all">{language === 'vi' ? 'Tất cả gian hàng' : 'All bookstalls'}</option>{stalls.map(item => <option key={item.id} value={item.id}>{item.name}{item.code ? ` — ${item.code}` : ''}</option>)}</select></div>
