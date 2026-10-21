@@ -150,7 +150,7 @@ describe("Completed FE contracts", () => {
   });
   it("keeps submitted books private and rejects invalid classification", async () => {
     const input = {
-      isbn: prefix.slice(0, 30),
+      isbn: `978${crypto.randomInt(10 ** 10).toString().padStart(10, '0')}`,
       title: prefix,
       author: "Test",
       coverUrl: "/cover.png",
@@ -159,6 +159,13 @@ describe("Completed FE contracts", () => {
       (
         await call("post", "/partner/book-submissions", partner, {
           proposedData: { ...input, categoryId: 'invalid-category-id' },
+        })
+      ).status,
+    ).toBe(422);
+    expect(
+      (
+        await call("post", "/partner/book-submissions", partner, {
+          proposedData: { ...input, isbn: "978604ABC1234" },
         })
       ).status,
     ).toBe(422);

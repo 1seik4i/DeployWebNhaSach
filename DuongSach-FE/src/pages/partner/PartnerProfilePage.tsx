@@ -106,11 +106,12 @@ export const PartnerProfilePage: React.FC<PartnerProfilePageProps> = ({
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    const normalizedPhone = phone.replace(/[\s().-]/g, '');
     if (name.trim().length < 2 || repName.trim().length < 2 || !/^[\p{L}\p{M}][\p{L}\p{M}\s.'-]*$/u.test(repName.trim())) {
       showToast('Tên tổ chức hoặc họ tên người đại diện không hợp lệ');
       return;
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) || (phone.trim() && !/^(?:\+?84|0)(?:3|5|7|8|9)\d{8}$/.test(phone.replace(/[\s.-]/g, '')))) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) || (phone.trim() && !/^(?:(?:\+?84|0)(?:[35789]\d{8}|2\d{9})|1[89]00\d{4,6})$/.test(normalizedPhone))) {
       showToast('Email hoặc số điện thoại Việt Nam không hợp lệ');
       return;
     }
@@ -121,7 +122,7 @@ export const PartnerProfilePage: React.FC<PartnerProfilePageProps> = ({
         address,
         website,
         representativeName: repName.trim(),
-        phone: phone.replace(/[\s.-]/g, ''),
+        phone: normalizedPhone,
         logoUrl
       });
       setIsEditing(false);
