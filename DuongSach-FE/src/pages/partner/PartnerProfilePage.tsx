@@ -352,7 +352,7 @@ export const PartnerProfilePage: React.FC<PartnerProfilePageProps> = ({
 
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span>{language === 'vi' ? 'Lần đăng nhập:' : 'Last Login:'}</span>
-                <span style={{ color: '#13241F', fontWeight: 500 }}>{language === 'vi' ? 'Hôm nay, 08:30' : 'Today, 08:30'}</span>
+                <span style={{ color: '#13241F', fontWeight: 500 }}>{organization.lastActiveAt ? new Date(organization.lastActiveAt).toLocaleString(language === 'vi' ? 'vi-VN' : 'en-GB', { timeZone: 'Asia/Ho_Chi_Minh' }) : (language === 'vi' ? 'Chưa có dữ liệu' : 'No login recorded')}</span>
               </div>
             </div>
           </div>

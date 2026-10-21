@@ -1,3 +1,4 @@
+import { localizeLanding } from '../utils/localizeLanding';
 import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { landingContentService } from '../services/landingContentService';
@@ -44,7 +45,7 @@ export const OrganizationExperience: React.FC<OrganizationExperienceProps> = ({ 
     };
   }, [open, vi]);
 
-  const [orgData, setOrgData] = useState(() => landingContentService.getOrganization());
+  const [organizationContent, setOrgData] = useState(() => landingContentService.getOrganization());
 
   useEffect(() => {
     const handleUpdate = () => {
@@ -56,9 +57,11 @@ export const OrganizationExperience: React.FC<OrganizationExperienceProps> = ({ 
     return () => window.removeEventListener('duongsach_landing_content_changed', handleUpdate);
   }, []);
 
+  const orgData = localizeLanding(organizationContent, language);
+
   const parseLeaderName = (nameVi: string) => {
     if (!nameVi) return { prefix: '', name: '' };
-    const prefixes = ['Ông ', 'Bà ', 'TS. ', 'PGS.TS. ', 'ThS. '];
+    const prefixes = ['Mr. ', 'Ms. ', 'Ông ', 'Bà ', 'TS. ', 'PGS.TS. ', 'ThS. '];
     for (const p of prefixes) {
       if (nameVi.startsWith(p)) {
         return { prefix: p.trim(), name: nameVi.substring(p.length).trim().toUpperCase() };
@@ -132,7 +135,7 @@ export const OrganizationExperience: React.FC<OrganizationExperienceProps> = ({ 
             {/* Header */}
             <div className="org-fptu-header-card">
               <h2 className="org-fptu-main-title">
-                {orgData.directory?.titleLine1}{' '}
+                {orgData.directory?.titleLine1 || orgData.directory?.heading}{' '}
                 <span className="org-fptu-title-highlight">
                   {orgData.directory?.titleHighlight}
                 </span>
@@ -147,7 +150,7 @@ export const OrganizationExperience: React.FC<OrganizationExperienceProps> = ({ 
               </div>
 
               <p className="org-fptu-subtitle">
-                {orgData.directory?.subtitle || ''}
+                {orgData.directory?.subtitle || orgData.directory?.sub || ''}
               </p>
             </div>
 

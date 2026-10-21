@@ -1002,3 +1002,6 @@
   border-color: #b42318;
 }
 
+
+.sk05-session-quota { margin: 0 0 1rem; font-size: .85rem; line-height: 1.5; }
+.sk05-btn-reset:disabled, .sk05-btn-retry:disabled { opacity: .5; cursor: not-allowed; }

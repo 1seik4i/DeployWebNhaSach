@@ -3,14 +3,16 @@
 The shared form submits to `POST /api/admin/event-registrations` or
 `POST /api/partner/event-registrations`, using the authenticated role. Body:
 `title`, `kind`, `locationId`, `startAt`, `endAt`, optional `capacity` (default 50),
+`targetAudience` (required for partners, trimmed 1–2000 characters),
 `description`, `speaker`, `imageUrl`, `isPublished`, and `devices[{name,quantity}]`.
 There is no `eventId` input; unknown fields are rejected.
 
 Each successful registration creates a new Event with exactly the submitted
 dates and selected location. No existing event is selected, queried for its date
 range, or used as a parent. Overlapping events at the same location are allowed.
-Past dates are allowed. Only valid dates, end after start, and an existing location
-are required. Images support up to 20 MiB with a 30 MiB JSON body limit.
+Admins may use past dates. Partners may not register a day before the current
+calendar day in Asia/Ho_Chi_Minh; this is validated on the server as well as the UI.
+Valid dates, end after start, and an existing location are required. Images support up to 20 MiB with a 30 MiB JSON body limit.
 
 Admin registration creates an independent event and its program, published by
 default or draft when isPublished=false. Response: `{id,status}`.

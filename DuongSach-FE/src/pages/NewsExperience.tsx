@@ -1,3 +1,4 @@
+import { SafeImage } from '../components/ui/SafeImage';
 import React, { useState, useEffect, useMemo, useLayoutEffect, useRef } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { landingContentService } from '../services/landingContentService';
@@ -242,7 +243,7 @@ export const NewsExperience: React.FC<NewsExperienceProps> = ({ language, open }
 
               {/* Cover Image */}
               <figure className="news-detail-cover-wrap">
-                <img src={activeArticle.imageUrl} alt={activeArticle.titleVi} className="news-detail-cover-img" />
+                <SafeImage src={activeArticle.imageUrl} alt={activeArticle.titleVi} className="news-detail-cover-img" />
                 <figcaption className="news-detail-caption">
                   {vi ? activeArticle.imageCaptionVi : activeArticle.imageCaptionEn}
                 </figcaption>
@@ -262,7 +263,7 @@ export const NewsExperience: React.FC<NewsExperienceProps> = ({ language, open }
                     const url = imgMatch[2];
                     return (
                       <figure key={pIdx} className="news-inline-media-wrap">
-                        <img
+                        <SafeImage
                           src={url}
                           alt={caption || 'Hình ảnh minh họa'}
                           className="news-inline-media-img"
@@ -316,7 +317,7 @@ export const NewsExperience: React.FC<NewsExperienceProps> = ({ language, open }
                       tabIndex={0}
                     >
                       <div className="news-baomoi-thumb-wrap">
-                        <img src={rel.imageUrl} alt={rel.titleVi} className="news-baomoi-thumb-img" loading="lazy" />
+                        <SafeImage src={rel.imageUrl} alt={rel.titleVi} className="news-baomoi-thumb-img" loading="lazy" />
                         <span className="news-baomoi-cat-pill">{vi ? rel.categoryLabelVi : rel.categoryLabelEn}</span>
                       </div>
 
@@ -483,7 +484,7 @@ export const NewsExperience: React.FC<NewsExperienceProps> = ({ language, open }
                         tabIndex={0}
                       >
                         <div className="news-baomoi-thumb-wrap">
-                          <img src={article.imageUrl} alt={article.titleVi} className="news-baomoi-thumb-img" loading="lazy" />
+                          <SafeImage src={article.imageUrl} alt={article.titleVi} className="news-baomoi-thumb-img" loading="lazy" />
                           <span className="news-baomoi-cat-pill">{vi ? article.categoryLabelVi : article.categoryLabelEn}</span>
                           {article.featured && (
                             <span className="news-baomoi-featured-pill">

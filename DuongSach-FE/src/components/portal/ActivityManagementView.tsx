@@ -25,7 +25,6 @@ import {
   AlertCircle,
   Building2,
   Layers,
-  Sparkles,
   Trash2,
   Edit3
 } from 'lucide-react';
@@ -687,7 +686,7 @@ export const ActivityManagementView: React.FC<ActivityManagementViewProps> = ({
 
               {act.calendarEventId && <>
                 {onEditCalendarEvent && <button type="button" className="btn-org-secondary org-act-btn" disabled={Boolean(busyEventId)} onClick={() => void runEventAction(act.calendarEventId!, () => onEditCalendarEvent(act.calendarEventId!))}>
-                  <Edit3 size={14} /><span>{vi ? 'Sửa' : 'Edit'}</span>
+                  <Edit3 size={14} /><span>{vi ? 'Sửa thông tin' : 'Edit information'}</span>
                 </button>}
                 {act.status === 'draft' && onApproveCalendarEvent && <button type="button" className="btn-org-primary org-act-btn" disabled={Boolean(busyEventId)} onClick={() => void runEventAction(act.calendarEventId!, async () => {
                   if (await confirmModal(vi ? `Duyệt và công bố sự kiện “${act.title}”?` : `Approve and publish “${act.title}”?`)) await onApproveCalendarEvent(act.calendarEventId!);
@@ -1002,7 +1001,7 @@ export const ActivityManagementView: React.FC<ActivityManagementViewProps> = ({
                   </div>
                   <div style={{ fontSize: '0.78rem', color: '#64748B', marginTop: 3 }}>
                     {selectedActivity.contactEmail && <div>✉️ {selectedActivity.contactEmail}</div>}
-                    {selectedActivity.contactPhone && <div>📞 {selectedActivity.contactPhone}</div>}
+                    {selectedActivity.contactPhone && <div>{selectedActivity.contactPhone}</div>}
                   </div>
                 </div>
 
@@ -1055,7 +1054,7 @@ export const ActivityManagementView: React.FC<ActivityManagementViewProps> = ({
                 boxShadow: '0 4px 14px rgba(24, 41, 36, 0.06)'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: '0.85rem' }}>
-                  <Sparkles size={16} color="#B48A3C" />
+
                   <h4 style={{ margin: 0, fontSize: '0.92rem', fontWeight: 700, color: '#182924' }}>
                     {vi ? 'Phê duyệt & Điều chỉnh trạng thái hoạt động' : 'Update Activity Approval Status'}
                   </h4>

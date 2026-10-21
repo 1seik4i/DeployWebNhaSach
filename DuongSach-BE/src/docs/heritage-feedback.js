@@ -1,3 +1,4 @@
+import { guestSessionHeader } from './guest-submission.js';
 const ref = name => ({ $ref: `#/components/schemas/${name}` });
 const text = { type: 'string', nullable: true };
 const uuid = { type: 'string', format: 'uuid' };
@@ -65,7 +66,8 @@ export const heritageFeedbackPaths = {
     post: {
       tags: ['Công khai - Landing page'],
       summary: 'Gửi góp ý',
-      description: 'contactEmail là trường liên hệ tùy chọn, chấp nhận email hoặc số điện thoại Việt Nam. Cho phép bỏ qua hoặc chuỗi trống. Chuỗi được trim trước khi lưu; số điện thoại có thể dùng khoảng trắng, dấu chấm hoặc dấu gạch ngang. Số di động bắt đầu 03/05/07/08/09 có 10 chữ số, số cố định bắt đầu 02 có 11 chữ số; chấp nhận +84 thay số 0 đầu. Dữ liệu liên hệ sai trả 422 với error.details.field = contactEmail.',
+      parameters: [guestSessionHeader],
+      description: 'Mỗi phiên gửi thành công tối đa 3 góp ý, độc lập với 3 đề xuất sự kiện. Lỗi validation hoặc lưu database không tính lượt. Response data có submissionQuota {limit,used,remaining}; hết lượt trả 429 GUEST_SUBMISSION_LIMIT. contactEmail là trường liên hệ tùy chọn, chấp nhận email hoặc số điện thoại Việt Nam. Cho phép bỏ qua hoặc chuỗi trống. Chuỗi được trim trước khi lưu; số điện thoại có thể dùng khoảng trắng, dấu chấm hoặc dấu gạch ngang. Số di động bắt đầu 03/05/07/08/09 có 10 chữ số, số cố định bắt đầu 02 có 11 chữ số; chấp nhận +84 thay số 0 đầu. Dữ liệu liên hệ sai trả 422 với error.details.field = contactEmail.',
       requestBody: { required: true, content: json({ type: 'object', required: ['rating'], properties: {
         rating: { type: 'integer', minimum: 1, maximum: 5 },
         comments: { type: 'string', maxLength: 10000 },

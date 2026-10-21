@@ -37,7 +37,8 @@ test('partner uses the same registration form, keeps chosen date, equipment and 
   await expect(page.getByRole('textbox', { name: 'End date' })).toHaveValue('20/10/2030');
   await expect(page.getByText('Test Publisher', { exact: true })).toBeVisible();
   await expect(page.locator('#act-published')).toHaveCount(0);
-  await page.locator('input[required]').first().fill('Partner registered event');
+  await page.getByRole('textbox', { name: 'Target audience', exact: true }).fill('Readers');
+  await page.getByPlaceholder('e.g. Author Meet & Greet').fill('Partner registered event');
   await page.locator('select[required]').selectOption('location');
   await page.getByLabel('Microphone').check();
   const submit = page.getByRole('button', { name: 'Register Event', exact: true });
@@ -56,11 +57,12 @@ test('explicit dd/mm/yyyy dates support multi-day schedules and reject invalid o
     body: '<html><head><meta name="viewport" content="width=device-width, initial-scale=1.0"><script type="module">import RefreshRuntime from "/@react-refresh"; RefreshRuntime.injectIntoGlobalHook(window); window.$RefreshReg$ = () => {}; window.$RefreshSig$ = () => type => type; window.__vite_plugin_react_preamble_installed__ = true;</script><script type="module" src="/@vite/client"></script></head><body><div id="root"></div><script type="module" src="/tests/e2e/fixtures/activity-schedule.tsx"></script></body></html>',
   }));
   await page.goto('/activity-schedule-test');
-  await page.locator('input[required]').first().fill('Multi-day activity');
+  await page.getByRole('textbox', { name: 'Target audience', exact: true }).fill('Readers');
+  await page.getByPlaceholder('e.g. Author Meet & Greet').fill('Multi-day activity');
   await page.locator('select[required]').selectOption('location');
   const start = page.getByRole('textbox', { name: 'Start date', exact: true });
   const end = page.getByRole('textbox', { name: 'End date', exact: true });
-  const submit = page.getByRole('button', { name: 'Register Event', exact: true });
+  const submit = page.getByRole('button', { name: 'Create Event', exact: true });
   await expect(start).toHaveAttribute('placeholder', 'dd/mm/yyyy');
   await start.fill('31/02/2030');
   await end.fill('01/03/2030');

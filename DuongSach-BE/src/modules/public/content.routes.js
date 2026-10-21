@@ -1,3 +1,4 @@
+import { guestSession, getGuestQuota, saveGuestSubmission } from './guest-submission.service.js';
 import { Router } from "express";
 import { imageSource, supportPhone, queryInteger } from '../../utils/input.validation.js';
 import { managedContentData } from './content.validation.js';
@@ -55,9 +56,11 @@ function limit(r, s, next) {
       if (v.until < now) publicLimits.delete(k);
   next();
 }
+router.get("/public/submission-quota", limit, guestSession, run(r => getGuestQuota(r.guestSessionId)));
 router.post(
   "/public/feedbacks",
   limit,
+  guestSession,
   run(async (r) => {
     const data = parse(
       z.object({
@@ -105,30 +108,26 @@ router.post(
       }))
     )
       throw ApiError.notFound();
-    const row = await prisma.feedback.create({
-      data: { ...data, contactEmail: data.contactEmail || null },
+    return saveGuestSubmission(r.guestSessionId, 'feedback', async tx => {
+      const row = await tx.feedback.create({ data: { ...data, contactEmail: data.contactEmail || null } });
+      return { id: row.id, status: row.status };
     });
-    return { id: row.id, status: row.status };
   }),
 );
 router.post(
   "/public/event-suggestions",
   limit,
-  run((r) =>
-    prisma.eventSuggestion.create({
-      data: parse(
-        z
-          .object({
-            fullName: z.string().trim().min(2).max(160).regex(/^[\p{L}\p{M}][\p{L}\p{M}\s.'-]*$/u),
-            phone: z.string().trim().transform(value => value.replace(/[\s.-]/g, '')).pipe(z.string().regex(/^(?:\+?84|0)(?:3|5|7|8|9)\d{8}$/)),
-            content: z.string().trim().min(10).max(10000),
-          })
-          .strict(),
-        r.body,
-      ),
-      select: { id: true, status: true, createdAt: true },
-    }),
-  ),
+  guestSession,
+  run((r) => {
+    const data = parse(z.object({
+      fullName: z.string().trim().min(2).max(160).regex(/^[\p{L}\p{M}][\p{L}\p{M}\s.'-]*$/u),
+      phone: z.string().trim().transform(value => value.replace(/[\s.-]/g, '')).pipe(z.string().regex(/^(?:\+?84|0)(?:3|5|7|8|9)\d{8}$/)),
+      content: z.string().trim().min(10).max(10000),
+    }).strict(), r.body);
+    return saveGuestSubmission(r.guestSessionId, 'eventProposal', tx => tx.eventSuggestion.create({
+      data, select: { id: true, status: true, createdAt: true },
+    }));
+  }),
 );
 router.get(
   "/admin/event-suggestions",

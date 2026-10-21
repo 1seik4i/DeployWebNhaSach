@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const loginSchema = z.object({
   body: z.object({
     email: z.string().min(1, 'Vui lòng nhập email hoặc tên đăng nhập'),
-    password: z.string().min(1, 'Vui lòng nhập mật khẩu'),
+    password: z.string().min(8, 'Mật khẩu phải có ít nhất 8 ký tự'),
   }),
 });
 
@@ -22,6 +22,6 @@ export const forgotPasswordSchema = z.object({
 export const resetPasswordSchema = z.object({
   body: z.object({
     token: z.string().min(1, 'Mã xác thực token là bắt buộc'),
-    newPassword: z.string().min(6, 'Mật khẩu mới phải có ít nhất 6 ký tự'),
+    newPassword: z.string().min(8, 'Mật khẩu mới phải có ít nhất 8 ký tự'),
   }),
 });

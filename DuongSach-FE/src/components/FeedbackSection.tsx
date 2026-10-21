@@ -1,3 +1,4 @@
+import { readGuestQuota, mergeGuestQuota, recordGuestSubmission, guestQuotaChanged, type GuestQuota, type SubmissionQuota, type GuestForm } from '../utils/guestSubmission';
 import React, { useEffect, useState, useRef } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import {
@@ -66,6 +67,28 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
 
   const [submissionState, setSubmissionState] = useState<'idle' | 'success' | 'error'>('idle');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [guestQuota, setGuestQuota] = useState(readGuestQuota);
+  const [submissionError, setSubmissionError] = useState('');
+  const formKind: GuestForm = activeTab === 'feedback' ? 'feedback' : 'eventProposal';
+  const remaining = guestQuota[formKind].remaining;
+  const limitMessage = language === 'vi'
+    ? 'Bạn đã gửi tối đa 3 lần cho biểu mẫu này trong phiên hiện tại.'
+    : 'You have reached the limit of 3 submissions for this form in this session.';
+  useEffect(() => {
+    const sync = () => setGuestQuota(readGuestQuota());
+    const refresh = () => { void apiClient.get<GuestQuota>('/public/submission-quota').then(data => setGuestQuota(mergeGuestQuota(data))).catch(() => {}); };
+    refresh();
+    window.addEventListener(guestQuotaChanged, sync);
+    window.addEventListener('focus', refresh);
+    return () => { window.removeEventListener(guestQuotaChanged, sync); window.removeEventListener('focus', refresh); };
+  }, []);
+  const handleSubmissionError = (error: unknown, kind: GuestForm) => {
+    if (error instanceof Error && 'code' in error && error.code === 'GUEST_SUBMISSION_LIMIT') {
+      setGuestQuota(mergeGuestQuota({ [kind]: { limit: 3, used: 3, remaining: 0 } }));
+      setSubmissionError(limitMessage);
+    } else setSubmissionError(error instanceof Error ? error.message : (language === 'vi' ? 'Không thể gửi biểu mẫu. Vui lòng thử lại.' : 'Unable to submit. Please try again.'));
+    setSubmissionState('error');
+  };
   const [booths, setBooths] = useState<Booth[]>(initialBooths || []);
   const [boothLoadError, setBoothLoadError] = useState('');
 
@@ -135,10 +158,10 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
 
   const handleFeedbackSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!comments.trim() || contactError || isSubmitting) return;
+    if (!comments.trim() || contactError || isSubmitting || guestQuota.feedback.remaining === 0) return;
     setIsSubmitting(true);
     try {
-      await publicApi.submitFeedback({
+      const result = await publicApi.submitFeedback({
         rating,
         comments,
         contactEmail: contact.trim() || undefined,
@@ -147,22 +170,27 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
         targetScope: targetType.startsWith('booth:') ? 'booth' : 'entire',
         boothId: targetType.startsWith('booth:') ? targetType.slice(6) : undefined,
       });
+      setGuestQuota(recordGuestSubmission('feedback', result?.submissionQuota));
       setSubmissionState('success');
     } catch (err) {
-      console.warn('Feedback API submit error', err);
-      setSubmissionState('error');
+      handleSubmissionError(err, 'feedback');
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const [proposalAttempted, setProposalAttempted] = useState(false);
+  const proposalNameError = !/^[\p{L}\p{M}][\p{L}\p{M}\s.'-]*$/u.test(proposalData.contactName.trim());
+  const proposalPhoneError = !/^(?:\+?84|0)[35789]\d{8}$/.test(proposalData.contactPhone.replace(/[\s.-]/g, ''));
+
   const handleProposalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!proposalData.eventTitle.trim() || !proposalData.description.trim()) return;
+    if (isSubmitting || guestQuota.eventProposal.remaining === 0 || !proposalData.eventTitle.trim() || !proposalData.description.trim()) return;
     if (!/^[\p{L}\p{M}][\p{L}\p{M}\s.'-]*$/u.test(proposalData.contactName.trim()) || !/^(?:\+?84|0)(?:3|5|7|8|9)\d{8}$/.test(proposalData.contactPhone.replace(/[\s.-]/g, '')) || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(proposalData.contactEmail.trim())) {
-      setSubmissionState('error');
+      setProposalAttempted(true);
       return;
     }
+    setProposalAttempted(true);
     setIsSubmitting(true);
     try {
       const formattedComments = [
@@ -172,15 +200,15 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
         `• Nội dung & Đề xuất: ${proposalData.description}`
       ].join('\n');
 
-      await apiClient.post('/public/event-suggestions', {
+      const result = await apiClient.post<{ submissionQuota?: SubmissionQuota }>('/public/event-suggestions', {
         fullName: proposalData.contactName,
         phone: proposalData.contactPhone.replace(/[\s.-]/g, ''),
         content: formattedComments,
       });
+      setGuestQuota(recordGuestSubmission('eventProposal', result?.submissionQuota));
       setSubmissionState('success');
     } catch (err) {
-      console.warn('Event proposal submit error', err);
-      setSubmissionState('error');
+      handleSubmissionError(err, 'eventProposal');
     } finally {
       setIsSubmitting(false);
     }
@@ -303,6 +331,11 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
 
             {/* Right Column: Dynamic Form depending on Active Tab */}
             <main className="sk05-right-col">
+              <p className="sk05-session-quota" role="status" aria-live="polite" style={{ color: remaining === 0 ? '#b91c1c' : '#476058' }}>
+                {remaining === 0 ? limitMessage : language === 'vi'
+                  ? `Mỗi phiên được gửi tối đa 3 lần cho mỗi biểu mẫu. Bạn còn ${remaining}/3 lượt gửi ${activeTab === 'feedback' ? 'góp ý' : 'đề xuất sự kiện'}.`
+                  : `Up to 3 submissions per form per session. You have ${remaining}/3 ${activeTab === 'feedback' ? 'feedback' : 'event proposal'} submissions remaining.`}
+              </p>
               {/* TAB 1: FORM GÓP Ý TRẢI NGHIỆM */}
               {activeTab === 'feedback' && (
                 <>
@@ -317,7 +350,7 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
 
                   {boothLoadError && <div className="sk05-inline-error">{boothLoadError}</div>}
 
-                  {submissionState === 'idle' && (
+                  {submissionState === 'idle' && remaining > 0 && (
                     <form onSubmit={handleFeedbackSubmit} className="sk05-feedback-form">
                       {/* Row 1: Searchable Target Selector */}
                       <div className="sk05-field-row">
@@ -528,7 +561,7 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
                       <div className="sk05-action-row">
                         <button
                           type="submit"
-                          disabled={isSubmitting || !comments.trim() || Boolean(contactError)}
+                          disabled={remaining === 0 || isSubmitting || !comments.trim() || Boolean(contactError)}
                           className="sk05-submit-btn"
                         >
                           {isSubmitting ? (
@@ -557,7 +590,7 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
                     </h3>
                   </div>
 
-                  {submissionState === 'idle' && (
+                  {submissionState === 'idle' && remaining > 0 && (
                     <form onSubmit={handleProposalSubmit} className="sk05-feedback-form">
                       {/* Row 1: Tên sự kiện & Loại hình */}
                       <div className="sk05-form-grid-2">
@@ -629,6 +662,7 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
                             value={proposalData.contactName}
                             onChange={(e) => setProposalData({ ...proposalData, contactName: e.target.value })}
                           />
+                          {proposalAttempted && proposalNameError && <p role="alert" style={{ color: '#b91c1c' }}>{language === 'vi' ? 'Họ tên chỉ được chứa chữ cái, dấu cách và dấu nối hợp lệ.' : 'Enter a valid contact name.'}</p>}
                         </div>
 
                         <div className="sk05-field-row">
@@ -641,9 +675,12 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
                             inputMode="tel"
                             className="sk05-text-input"
                             placeholder="0901 234 567"
+                            aria-invalid={proposalAttempted && proposalPhoneError}
+                            aria-describedby={proposalAttempted && proposalPhoneError ? 'proposal-phone-error' : undefined}
                             value={proposalData.contactPhone}
                             onChange={(e) => setProposalData({ ...proposalData, contactPhone: e.target.value })}
                           />
+                          {proposalAttempted && proposalPhoneError && <p id="proposal-phone-error" role="alert" style={{ color: '#b91c1c', fontSize: '.8rem' }}>{language === 'vi' ? 'Số điện thoại di động phải có 10 chữ số, bắt đầu bằng 03, 05, 07, 08 hoặc 09; có thể dùng +84 thay số 0.' : 'Enter a valid 10-digit Vietnamese mobile number, or use +84 instead of the leading 0.'}</p>}
                         </div>
 
                         <div className="sk05-field-row">
@@ -666,7 +703,7 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
                       <div className="sk05-action-row">
                         <button
                           type="submit"
-                          disabled={isSubmitting || !proposalData.eventTitle.trim() || !proposalData.description.trim()}
+                          disabled={remaining === 0 || isSubmitting || !proposalData.eventTitle.trim() || !proposalData.description.trim()}
                           className="sk05-submit-btn event-btn"
                         >
                           <Send size={15} />
@@ -711,6 +748,7 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
                     <button
                       type="button"
                       className="sk05-btn-reset"
+                      disabled={remaining === 0}
                       onClick={() => {
                         setSubmissionState('idle');
                         setComments('');
@@ -751,14 +789,13 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
                       {language === 'vi' ? 'Báo lỗi — Vui lòng thử lại' : 'Submission Failed — Please Retry'}
                     </h4>
                     <p className="sk05-result-desc">
-                      {language === 'vi'
-                        ? 'Kết nối mạng tạm thời gián đoạn hoặc máy chủ phản hồi chậm. Vui lòng kiểm tra lại đường truyền và gửi lại.'
-                        : 'Network issue or temporary server delay. Please check your connection and try again.'}
+                      {submissionError}
                     </p>
                     <div className="sk05-error-actions">
                       <button
                         type="button"
                         className="sk05-submit-btn sk05-btn-retry"
+                        disabled={remaining === 0}
                         onClick={() => {
                           setSubmissionState('idle');
                         }}

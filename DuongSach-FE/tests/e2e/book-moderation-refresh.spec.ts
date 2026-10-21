@@ -12,7 +12,7 @@ test('admin sees a new partner submission without reloading the page', async ({ 
 
   const login = await request.post('/api/auth/login', { data: {
     email: process.env.E2E_PARTNER_EMAIL || 'nxbtre@partner.duongsach.vn',
-    password: process.env.E2E_PARTNER_PASSWORD || '123456',
+    password: process.env.E2E_PARTNER_PASSWORD || 'Demo2026!',
   } });
   expect(login.ok()).toBeTruthy();
   const { data: session } = await login.json();

@@ -43,7 +43,7 @@ describe('event registration images', () => {
   });
   it('preserves the uploaded image in a partner registration and its response', async () => {
     const imageUrl = 'data:image/png;base64,' + Buffer.alloc(4096).toString('base64');
-    const response = await request(app).post('/api/partner/activity-proposals').set('x-role', 'partner').send({ ...input, imageUrl });
+    const response = await request(app).post('/api/partner/activity-proposals').set('x-role', 'partner').send({ ...input, targetAudience: 'Readers and students', imageUrl });
     expect(response.status).toBe(200);
     expect(response.body.data.imageUrl).toBe(imageUrl);
     expect(JSON.parse(prisma.activityProposal.create.mock.calls[0][0].data.managementNotes).imageUrl).toBe(imageUrl);

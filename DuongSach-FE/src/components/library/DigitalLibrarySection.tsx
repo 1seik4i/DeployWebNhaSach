@@ -186,7 +186,7 @@ export function DigitalLibrarySection({ language }: { language: Language }) {
                 return <Link key={book.id} to={`/thu-vien-so?book=${encodeURIComponent(book.id)}`} className="library-ranking-item">
                   <span className="library-ranking-visual">
                     <span className={`library-ranking-number ${rank >= 10 ? 'is-double-digit' : ''}`} aria-label={`${language === 'vi' ? 'Hạng' : 'Rank'} ${rank}`}>{rank}</span>
-                    <BookCover book={book} decorative />
+                    <BookCover book={book} decorative language={language} />
                     <span className="library-ranking-badge"><Trophy size={11} />{language === 'vi' ? 'Bán chạy' : 'Bestseller'}</span>
                   </span>
                 </Link>;

@@ -3,7 +3,6 @@ import {
   LayoutDashboard,
   Calendar,
   CalendarDays,
-  Sparkles,
   Store,
   Map,
   Building2,
@@ -47,7 +46,6 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
   unreadNotificationsCount = 2,
   isOpenMobile = false,
   onCloseMobile,
-  onLogout,
   profile,
   onOpenProfile
 }) => {
@@ -89,7 +87,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
         },
         {
           id: 'activities',
-          icon: <Sparkles size={15} />,
+          icon: <ClipboardList size={15} />,
           label: isVi ? 'Hoạt động & Tọa đàm' : 'Activities & Workshops'
         },
         {
@@ -244,7 +242,6 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
           }
           onCloseMobile?.();
         },
-        onLogout: onLogout,
         logoutLabel: isVi ? 'Đăng xuất' : 'Sign Out'
       }}
     />

@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { vietnamDateKey } from '../../utils/inputValidation';
 import { activityDateKey } from '../../utils/activityDate';
 import type { Language } from '../../types';
 import './DatePicker.css';
@@ -18,14 +19,22 @@ export function DatePicker({ label, value, onChange, language, min, align = 'lef
   const root = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [month, setMonth] = useState(() => new Date());
+  const [today, setToday] = useState(() => vietnamDateKey());
+  useEffect(() => {
+    const refresh = () => setToday(vietnamDateKey());
+    const timer = window.setInterval(refresh, 1000);
+    window.addEventListener('focus', refresh);
+    return () => { window.clearInterval(timer); window.removeEventListener('focus', refresh); };
+  }, []);
+  const effectiveMin = min && min < today ? today : min;
   const selected = activityDateKey(value);
   const vi = language === 'vi';
 
   useEffect(() => {
     if (!open) return;
-    const date = selected || min;
+    const date = selected || effectiveMin;
     if (date) setMonth(new Date(`${date}T12:00:00Z`));
-  }, [open, selected, min]);
+  }, [open, selected, effectiveMin]);
 
   useEffect(() => {
     if (!open) return;
@@ -73,7 +82,7 @@ export function DatePicker({ label, value, onChange, language, min, align = 'lef
           const monthText = String(monthIndex + 1).padStart(2, '0');
           const key = `${year}-${monthText}-${day}`;
           const text = `${day}/${monthText}/${year}`;
-          return <button type="button" key={key} aria-label={text} aria-pressed={selected === key} disabled={Boolean(min && key < min)} onClick={() => { onChange(text); setOpen(false); }}>{index + 1}</button>;
+          return <button type="button" key={key} aria-label={text} aria-pressed={selected === key} disabled={Boolean(effectiveMin && key < effectiveMin)} onClick={() => { onChange(text); setOpen(false); }}>{index + 1}</button>;
         })}
       </div>
     </div>}

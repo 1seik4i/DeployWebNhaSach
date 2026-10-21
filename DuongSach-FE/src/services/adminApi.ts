@@ -174,7 +174,7 @@ export const adminApi = {
         roleLabelVi: role === 'partner' ? 'Đối tác / Gian hàng' : 'Quản trị viên',
         status: user.status,
         statusLabelVi: user.status === 'locked' ? 'Đã khóa' : user.status === 'pending_verification' ? 'Chờ xác minh' : 'Hoạt động',
-        lastActive: user.lastActiveAt ? new Date(user.lastActiveAt).toLocaleString('vi-VN') : 'Chưa có hoạt động',
+        lastActive: user.lastActiveAt ? new Date(user.lastActiveAt).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }) : 'Chưa có hoạt động',
         createdDate: user.createdAt ? new Date(user.createdAt).toLocaleDateString('vi-VN') : '',
         avatarInitials: initials(user.fullName || ''),
         avatarUrl: user.avatarUrl || user.avatar || undefined,
@@ -236,7 +236,7 @@ export const adminApi = {
       phone: user.phone || '',
       avatarInitials: initials(user.fullName || ''),
       avatarUrl: user.avatarUrl || '',
-      lastLogin: user.lastActiveAt ? new Date(user.lastActiveAt).toLocaleString('vi-VN') : '',
+      lastLogin: user.lastActiveAt ? new Date(user.lastActiveAt).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }) : '',
     };
   },
   updateProfile: (data: unknown) => apiClient.patch('/admin/profile', data),

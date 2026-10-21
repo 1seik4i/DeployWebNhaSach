@@ -534,8 +534,7 @@ export const EventApplicationPage: React.FC<EventApplicationPageProps> = ({
           {calendarDays.map((cell, idx) => {
             const hasEvents = cell.events.length > 0;
             const isSelected = cell.dateStr === selectedDateStr;
-            const now = new Date();
-            const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            const todayKey = vietnamDateKey();
             const isToday = cell.dateStr === todayKey;
             const visibleEvents = cell.events.slice(0, 2);
             const extraCount = cell.events.length - 2;
@@ -1122,8 +1121,7 @@ export const EventApplicationPage: React.FC<EventApplicationPageProps> = ({
               ))}
 
               {(() => {
-                const now = new Date();
-                const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                    const todayKey = vietnamDateKey();
                 const isModalPast = dayOverviewModal.dateStr < todayKey;
 
                 if (isModalPast) return null;

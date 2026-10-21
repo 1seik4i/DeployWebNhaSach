@@ -2,7 +2,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import express from 'express';
 import request from 'supertest';
 
-vi.mock('../src/config/database.js', () => ({ prisma: { feedback: { create: vi.fn() } } }));
+vi.mock('../src/config/database.js', () => {
+  const prisma = { feedback: { create: vi.fn() }, guestSubmissionSession: { upsert: vi.fn(), updateMany: vi.fn(), findUnique: vi.fn() } };
+  prisma.$transaction = vi.fn(fn => fn(prisma));
+  return { prisma };
+});
 import { prisma } from '../src/config/database.js';
 import router from '../src/modules/public/content.routes.js';
 import { feedbackContactError } from '../../DuongSach-FE/src/utils/feedbackContact';
@@ -13,6 +17,8 @@ app.use('/api', router);
 app.use((error, req, res, next) => res.status(error.statusCode || 500).json({ details: error.details }));
 beforeEach(() => {
   vi.clearAllMocks();
+  prisma.guestSubmissionSession.updateMany.mockResolvedValue({ count: 1 });
+  prisma.guestSubmissionSession.findUnique.mockResolvedValue({ feedbackCount: 1, proposalCount: 0 });
   prisma.feedback.create.mockResolvedValue({ id: 'feedback', status: 'new' });
 });
 

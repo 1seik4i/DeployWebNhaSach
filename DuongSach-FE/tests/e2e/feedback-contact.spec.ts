@@ -25,6 +25,8 @@ test('invalid contact shows field error and blocks requests; valid phone, email 
     expect(submissions).toHaveLength(0);
   }
   for (const valid of ['0912345678', '+84912345678', 'name@example.com', '']) {
+    // Each validation example is independent of the per-session submission quota.
+    await page.evaluate(() => sessionStorage.removeItem('duongsach_guest_session'));
     await page.goto('/feedback-validation-test');
     await page.locator('#feedback-comment-input').fill('Test feedback');
     await contact.fill(valid);

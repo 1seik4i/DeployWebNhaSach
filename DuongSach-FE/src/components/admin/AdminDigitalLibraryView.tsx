@@ -1,3 +1,4 @@
+import { SafeImage } from '../ui/SafeImage';
 import { useUrlTab } from '../../hooks/useUrlTab';
 import { useModalBehavior } from '../../hooks/useModalBehavior';
 import { ListPagination, useListPagination } from '../ui/ListPagination';
@@ -91,7 +92,7 @@ export function AdminDigitalLibraryView({ language }: {
     const [libraryLoadError, setLibraryLoadError] = useState(false);
     const [inventory, setInventory] = useState<InventoryRow[]>([]);
     const [stallSummaries, setStallSummaries] = useState<LibraryStallSummary[]>([]);
-    
+
     // Filters for "Tất cả sách"
     const [query, setQuery] = useState('');
     const [selectedCategoryId, setSelectedCategoryId] = useState('all');
@@ -162,7 +163,7 @@ export function AdminDigitalLibraryView({ language }: {
     const [rankingSaving, setRankingSaving] = useState(false);
     const [coverFileName, setCoverFileName] = useState('');
     const [coverError, setCoverError] = useState('');
-    
+
     // Moderation state
     const [reviewing, setReviewing] = useState<BookSubmission | null>(null);
     const [rejecting, setRejecting] = useState(false);
@@ -170,7 +171,7 @@ export function AdminDigitalLibraryView({ language }: {
     const [requestStatus, setRequestStatus] = useState<'all' | 'PENDING' | 'APPROVED' | 'REJECTED'>('all');
     const [requestType, setRequestType] = useState('all');
     const [requestDate, setRequestDate] = useState('');
-    
+
     // Stalls tab state
     const [stallId, setStallId] = useState('all');
     const [stockStatus, setStockStatus] = useState<StockStatus>('all');
@@ -1003,7 +1004,7 @@ export function AdminDigitalLibraryView({ language }: {
                                             onClick={() => openView(book)}
                                             title={language === 'vi' ? 'Nhấn để xem chi tiết sách' : 'Click to view book details'}
                                         >
-                                            <img className="admin-book-cover" src={book.coverUrl} alt={book.title} loading="lazy" />
+                                            <SafeImage className="admin-book-cover" src={book.coverUrl} alt={book.title} loading="lazy" />
                                         </td>
                                         <td 
                                             style={{ textAlign: 'left' }}
@@ -1149,7 +1150,7 @@ export function AdminDigitalLibraryView({ language }: {
                         return (
                             <div key={book.id} className="admin-book-mobile-card">
                                 <div className="admin-bmc-header">
-                                    <img 
+                                    <SafeImage
                                         className="admin-bmc-cover" 
                                         src={book.coverUrl} 
                                         alt={book.title} 
@@ -1207,7 +1208,7 @@ export function AdminDigitalLibraryView({ language }: {
                                             </div>
                                         )}
                                     </div>
-                                    
+
                                     <div className="admin-bmc-rank-info">
                                         <span className="admin-bmc-label">{language === 'vi' ? 'Xếp hạng:' : 'Rank:'}</span>
                                         <button 
@@ -1636,7 +1637,7 @@ export function AdminDigitalLibraryView({ language }: {
                                                 onClick={() => openView(row.book)}
                                                 title={language === 'vi' ? 'Nhấn để xem chi tiết sách' : 'Click to view book details'}
                                             >
-                                                <img className="admin-book-cover" src={row.book.coverUrl} alt={row.book.title} loading="lazy" />
+                                                <SafeImage className="admin-book-cover" src={row.book.coverUrl} alt={row.book.title} loading="lazy" />
                                                 <div className="admin-book-cell-meta">
                                                     <strong className="admin-book-title">{row.book.title}</strong>
                                                     <small className="admin-book-meta">{row.book.author}</small>
@@ -1715,7 +1716,7 @@ export function AdminDigitalLibraryView({ language }: {
                                     </span>
                                 </div>
                                 <div className="admin-smc-body is-clickable" onClick={() => openView(row.book)}>
-                                    <img className="admin-bmc-cover" src={row.book.coverUrl} alt={row.book.title} loading="lazy" />
+                                    <SafeImage className="admin-bmc-cover" src={row.book.coverUrl} alt={row.book.title} loading="lazy" />
                                     <div className="admin-smc-book-info">
                                         <strong className="admin-book-title">{row.book.title}</strong>
                                         <small className="admin-book-meta">{row.book.author}</small>
@@ -1824,7 +1825,7 @@ export function AdminDigitalLibraryView({ language }: {
                                                 onClick={() => openView(book)}
                                                 title={language === 'vi' ? 'Nhấn để xem chi tiết sách' : 'Click to view book details'}
                                             >
-                                                <img className="admin-book-cover" src={book.coverUrl} alt={book.title} loading="lazy" />
+                                                <SafeImage className="admin-book-cover" src={book.coverUrl} alt={book.title} loading="lazy" />
                                                 <div className="admin-book-cell-meta">
                                                     <strong className="admin-book-title">{book.title}</strong>
                                                     <small className="admin-book-meta">{book.author}</small>
@@ -1906,7 +1907,7 @@ export function AdminDigitalLibraryView({ language }: {
                                 </div>
 
                                 <div className="admin-rmc-body is-clickable" onClick={() => openView(book)}>
-                                    <img className="admin-bmc-cover" src={book.coverUrl} alt={book.title} loading="lazy" />
+                                    <SafeImage className="admin-bmc-cover" src={book.coverUrl} alt={book.title} loading="lazy" />
                                     <div className="admin-rmc-info">
                                         <strong className="admin-book-title">{book.title}</strong>
                                         <span className="admin-author-clean">{book.author}</span>
@@ -1983,7 +1984,7 @@ export function AdminDigitalLibraryView({ language }: {
                 className="admin-library-modal" 
                 role="dialog" 
                 aria-modal="true"
-                onClick={e => { if (e.target === e.currentTarget) setEditing(undefined); }}
+
             >
                 <form className="admin-book-form" onSubmit={saveBook} onClick={e => e.stopPropagation()} autoComplete="off">
                     <div className="admin-form-head">
@@ -2052,11 +2053,11 @@ export function AdminDigitalLibraryView({ language }: {
                                 {/* Khung ảnh xem trước bìa sách chuẩn tỉ lệ */}
                                 <div className="admin-cover-preview-box">
                                     {form.coverUrl ? (
-                                        <img 
+                                        <SafeImage
                                             src={form.coverUrl} 
                                             alt="Cover Preview" 
                                             className="admin-cover-img-preview" 
-                                            onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} 
+
                                         />
                                     ) : (
                                         <div className="admin-cover-no-img">
@@ -2083,6 +2084,7 @@ export function AdminDigitalLibraryView({ language }: {
                                                     ? (language === 'vi' ? 'Đang dùng ảnh tải lên từ máy tính' : 'Using uploaded image from device') 
                                                     : (language === 'vi' ? 'Dán đường dẫn ảnh (URL https://... hoặc /duong_sach_logo.png)' : 'Paste image URL or enter path...')}
                                             />
+                                            {form.coverUrl && /^https?:\/\//.test(form.coverUrl) && <a href={form.coverUrl} target="_blank" rel="noopener noreferrer">{language === 'vi' ? 'Mở ảnh trong thẻ mới' : 'Open image in new tab'}</a>}
                                             {form.coverUrl && !form.coverUrl.startsWith('data:') && (
                                                 <button 
                                                     type="button" 
@@ -2206,7 +2208,7 @@ export function AdminDigitalLibraryView({ language }: {
                     </div>
                     <div className="admin-book-detail-body">
                         <div className="admin-book-detail-cover-wrap">
-                            <img className="admin-book-detail-cover" src={viewingBook.coverUrl} alt={viewingBook.title} />
+                            <SafeImage className="admin-book-detail-cover" src={viewingBook.coverUrl} alt={viewingBook.title} />
                             {viewingBook.status && (
                                 <span className={`admin-book-detail-status ${viewingBook.status}`}>
                                     {viewingBook.status === 'active' ? (language === 'vi' ? 'Đang hiển thị' : 'Active') : (language === 'vi' ? 'Đã lưu trữ' : 'Archived')}
@@ -2363,7 +2365,7 @@ export function AdminDigitalLibraryView({ language }: {
                     </div>
 
                     <div className="admin-confirm-target-card">
-                        <img src={deletingBook.book.coverUrl} alt="" />
+                        <SafeImage src={deletingBook.book.coverUrl} alt="" />
                         <div className="admin-confirm-target-info">
                             <strong>{deletingBook.book.title}</strong>
                             <small>{deletingBook.book.author} • ISBN: {deletingBook.book.isbn}</small>
@@ -2411,7 +2413,7 @@ export function AdminDigitalLibraryView({ language }: {
                         </div>
                         <button onClick={() => { setReviewing(null); setRejecting(false); }}><X /></button>
                     </div>
-                    
+
                     <div className={`admin-version-comparison ${reviewing.type === 'CREATE' ? 'is-create' : ''}`}>
                         {reviewing.type === 'UPDATE' && (
                             <VersionCard title={language === 'vi' ? 'Thông tin hiện tại trên hệ thống' : 'Current Approved Information'} data={reviewing.currentApprovedData}/>
@@ -2793,7 +2795,7 @@ export function AdminDigitalLibraryView({ language }: {
 
                     <div className="admin-ranking-modal-body">
                         <div className="admin-ranking-book-snippet">
-                            <img src={rankingModalBook.book.coverUrl} alt="" className="admin-ranking-snippet-cover" />
+                            <SafeImage src={rankingModalBook.book.coverUrl} alt="" className="admin-ranking-snippet-cover" />
                             <div>
                                 <strong style={{ display: 'block', fontSize: '0.9rem', color: '#111827' }}>{rankingModalBook.book.title}</strong>
                                 <small style={{ color: '#6b7280' }}>
@@ -2947,7 +2949,7 @@ export function AdminDigitalLibraryView({ language }: {
                             if (!book) return null;
                             return (
                                 <div className="admin-ranking-book-snippet" style={{ margin: '0.2rem 0' }}>
-                                    <img src={book.coverUrl} alt="" className="admin-ranking-snippet-cover" />
+                                    <SafeImage src={book.coverUrl} alt="" className="admin-ranking-snippet-cover" />
                                     <div>
                                         <strong style={{ display: 'block', fontSize: '0.9rem', color: '#111827' }}>{book.title}</strong>
                                         <small style={{ color: '#6b7280' }}>{book.author} · ISBN: {book.isbn}</small>
@@ -3198,4 +3200,4 @@ function TaxonomySection({ title, icon, value, setValue, onCreate, rows, languag
 function VersionCard({ title, data }: {
     title: string;
     data?: Partial<BookInput>;
-}) { return <section><h3>{title}</h3>{data?.coverUrl && <img className="admin-version-cover" src={data.coverUrl} alt=""/>}{fields.map(([key, label]) => <div key={key}><span>{label}</span><p>{String(data?.[key] ?? '—')}</p></div>)}</section>; }
+}) { return <section><h3>{title}</h3>{data?.coverUrl && <SafeImage className="admin-version-cover" src={data.coverUrl} alt=""/>}{fields.map(([key, label]) => <div key={key}><span>{label}</span><p>{String(data?.[key] ?? '—')}</p></div>)}</section>; }

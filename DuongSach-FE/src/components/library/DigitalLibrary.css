@@ -169,7 +169,7 @@
   height: 10.5rem;
   display: flex;
   align-items: flex-end;
-  z-index: 0;
+  z-index: 5;
   color: #d4b174;
   font-family: Georgia, 'Times New Roman', serif;
   font-size: clamp(8rem, 10vw, 10.5rem);
@@ -969,3 +969,10 @@ button.library-shelf-control:active:not(:disabled) {
   .book-detail-panel,
   .book-detail-cover { animation-duration: 1ms !important; transition-duration: 1ms !important; scroll-behavior: auto !important; }
 }
+
+/* Reserve separate columns so two-digit ranks never sit beneath covers. */
+.library-ranking-item { flex-basis: clamp(300px, 25vw, 330px); }
+.library-ranking-visual { display: grid; grid-template-columns: minmax(110px, 1fr) 154px; gap: 14px; align-items: end; padding-bottom: 38px; }
+.library-ranking-visual .library-ranking-number { position: static; height: auto; padding-bottom: 10px; font-size: 7rem; letter-spacing: -.06em; }
+.library-ranking-visual .library-ranking-number.is-double-digit { font-size: 6rem; }
+.library-ranking-item .library-ranking-visual .library-cover-art { position: relative; inset: auto; }

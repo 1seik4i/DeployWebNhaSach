@@ -1,3 +1,4 @@
+import { guestSessionId } from '../utils/guestSubmission';
 const API_BASE = String(import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '');
 const ACCESS_TOKEN_KEY = 'duongsach_token';
 const REFRESH_TOKEN_KEY = 'duongsach_refresh_token';
@@ -72,6 +73,8 @@ async function request<T>(endpoint: string, options: RequestInit = {}, retryUnau
     headers['Authorization'] = `Bearer ${token}`;
   }
 
+  if (['/public/feedbacks', '/public/event-suggestions', '/public/submission-quota'].includes(endpoint)) headers['X-Guest-Session'] = guestSessionId();
+
   const method = String(options.method || 'GET').toUpperCase();
   let response: Response;
   try {
@@ -99,8 +102,10 @@ async function request<T>(endpoint: string, options: RequestInit = {}, retryUnau
 
   if (!response.ok || !json.success) {
     const detailMsg = json.error?.details?.map(d => `${d.field ? `${d.field}: ` : ''}${d.message}`).join(', ');
-    const fullMsg = detailMsg ? `${json.error?.message || 'Dữ liệu không hợp lệ'}: ${detailMsg}` : (json.error?.message || 'Có lỗi xảy ra khi gọi API');
-    throw new Error(fullMsg);
+    const loginValidation = endpoint === '/auth/login' && json.error?.code === 'VALIDATION_ERROR'
+      ? json.error.details?.map(detail => detail.message).join(', ') : '';
+    const fullMsg = loginValidation || (detailMsg ? `${json.error?.message || 'Dữ liệu không hợp lệ'}: ${detailMsg}` : (json.error?.message || 'Có lỗi xảy ra khi gọi API'));
+    throw Object.assign(new Error(fullMsg), { status: response.status, code: json.error?.code });
   }
 
   if (method !== 'GET' && endpoint !== '/public/visits') {

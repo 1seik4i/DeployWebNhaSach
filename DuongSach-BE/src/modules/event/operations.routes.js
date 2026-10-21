@@ -594,6 +594,7 @@ router.get(
   }),
 );
 const proposalInclude = {
+  activities: { include: { registrations: true } },
   event: {
     include: {
       registrations: {
@@ -637,7 +638,9 @@ const mapProposal = (p) => {
     duration: p.startAt && p.endAt ? `${Math.round((p.endAt - p.startAt) / 60000)} phút` : "",
     location: p.location?.name || "",
     eventName: p.event?.title || "",
-    registeredCount: (p.event?.registrations?.length || 0) + (p.event?.publicRegistrations || []).reduce((sum, row) => sum + row.attendeesCount, 0),
+    registeredCount: p.status !== "approved" ? 0 : meta.standaloneEvent
+      ? (p.event?.registrations?.length || 0) + (p.event?.publicRegistrations || []).reduce((sum, row) => sum + row.attendeesCount, 0)
+      : (p.activities || []).reduce((sum, activity) => sum + (activity.registrations?.length || 0), 0),
     requiredEquipments: p.devices?.map((d) => d.name) || [],
     imageUrl: meta.imageUrl || p.imageUrl || p.event?.coverImageUrl || "",
     boothCode: booth?.code || "",
@@ -664,7 +667,7 @@ router.get(
   }),
 );
 const proposalInput = activityInput.extend({
-  targetAudience: z.string().max(2000).optional(),
+  targetAudience: z.string().trim().min(1, "Vui lòng nhập đối tượng tham gia").max(2000),
   contactPerson: text.optional(),
   contactPhone: supportPhone.optional(),
   devices: z
@@ -814,19 +817,20 @@ router.get(
         where: { id: parse(uuid, r.params.id), organizationId: org.id },
       });
     if (!p) throw ApiError.notFound();
+    if (p.status !== "approved") return [];
     const [actRows, eventRows, publicRows] = await Promise.all([
       prisma.activityRegistration.findMany({
         where: { activity: { proposalId: p.id, organizationId: org.id } },
         include: { user: { select: { id: true, fullName: true, phone: true } } },
       }),
-      p.eventId
+      p.eventId && proposalMetadata(p.managementNotes).standaloneEvent
         ? prisma.eventRegistration.findMany({
             where: { eventId: p.eventId },
             include: { user: { select: { id: true, fullName: true, phone: true } } },
             orderBy: { joinedAt: "desc" },
           })
         : [],
-      p.eventId ? prisma.publicEventRegistration.findMany({ where: { eventId: p.eventId }, orderBy: { createdAt: 'desc' } }) : [],
+      p.eventId && proposalMetadata(p.managementNotes).standaloneEvent ? prisma.publicEventRegistration.findMany({ where: { eventId: p.eventId }, orderBy: { createdAt: 'desc' } }) : [],
     ]);
     const items = [];
     const seenUsers = new Set();
