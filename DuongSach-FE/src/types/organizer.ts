@@ -81,6 +81,7 @@ export interface OrganizerActivityItem {
   conflictNotes?: string;
 }
 export interface OrganizerActivityProposal {
+  standaloneEvent?: boolean;
   id: string;
   eventId: string;
   title: string;

@@ -173,14 +173,16 @@ export const BoothSelectionPage: React.FC<BoothSelectionPageProps> = ({
     <div className="booth-selection-page">
       {/* 1. Header */}
       <div className="partner-page-header">
-        <h1 className="partner-page-title">
-          {language === 'vi' ? 'Sơ đồ gian hàng' : 'Booth Map'}
-        </h1>
-        <p className="partner-page-sub">
-          {language === 'vi' 
-            ? 'Sơ đồ quy hoạch vị trí gian hàng và nhận biết vị trí được phân công trên Đường Sách TP.HCM.' 
-            : 'Explore the official Book Street layout and discover your assigned stall.'}
-        </p>
+        <div>
+          <h1 className="partner-page-title">
+            {language === 'vi' ? 'Sơ đồ gian hàng' : 'Booth Map'}
+          </h1>
+          <p className="partner-page-sub">
+            {language === 'vi' 
+              ? 'Sơ đồ quy hoạch vị trí gian hàng và nhận biết vị trí được phân công trên Đường Sách TP.HCM.' 
+              : 'Explore the official Book Street layout and discover your assigned stall.'}
+          </p>
+        </div>
       </div>
 
       {/* Banner Nổi bật gian hàng của đối tác (nếu đã có gian thuê) */}

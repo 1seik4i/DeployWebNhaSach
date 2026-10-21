@@ -444,11 +444,10 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
               onApproveActivity={async (id) => { await organizerApi.publishActivity(id); await refreshAdminData(); }}
               onRejectActivity={async (id) => { await organizerApi.updateActivity(id, { status: 'cancelled' }); await refreshAdminData(); }}
               onUpdateActivity={async (updated) => { await organizerApi.updateActivity(updated.id, updated); await refreshAdminData(); }}
-              onCreateActivityFromProposal={async (id) => { await organizerApi.createActivityFromProposal(id); await refreshAdminData(); }}
               onOpenCreateActivity={() => setIsCreateActivityOpen(true)}
               onDeleteActivity={async (id) => { await organizerApi.deleteActivity(id); await refreshAdminData(); }}
               onDeleteProposal={async (id) => { await organizerApi.deleteProposal(id); await refreshAdminData(); }}
-              onApproveProposal={async (id) => { await organizerApi.approveProposal(id); await refreshAdminData(); }}
+              onApproveProposal={async (id, note) => { await organizerApi.approveProposal(id, note); await refreshAdminData(); }}
               onRejectProposal={async (id, note) => { await organizerApi.rejectProposal(id, note); await refreshAdminData(); }}
               onRequestProposalSupplement={async (id, note) => { await organizerApi.requestProposalSupplement(id, note); await refreshAdminData(); }}
             />

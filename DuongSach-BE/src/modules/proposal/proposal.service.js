@@ -3,8 +3,24 @@ import { ApiError } from '../../utils/ApiError.js';
 import { getPagination } from '../../utils/pagination.js';
 import { transaction, parse } from '../../utils/contract.js';
 import { listProposalSchema } from './proposal.validation.js';
-import { withProposalReviewNote } from '../../utils/eventImage.js';
-import { publishIndependentRegistration } from '../event/independent-event.js';
+import { withProposalReviewNote, proposalMetadata } from '../../utils/eventImage.js';
+import { publishApprovedProposal } from '../event/independent-event.js';
+
+async function notifyProposalReview(tx, proposal, action, note) {
+  const standalone = Boolean(proposalMetadata(proposal.managementNotes).standaloneEvent);
+  const subject = standalone ? 'Sự kiện đăng ký' : 'Đề xuất hoạt động';
+  const result = action === 'approve' ? 'đã được duyệt' : action === 'reject' ? 'không được duyệt' : 'cần bổ sung';
+  const members = await tx.organizationMember.findMany({
+    where: { organizationId: proposal.organizationId }, select: { userId: true },
+  });
+  if (!members.length) return;
+  await tx.notification.createMany({ data: [...new Set(members.map(member => member.userId))].map(userId => ({
+    userId, title: `${subject} ${result}`,
+    message: `${subject} "${proposal.title}" ${result}.${standalone && action === 'approve' ? ' Tổ chức của bạn đã được ghi nhận tham gia với vai trò đối tác tổ chức.' : ''}${note ? ` Ghi chú của Ban quản lý: ${note}` : ''}`,
+    kind: standalone ? 'event' : 'activity',
+    link: standalone && action === 'approve' ? `/partner/events?eventId=${proposal.eventId}` : `/partner/activities/${proposal.id}`,
+  })) });
+}
 
 export class ProposalService {
   static async list(query = {}) {
@@ -39,7 +55,7 @@ export class ProposalService {
         orderBy: { submittedAt: 'desc' },
         include: {
           event: {
-            select: { id: true, title: true },
+            select: { id: true, title: true, coverImageUrl: true },
           },
           organization: {
             select: {
@@ -119,7 +135,7 @@ export class ProposalService {
       const current = await tx.activityProposal.findUnique({ where: { id } });
       if (!current || current.status !== proposal.status) throw ApiError.conflict('Đề xuất đã được xử lý bởi người khác');
       const updateData = { status: 'approved' };
-      const publishedId = await publishIndependentRegistration(tx, current, user);
+      const publishedId = await publishApprovedProposal(tx, current, user);
       if (publishedId) updateData.publishedActivityId = publishedId;
       if (note) {
         updateData.managementNotes = withProposalReviewNote(current.managementNotes, note);
@@ -154,6 +170,7 @@ export class ProposalService {
         },
       });
 
+      await notifyProposalReview(tx, updated, 'approve', note);
       return { ...updated, review };
     });
   }
@@ -211,6 +228,7 @@ export class ProposalService {
         },
       });
 
+      await notifyProposalReview(tx, updated, 'request_supplement', note);
       return { ...updated, review };
     });
   }
@@ -268,22 +286,7 @@ export class ProposalService {
         },
       });
 
-      const members = await tx.organizationMember.findMany({
-        where: { organizationId: updated.organizationId },
-        select: { userId: true },
-      });
-      if (members.length)
-        await tx.notification.createMany({
-          data: members.map(({ userId }) => ({
-            userId,
-            title: "Đề xuất hoạt động không được duyệt",
-            message: note
-              ? `Đề xuất \"${updated.title}\" không được duyệt. Ghi chú của Ban Quản Lý: ${note}`
-              : `Đề xuất \"${updated.title}\" không được duyệt.`,
-            kind: "activity",
-            link: "/partner/activities",
-          })),
-        });
+      await notifyProposalReview(tx, updated, 'reject', note);
 
       return { ...updated, review };
     });

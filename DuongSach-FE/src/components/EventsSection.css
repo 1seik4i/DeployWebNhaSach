@@ -169,6 +169,7 @@
 
 .figma-event-banner-photo {
   height: 200px;
+  background: #dce2d5;
   position: relative;
   padding: 0.9rem 1rem;
   display: flex;
@@ -183,11 +184,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 500ms ease;
-}
-
-.figma-event-card:hover .event-real-img {
-  transform: scale(1.04);
+  object-position: center top;
 }
 
 .event-banner-overlay {

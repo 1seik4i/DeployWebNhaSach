@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { partnerApi } from '../../services/partnerApi';
 import { ListPagination, useListPagination } from '../../components/ui/ListPagination';
 import { 
   BarChart3, 
@@ -8,7 +9,8 @@ import {
   Star, 
   Download, 
   Calendar, 
-  ChevronDown 
+  ChevronDown,
+  User 
 } from 'lucide-react';
 import { Language, PartnerReportStats } from '../../types';
 import './PartnerPages.css';
@@ -20,9 +22,28 @@ interface PartnerReportsPageProps {
 
 export const PartnerReportsPage: React.FC<PartnerReportsPageProps> = ({
   language,
-  reportStats,
+  reportStats: initialReportStats,
 }) => {
-  const [selectedEvent, setSelectedEvent] = useState(reportStats.eventId);
+  const [selectedEvent, setSelectedEvent] = useState('');
+  const [reportStats, setReportStats] = useState(initialReportStats);
+  const [reportError, setReportError] = useState('');
+  const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    setReportError('');
+    if (selectedEvent === initialReportStats.eventId) {
+      setReportStats(initialReportStats);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    partnerApi.getReports(selectedEvent || undefined).then(report => {
+      if (!cancelled) setReportStats(report);
+    }).catch(error => {
+      if (!cancelled) setReportError(error instanceof Error ? error.message : 'Không thể tải báo cáo');
+    }).finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [selectedEvent, initialReportStats]);
   const pagination = useListPagination(reportStats.feedbacks || [], reportStats.eventId);
   const exportReport = () => {
     const rows = [['Sự kiện', reportStats.eventName], ['Tổng lượt tham gia', reportStats.totalParticipants], ['Hoạt động', reportStats.totalActivities], ['Tỷ lệ tham dự', `${Number(reportStats.attendanceRate || 0).toFixed(2)}%`], ['Đánh giá trung bình', Number(reportStats.averageRating || 0).toFixed(1)], [], ['Hoạt động', 'Lượt tham gia'], ...reportStats.activityStats.map(item => [item.name, item.count]), [], ['Thời gian', 'Người đánh giá', 'Điểm', 'Phạm vi', 'Ý kiến'], ...(reportStats.feedbacks || []).map(item => [new Date(item.createdAt).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }), item.authorName || 'Ẩn danh', item.rating, item.activityName || 'Toàn sự kiện', item.comment || ''])];
@@ -49,6 +70,7 @@ export const PartnerReportsPage: React.FC<PartnerReportsPageProps> = ({
         {/* Event Filter Dropdown matching Sketch Screen 7 */}
         <div className="partner-reports-actions">
           <select
+            aria-label={language === 'vi' ? 'Lọc báo cáo theo sự kiện' : 'Filter reports by event'}
             value={selectedEvent}
             onChange={(e) => setSelectedEvent(e.target.value)}
             style={{
@@ -62,13 +84,15 @@ export const PartnerReportsPage: React.FC<PartnerReportsPageProps> = ({
               cursor: 'pointer'
             }}
           >
-            <option value={reportStats.eventId}>{reportStats.eventName || (language === 'vi' ? 'Sự kiện hiện tại' : 'Current event')}</option>
+            <option value="">{language === 'vi' ? 'Tất cả sự kiện đã duyệt' : 'All approved events'}</option>
+            {(initialReportStats.availableEvents || []).map(event => <option key={event.id} value={event.id}>{event.title}</option>)}
           </select>
 
           <button
             type="button"
             className="btn-part-secondary"
             onClick={exportReport}
+            disabled={loading || Boolean(reportError)}
           >
             <Download size={15} />
             <span>{language === 'vi' ? 'Xuất báo cáo' : 'Export'}</span>
@@ -77,6 +101,9 @@ export const PartnerReportsPage: React.FC<PartnerReportsPageProps> = ({
       </div>
 
       {/* 2. Top Summary Metric Cards matching Sketch Screen 7 */}
+      {loading && <p role="status">{language === 'vi' ? 'Đang tải báo cáo…' : 'Loading report…'}</p>}
+      {reportError && <p role="alert">{reportError}</p>}
+      <div hidden={loading || Boolean(reportError)}>
       <div className="partner-summary-grid">
         {/* Card 1: Total participants */}
         <div className="partner-stat-card">
@@ -293,23 +320,69 @@ export const PartnerReportsPage: React.FC<PartnerReportsPageProps> = ({
           {language === 'vi' ? `${reportStats.ratingCount || 0} đánh giá được lưu trong hệ thống` : `${reportStats.ratingCount || 0} reviews stored in the system`}
         </p>
         {(reportStats.feedbacks || []).length ? (
-          <div style={{ display: 'grid', gap: '0.75rem' }}>
-            {pagination.items.map(item => (
-              <article key={`${item.source}-${item.id}`} style={{ border: '1px solid #E2E8F0', borderRadius: 10, padding: '0.9rem 1rem', background: '#FAFCFB' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
-                  <strong>{item.authorName || (language === 'vi' ? 'Người dùng ẩn danh' : 'Anonymous user')}</strong>
-                  <span style={{ color: '#B3862A', fontWeight: 800 }}>{'★'.repeat(item.rating)}{'☆'.repeat(5 - item.rating)}</span>
-                </div>
-                <div style={{ marginTop: 4, color: '#71827D', fontSize: '0.74rem' }}>
-                  {item.activityName || (language === 'vi' ? 'Đánh giá toàn sự kiện' : 'Event review')} · {new Date(item.createdAt).toLocaleString(language === 'vi' ? 'vi-VN' : 'en-GB', { timeZone: 'Asia/Ho_Chi_Minh' })}
-                </div>
-                <p style={{ margin: '0.65rem 0 0', color: '#263B35', whiteSpace: 'pre-wrap' }}>{item.comment || (language === 'vi' ? 'Không để lại ý kiến.' : 'No written comment.')}</p>
-              </article>
-            ))}
+          <div className="review-feedback-list">
+            {pagination.items.map(item => {
+              const initial = item.authorName ? item.authorName.trim().charAt(0).toUpperCase() : null;
+              const dateObj = new Date(item.createdAt);
+              const dateStr = dateObj.toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-GB', {
+                timeZone: 'Asia/Ho_Chi_Minh',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+              });
+              const timeStr = dateObj.toLocaleTimeString(language === 'vi' ? 'vi-VN' : 'en-GB', {
+                timeZone: 'Asia/Ho_Chi_Minh',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+              });
+
+              return (
+                <article key={`${item.source}-${item.id}`} className="review-feedback-card">
+                  <div className="review-card-header">
+                    <div className="review-author-group">
+                      <div className="review-avatar" aria-hidden="true">
+                        {initial || <User size={16} />}
+                      </div>
+                      <div className="review-author-info">
+                        <div className="review-author-name-row">
+                          <strong className="review-author-name">
+                            {item.authorName || (language === 'vi' ? 'Người dùng ẩn danh' : 'Anonymous user')}
+                          </strong>
+                          <span className="review-scope-pill">
+                            {item.activityName || (language === 'vi' ? 'Đánh giá sự kiện' : 'Event review')}
+                          </span>
+                        </div>
+                        <span className="review-date-text">{timeStr} · {dateStr}</span>
+                      </div>
+                    </div>
+
+                    <div className="review-stars-group" aria-label={`${item.rating}/5`}>
+                      {[1, 2, 3, 4, 5].map(starNum => (
+                        <Star
+                          key={starNum}
+                          size={14}
+                          className={starNum <= item.rating ? 'review-star filled' : 'review-star empty'}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  {item.comment ? (
+                    <p className="review-comment-text">{item.comment}</p>
+                  ) : (
+                    <p className="review-comment-empty">
+                      {language === 'vi' ? '(Không để lại nhận xét viết tay)' : '(No written comment)'}
+                    </p>
+                  )}
+                </article>
+              );
+            })}
           </div>
         ) : <p style={{ color: '#71827D' }}>{language === 'vi' ? 'Chưa có đánh giá thực tế cho sự kiện này.' : 'No reviews for this event yet.'}</p>}
         <ListPagination page={pagination.page} totalPages={pagination.totalPages} onChange={pagination.setPage} vi={language === 'vi'} />
       </section>
+      </div>
     </div>
   );
 };

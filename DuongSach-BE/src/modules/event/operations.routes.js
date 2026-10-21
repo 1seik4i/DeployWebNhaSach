@@ -267,7 +267,8 @@ router.get(
       include: {
         location: true,
         organization: true,
-        _count: { select: { attendanceSessions: true } },
+        event: { select: { coverImageUrl: true } },
+        _count: { select: { attendanceSessions: true, registrations: true } },
       },
       orderBy: { startAt: "asc" },
     }),
@@ -516,7 +517,10 @@ router.get(
           ...publicWhere,
           ...(r.query.eventId ? { id: parse(uuid, r.query.eventId) } : {}),
         },
-        include: { venue: true },
+        include: { venue: true,
+          applications: { where: { organizationId: org.id }, select: { status: true } },
+          proposals: { where: { status: 'approved' }, include: { organization: { select: { id: true, name: true } } } },
+        },
         orderBy: { startAt: "asc" },
       }),
       prisma.activity.findMany({
@@ -561,15 +565,20 @@ router.get(
     });
     };
     return [
-      ...events.map((event) =>
-        base(
+      ...events.map((event) => {
+        const host = event.proposals?.find(p => proposalMetadata(p.managementNotes).standaloneEvent);
+        return {
+        ...base(
           event,
           `event:${event.id}`,
           event.venue?.name,
           event.theme || "Sự kiện",
           event.coverImageUrl,
         ),
-      ),
+        hostOrgName: host?.organization?.name,
+        participationStatus: host?.organizationId === org.id ? 'approved' : event.applications?.[0]?.status,
+      };
+      }),
       ...activities.filter(activity => !events.some(event =>
         event.id === activity.eventId && event.title === activity.title &&
         new Date(event.startAt).getTime() === new Date(activity.startAt).getTime() &&
@@ -580,7 +589,7 @@ router.get(
           `act:${activity.id}`,
           activity.location?.name,
           activity.kind,
-          activity.imageUrl || activity.event?.coverImageUrl,
+          activity.event?.coverImageUrl || activity.imageUrl,
         ),
         hostOrgName: org.name,
         speaker: activity.speaker || undefined,
@@ -642,7 +651,7 @@ const mapProposal = (p) => {
       ? (p.event?.registrations?.length || 0) + (p.event?.publicRegistrations || []).reduce((sum, row) => sum + row.attendeesCount, 0)
       : (p.activities || []).reduce((sum, activity) => sum + (activity.registrations?.length || 0), 0),
     requiredEquipments: p.devices?.map((d) => d.name) || [],
-    imageUrl: meta.imageUrl || p.imageUrl || p.event?.coverImageUrl || "",
+    imageUrl: p.event?.coverImageUrl || meta.imageUrl || p.imageUrl || "",
     boothCode: booth?.code || "",
     boothName: booth?.name || "",
     orgName: p.organization?.name || "",

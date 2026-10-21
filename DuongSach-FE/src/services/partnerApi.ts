@@ -61,7 +61,7 @@ export function resolvePartnerNotificationLink(item: {
   const title = (item.title || '').toLowerCase();
   const text = `${title} ${(item.message || '').toLowerCase()}`;
 
-  if (title.includes('gian hàng') || text.includes('gian hàng') || item.kind === 'booth') {
+  if (title.includes('gian hàng')) {
     return '/partner/booths';
   }
   if (title.includes('đề xuất') || title.includes('hoạt động') || text.includes('hoạt động') || item.kind === 'activity') {
@@ -76,7 +76,8 @@ export function resolvePartnerNotificationLink(item: {
   if (title.includes('sự kiện') || text.includes('sự kiện') || item.kind === 'event') {
     return '/partner/events';
   }
-  return '/partner/events';
+  if (item.kind === 'booth') return '/partner/booths';
+  return '/partner/notifications';
 }
 
 export const partnerApi = {
@@ -172,6 +173,7 @@ export const partnerApi = {
     return items.map(item => ({
       id: String(item.id),
       title: String(item.title),
+      message: String(item.message || ''),
       time: formatDate(item.createdAt),
       type: ['activity', 'booth', 'event', 'reminder', 'system'].includes(String(item.kind))
         ? String(item.kind) as PartnerNotification['type']

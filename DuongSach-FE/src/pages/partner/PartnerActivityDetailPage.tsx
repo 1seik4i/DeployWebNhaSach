@@ -1,6 +1,6 @@
 import { useUrlTab } from '../../hooks/useUrlTab';
 import { promptModal, notifyModal } from '../../services/notificationModal';
-import { documentFileError } from '../../utils/fileValidation';
+import { documentFileError, imageFileError } from '../../utils/fileValidation';
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
@@ -14,6 +14,7 @@ import {
   XCircle, 
   CheckCircle2, 
   FileText, 
+  Image as ImageIcon,
   Layers,
   Info,
   Plus,
@@ -22,7 +23,8 @@ import {
   Check,
   X,
   Search,
-  Download
+  Download,
+  ExternalLink
 } from 'lucide-react';
 import { 
   Language, 
@@ -57,6 +59,7 @@ export const PartnerActivityDetailPage: React.FC<PartnerActivityDetailPageProps>
   const [description, setDescription] = useState(activity?.description || '');
   const [capacity, setCapacity] = useState(activity?.capacity || 1);
   const [speaker, setSpeaker] = useState(activity?.speaker || '');
+  const [imageUrl, setImageUrl] = useState(activity?.imageUrl || '');
   const [targetAudience, setTargetAudience] = useState(activity?.targetAudience || '');
   const [participants, setParticipants] = useState<Array<{ id: string; fullName: string; phone: string; ticketCode: string; status: string; attendeesCount?: number }>>([]);
   const participantCount = participants.reduce((sum, row) => sum + (row.attendeesCount || 1), 0);
@@ -95,6 +98,7 @@ export const PartnerActivityDetailPage: React.FC<PartnerActivityDetailPageProps>
     setDescription(activity.description);
     setCapacity(activity.capacity);
     setSpeaker(activity.speaker || '');
+    setImageUrl(activity.imageUrl || '');
     setTargetAudience(activity.targetAudience || '');
 
     if (activity.schedule && activity.schedule.length > 0) {
@@ -125,6 +129,27 @@ export const PartnerActivityDetailPage: React.FC<PartnerActivityDetailPageProps>
       .catch(error => setParticipantError(error instanceof Error ? error.message : 'Không thể tải danh sách người tham gia'));
   }, [activity]);
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const err = imageFileError(file, 2);
+    if (err) {
+      showToast(err);
+      e.target.value = '';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setImageUrl(String(event.target?.result || ''));
+      showToast(language === 'vi' ? 'Đã tải ảnh lên thành công!' : 'Image uploaded successfully!');
+    };
+    reader.onerror = () => {
+      showToast(language === 'vi' ? 'Lỗi khi đọc file ảnh' : 'Failed to read image file');
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
   const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (onUpdateActivity) {
@@ -134,7 +159,7 @@ export const PartnerActivityDetailPage: React.FC<PartnerActivityDetailPageProps>
           description, 
           capacity,
           speaker,
-          targetAudience
+          imageUrl: imageUrl.trim() || undefined
         });
         setSaveError('');
         showToast(language === 'vi' ? 'Đã lưu thông tin hoạt động thành công!' : 'Activity updated successfully!');
@@ -448,13 +473,6 @@ export const PartnerActivityDetailPage: React.FC<PartnerActivityDetailPageProps>
           </button>
           <button
             type="button"
-            className={`partner-tab-btn ${activeTab === 'registration' ? 'is-active' : ''}`}
-            onClick={() => setActiveTab('registration')}
-          >
-            {language === 'vi' ? `Đăng ký (${participantCount})` : `Registration (${participantCount})`}
-          </button>
-          <button
-            type="button"
             className={`partner-tab-btn ${activeTab === 'documents' ? 'is-active' : ''}`}
             onClick={() => setActiveTab('documents')}
           >
@@ -494,15 +512,6 @@ export const PartnerActivityDetailPage: React.FC<PartnerActivityDetailPageProps>
                   placeholder={language === 'vi' ? 'Tên diễn giả, chuyên gia...' : 'Speaker name'}
                 />
               </div>
-              <div className="form-field-group">
-                <label>{language === 'vi' ? 'Đối tượng tham gia' : 'Target Audience'}</label>
-                <input maxLength={2000}
-                  type="text" required
-                  value={targetAudience} 
-                  onChange={(e) => setTargetAudience(e.target.value)} 
-                  placeholder={language === 'vi' ? 'Ví dụ: Độc giả trẻ, Học sinh...' : 'e.g. Young readers'}
-                />
-              </div>
             </div>
             <div className="form-field-group">
               <label>{language === 'vi' ? 'Số người tham dự dự kiến' : 'Expected attendees'}</label>
@@ -514,6 +523,88 @@ export const PartnerActivityDetailPage: React.FC<PartnerActivityDetailPageProps>
                 required
               />
             </div>
+            <div className="form-field-group">
+              <label>{language === 'vi' ? 'Hình ảnh hoạt động' : 'Activity Banner / Image'}</label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {imageUrl && (
+                  <div style={{ position: 'relative', width: '100%', maxWidth: '360px', borderRadius: '10px', overflow: 'hidden', border: '1px solid #D1DDD8', background: '#F8FAF9' }}>
+                    <img 
+                      src={imageUrl} 
+                      alt="Xem trước hình ảnh" 
+                      style={{ width: '100%', height: '180px', objectFit: 'cover', display: 'block' }}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=800&q=80';
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setImageUrl('')}
+                      style={{
+                        position: 'absolute',
+                        top: '8px',
+                        right: '8px',
+                        background: 'rgba(23, 36, 33, 0.75)',
+                        border: 'none',
+                        color: '#FFFFFF',
+                        borderRadius: '50%',
+                        width: '28px',
+                        height: '28px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer'
+                      }}
+                      title={language === 'vi' ? 'Xóa ảnh' : 'Remove image'}
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                  <label 
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.45rem',
+                      padding: '0.55rem 1rem',
+                      background: '#F3F7F5',
+                      border: '1px solid #D1DDD8',
+                      borderRadius: '8px',
+                      color: '#17382E',
+                      fontSize: '0.85rem',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <Upload size={15} />
+                    <span>{language === 'vi' ? 'Tải ảnh từ máy' : 'Upload from device'}</span>
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      style={{ display: 'none' }} 
+                      onChange={handleImageUpload} 
+                    />
+                  </label>
+
+                  <div style={{ flex: 1, minWidth: '240px', position: 'relative' }}>
+                    <input 
+                      type="url" 
+                      value={imageUrl} 
+                      onChange={(e) => setImageUrl(e.target.value)} 
+                      placeholder={language === 'vi' ? 'Hoặc dán link hình ảnh (https://...)' : 'Or paste image link (https://...)'}
+                      style={{ width: '100%', fontSize: '0.88rem' }}
+                    />
+                  </div>
+                </div>
+                <small style={{ color: '#6A7D75', fontSize: '0.78rem' }}>
+                  {language === 'vi' 
+                    ? 'Chấp nhận tệp ảnh JPG, PNG, WEBP (tối đa 2MB) hoặc đường link ảnh trực tiếp.' 
+                    : 'Supported JPG, PNG, WEBP (up to 2MB) or direct image URL.'}
+                </small>
+              </div>
+            </div>
+
             <div className="form-field-group">
               <label>{language === 'vi' ? 'Mô tả nội dung' : 'Description'}</label>
               <textarea maxLength={20000}
@@ -559,10 +650,6 @@ export const PartnerActivityDetailPage: React.FC<PartnerActivityDetailPageProps>
                   <div className="spec-item">
                     <span className="label">{language === 'vi' ? 'Số người dự kiến' : 'Expected attendees'}</span>
                     <span className="value">{capacity} {language === 'vi' ? 'người' : 'seats'}</span>
-                  </div>
-                  <div className="spec-item">
-                    <span className="label">{language === 'vi' ? 'Đối tượng tham gia' : 'Audience'}</span>
-                    <span className="value">{activity.targetAudience || (language === 'vi' ? 'Chưa cập nhật đối tượng tham gia' : 'Audience not specified')}</span>
                   </div>
                   <div className="spec-item">
                     <span className="label">{language === 'vi' ? 'Đã đăng ký' : 'Registered'}</span>
@@ -920,187 +1007,6 @@ export const PartnerActivityDetailPage: React.FC<PartnerActivityDetailPageProps>
               </div>
             )}
 
-            {/* TAB 3: ĐĂNG KÝ (KHÁCH ĐĂNG KÝ SỰ KIỆN TỰ ĐỘNG HIỆN VÀO ĐÂY) */}
-            {activeTab === 'registration' && (
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
-                  <div>
-                    <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#172421', margin: '0 0 0.25rem 0' }}>
-                      {language === 'vi' ? 'Danh sách độc giả đăng ký tham gia' : 'Registered Participants'}
-                    </h3>
-                    <p style={{ color: '#5C7068', fontSize: '0.86rem', margin: 0 }}>
-                      {language === 'vi' 
-                        ? `Tổng cộng ${participantCount} độc giả đã đăng ký (Không giới hạn số người tham dự).`
-                        : `Total ${participantCount} participants registered (No attendance limit).`}
-                    </p>
-                  </div>
-
-                  {participants.length > 0 && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#F4F7F5', border: '1px solid #D6E2DD', borderRadius: '8px', padding: '0.35rem 0.65rem' }}>
-                      <Search size={14} color="#657B74" />
-                      <input maxLength={200}
-                        type="text"
-                        value={participantSearch}
-                        onChange={(e) => setParticipantSearch(e.target.value)}
-                        placeholder={language === 'vi' ? 'Tìm tên, SĐT, mã vé...' : 'Search name, phone, ticket...'}
-                        style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: '0.82rem', width: '180px' }}
-                      />
-                      {participantSearch && (
-                        <X size={13} style={{ cursor: 'pointer', opacity: 0.6 }} onClick={() => setParticipantSearch('')} />
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Desktop View Table */}
-                <div className="partner-participant-desktop-table" style={{ background: '#FFFFFF', border: '1px solid #E5ECE8', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}>
-                  <div style={{ 
-                    display: 'grid', 
-                    gridTemplateColumns: '50px 1.8fr 1.2fr 1.4fr 1.2fr', 
-                    padding: '0.75rem 1rem', 
-                    background: '#F6F9F7', 
-                    borderBottom: '1px solid #E2ECE6',
-                    fontSize: '0.78rem',
-                    fontWeight: 750,
-                    color: '#496057',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.03em'
-                  }}>
-                    <span>#</span>
-                    <span>{language === 'vi' ? 'Họ và tên' : 'Full Name'}</span>
-                    <span>{language === 'vi' ? 'Số điện thoại' : 'Phone'}</span>
-                    <span>{language === 'vi' ? 'Mã vé / Đăng ký' : 'Ticket Code'}</span>
-                    <span style={{ textAlign: 'right' }}>{language === 'vi' ? 'Trạng thái' : 'Status'}</span>
-                  </div>
-
-                  <div style={{ maxHeight: '450px', overflowY: 'auto' }}>
-                    {filteredParticipants.map((participant, index) => (
-                      <div 
-                        key={participant.id} 
-                        style={{ 
-                          display: 'grid', 
-                          gridTemplateColumns: '50px 1.8fr 1.2fr 1.4fr 1.2fr', 
-                          padding: '0.85rem 1rem', 
-                          borderBottom: '1px solid #EEF3F0', 
-                          fontSize: '0.88rem',
-                          alignItems: 'center',
-                          backgroundColor: index % 2 === 0 ? '#FFFFFF' : '#FAFCFB'
-                        }}
-                      >
-                        <span style={{ color: '#7E918B', fontWeight: 600 }}>{index + 1}</span>
-                        <strong style={{ color: '#172421' }}>{participant.fullName}{(participant.attendeesCount || 1) > 1 && <small> · {participant.attendeesCount} người</small>}</strong>
-                        <span style={{ color: '#556B65' }}>{participant.phone || '—'}</span>
-                        <span style={{ 
-                          fontFamily: 'monospace', 
-                          fontSize: '0.82rem', 
-                          fontWeight: 700, 
-                          color: '#B3862A',
-                          background: '#FAF7EE',
-                          padding: '0.15rem 0.45rem',
-                          borderRadius: '4px',
-                          display: 'inline-block',
-                          width: 'fit-content'
-                        }}>
-                          {participant.ticketCode}
-                        </span>
-                        <div style={{ textAlign: 'right' }}>
-                          <span style={{ 
-                            fontSize: '0.78rem', 
-                            fontWeight: 700, 
-                            padding: '0.2rem 0.6rem', 
-                            borderRadius: '12px',
-                            background: participant.status === 'attended' ? '#DCFCE7' : '#FEF3C7',
-                            color: participant.status === 'attended' ? '#15803D' : '#B45309'
-                          }}>
-                            {participant.status === 'attended' ? '✓ Đã tham gia' : 'Đã đăng ký'}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {filteredParticipants.length === 0 && (
-                    <div style={{ padding: '2.5rem', textAlign: 'center', color: '#657B74' }}>
-                      <Users size={32} style={{ opacity: 0.4, marginBottom: '0.5rem' }} />
-                      <p style={{ margin: 0, fontSize: '0.92rem' }}>
-                        {participantSearch 
-                          ? 'Không tìm thấy độc giả phù hợp với từ khóa tìm kiếm.' 
-                          : 'Chưa có độc giả đăng ký tham gia sự kiện này.'}
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Mobile Cards View for Participants */}
-                <div className="partner-participant-mobile-cards">
-                  {filteredParticipants.map((participant, index) => (
-                    <div key={participant.id} className="participant-mobile-card">
-                      <div className="participant-mobile-card-top">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
-                          <span style={{ 
-                            width: '22px', 
-                            height: '22px', 
-                            borderRadius: '50%', 
-                            background: '#F0F4F2', 
-                            color: '#17382E', 
-                            fontSize: '0.72rem', 
-                            fontWeight: 750, 
-                            display: 'grid', 
-                            placeItems: 'center',
-                            flexShrink: 0
-                          }}>
-                            {index + 1}
-                          </span>
-                          <strong style={{ color: '#172421', fontSize: '0.88rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {participant.fullName}
-                            {(participant.attendeesCount || 1) > 1 && <small style={{ color: '#637771', fontWeight: 500 }}> · {participant.attendeesCount} người</small>}
-                          </strong>
-                        </div>
-                        <span style={{ 
-                          fontSize: '0.74rem', 
-                          fontWeight: 700, 
-                          padding: '0.15rem 0.55rem', 
-                          borderRadius: '12px',
-                          background: participant.status === 'attended' ? '#DCFCE7' : '#FEF3C7',
-                          color: participant.status === 'attended' ? '#15803D' : '#B45309',
-                          flexShrink: 0
-                        }}>
-                          {participant.status === 'attended' ? '✓ Đã tham gia' : 'Đã đăng ký'}
-                        </span>
-                      </div>
-                      <div className="participant-mobile-card-bottom">
-                        <span style={{ color: '#556B65', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          {participant.phone || '—'}
-                        </span>
-                        <span style={{ 
-                          fontFamily: 'monospace', 
-                          fontSize: '0.78rem', 
-                          fontWeight: 700, 
-                          color: '#B3862A',
-                          background: '#FAF7EE',
-                          padding: '0.12rem 0.45rem',
-                          borderRadius: '4px',
-                          border: '1px solid #EFE4CC'
-                        }}>
-                          {participant.ticketCode}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-
-                  {filteredParticipants.length === 0 && (
-                    <div style={{ padding: '2rem 1rem', textAlign: 'center', background: '#F8FAF9', borderRadius: '10px', color: '#657B74' }}>
-                      <Users size={28} style={{ opacity: 0.4, marginBottom: '0.4rem' }} />
-                      <p style={{ margin: 0, fontSize: '0.84rem' }}>
-                        {participantSearch 
-                          ? 'Không tìm thấy độc giả phù hợp với từ khóa.' 
-                          : 'Chưa có độc giả đăng ký tham gia sự kiện này.'}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
 
             {/* TAB 4: TÀI LIỆU (CRUD TÀI LIỆU HOẠT ĐỘNG) */}
             {activeTab === 'documents' && (
@@ -1117,8 +1023,21 @@ export const PartnerActivityDetailPage: React.FC<PartnerActivityDetailPageProps>
 
                   {/* Nút upload file từ máy */}
                   <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    <label className="btn-part-primary" style={{ cursor: 'pointer', padding: '0.45rem 0.9rem', fontSize: '0.84rem', margin: 0 }}>
-                      <Upload size={14} />
+                    <label 
+                      className="btn-part-primary" 
+                      style={{ 
+                        cursor: 'pointer', 
+                        display: 'inline-flex', 
+                        alignItems: 'center', 
+                        gap: '0.45rem', 
+                        padding: '0.5rem 1.15rem', 
+                        fontSize: '0.85rem', 
+                        borderRadius: '8px', 
+                        margin: 0,
+                        boxShadow: '0 2px 8px rgba(23, 56, 46, 0.12)'
+                      }}
+                    >
+                      <Upload size={15} />
                       <span>{language === 'vi' ? 'Tải tệp từ máy' : 'Upload File'}</span>
                       <input
                         type="file"
@@ -1131,20 +1050,45 @@ export const PartnerActivityDetailPage: React.FC<PartnerActivityDetailPageProps>
                   </div>
                 </div>
 
-                {/* Thêm tài liệu nhanh thủ công */}
-                <form onSubmit={handleAddDocManual} style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1.25rem' }}>
+                {/* Thêm liên kết tài liệu trực tuyến */}
+                <form 
+                  onSubmit={handleAddDocManual} 
+                  style={{ 
+                    display: 'flex', 
+                    flexWrap: 'wrap', 
+                    alignItems: 'center',
+                    gap: '0.65rem', 
+                    padding: '0.85rem 1rem', 
+                    background: '#F8FAF9', 
+                    border: '1px solid #E1ECE6', 
+                    borderRadius: '10px', 
+                    marginBottom: '1.25rem' 
+                  }}
+                >
                   <input maxLength={200}
                     type="text"
                     value={newDocName}
                     required
                     onChange={(e) => setNewDocName(e.target.value)}
-                    placeholder={language === 'vi' ? 'Nhập tên tài liệu mới (ví dụ: Giao_an_workshop_v1.pdf)...' : 'Enter document title...'}
-                    style={{ flex: 1, padding: '0.5rem 0.75rem', borderRadius: '8px', border: '1px solid #D1DDD8', fontSize: '0.86rem' }}
+                    placeholder={language === 'vi' ? 'Nhập tên tài liệu (ví dụ: Kịch bản chương trình.pdf)...' : 'Document name...'}
+                    style={{ flex: 1.2, minWidth: '220px', height: '38px', padding: '0 0.85rem', borderRadius: '7px', border: '1px solid #D1DDD8', fontSize: '0.86rem', background: '#FFFFFF' }}
                   />
-                  <input maxLength={2000} type="url" required aria-label="Liên kết tài liệu" placeholder="https://..." value={newDocUrl} onChange={event => setNewDocUrl(event.target.value)} style={{ flex: 1, minWidth: '10rem', padding: '0.5rem' }} />
-                  <button type="submit" className="btn-part-secondary" style={{ padding: '0.5rem 0.9rem', fontSize: '0.84rem' }}>
-                    <Plus size={14} />
-                    <span>{language === 'vi' ? 'Thêm tài liệu' : 'Add'}</span>
+                  <input maxLength={2000} 
+                    type="url" 
+                    required 
+                    aria-label="Liên kết tài liệu" 
+                    placeholder={language === 'vi' ? 'Dán đường dẫn tài liệu (https://...)' : 'Paste link (https://...)'} 
+                    value={newDocUrl} 
+                    onChange={event => setNewDocUrl(event.target.value)} 
+                    style={{ flex: 1.5, minWidth: '240px', height: '38px', padding: '0 0.85rem', borderRadius: '7px', border: '1px solid #D1DDD8', fontSize: '0.86rem', background: '#FFFFFF' }} 
+                  />
+                  <button 
+                    type="submit" 
+                    className="btn-part-secondary" 
+                    style={{ height: '38px', padding: '0 1rem', fontSize: '0.84rem', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', whiteSpace: 'nowrap' }}
+                  >
+                    <Plus size={15} />
+                    <span>{language === 'vi' ? 'Thêm tài liệu' : 'Add Link'}</span>
                   </button>
                 </form>
 
@@ -1216,21 +1160,34 @@ export const PartnerActivityDetailPage: React.FC<PartnerActivityDetailPageProps>
 
                       <div style={{ display: 'flex', gap: '0.45rem', alignItems: 'center' }}>
                         {doc.url && (
-                          <a
-                            href={doc.url}
-                            download={doc.name}
-                            className="btn-part-secondary"
-                            style={{ padding: '0.35rem 0.65rem', fontSize: '0.78rem', textDecoration: 'none' }}
-                          >
-                            <Download size={13} />
-                            <span>{language === 'vi' ? 'Tải về' : 'Download'}</span>
-                          </a>
+                          doc.url.startsWith('data:') || doc.url.startsWith('blob:') || !/^https?:\/\//i.test(doc.url) ? (
+                            <a
+                              href={doc.url}
+                              download={doc.name}
+                              className="btn-part-primary"
+                              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.35rem 0.75rem', fontSize: '0.8rem', textDecoration: 'none' }}
+                            >
+                              <Download size={13} />
+                              <span>{language === 'vi' ? 'Tải về' : 'Download'}</span>
+                            </a>
+                          ) : (
+                            <a
+                              href={doc.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="btn-part-secondary"
+                              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.35rem 0.75rem', fontSize: '0.8rem', textDecoration: 'none' }}
+                            >
+                              <ExternalLink size={13} />
+                              <span>{language === 'vi' ? 'Xem link' : 'Open link'}</span>
+                            </a>
+                          )
                         )}
                         <button
                           type="button"
                           className="btn-part-secondary"
                           onClick={() => { setEditingDocId(doc.id); setEditingDocName(doc.name); }}
-                          style={{ padding: '0.35rem 0.65rem', fontSize: '0.78rem' }}
+                          style={{ padding: '0.35rem 0.65rem', fontSize: '0.8rem' }}
                           title="Đổi tên tài liệu"
                         >
                           <Edit3 size={13} />
@@ -1240,7 +1197,7 @@ export const PartnerActivityDetailPage: React.FC<PartnerActivityDetailPageProps>
                           type="button"
                           className="btn-part-secondary"
                           onClick={() => handleDeleteDoc(doc.id)}
-                          style={{ padding: '0.35rem 0.6rem', fontSize: '0.78rem', color: '#DC2626' }}
+                          style={{ padding: '0.35rem 0.6rem', fontSize: '0.8rem', color: '#DC2626' }}
                           title="Xóa tài liệu"
                         >
                           <Trash2 size={13} />

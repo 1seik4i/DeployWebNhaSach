@@ -976,3 +976,9 @@ button.library-shelf-control:active:not(:disabled) {
 .library-ranking-visual .library-ranking-number { position: static; height: auto; padding-bottom: 10px; font-size: 7rem; letter-spacing: -.06em; }
 .library-ranking-visual .library-ranking-number.is-double-digit { font-size: 6rem; }
 .library-ranking-item .library-ranking-visual .library-cover-art { position: relative; inset: auto; }
+.library-bookshelf-tabs { display:flex; flex-wrap:wrap; justify-content:center; gap:.6rem; margin:1.5rem 0; }
+.library-bookshelf-tabs button { border:1px solid #d5dfda; border-radius:9px; padding:.7rem 1rem; background:#fff; color:#17382e; font:inherit; font-weight:650; cursor:pointer; }
+.library-bookshelf-tabs button[aria-selected="true"] { background:#17382e; color:#fff; border-color:#17382e; }
+.library-ranking-item .library-ranking-visual.is-unranked { display:flex; align-items:center; justify-content:center; padding-bottom:38px; }
+.library-shelf-empty { text-align:center; color:#637771; padding:2rem; }
+

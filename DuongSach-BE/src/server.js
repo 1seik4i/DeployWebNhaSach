@@ -2,6 +2,10 @@ import { createApp } from './app.js';
 import { config } from './config/env.js';
 import { logger } from './config/logger.js';
 import { initWebSocketServer, closeWebSocketServer } from './services/websocket.service.js';
+import { syncApprovedActivities } from './modules/proposal/sync-approved-activities.js';
+
+const synced = await syncApprovedActivities();
+if (synced) logger.info({ count: synced }, 'Synchronized approved proposals with the activity calendar');
 
 const app = createApp();
 

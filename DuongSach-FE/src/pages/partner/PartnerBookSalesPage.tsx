@@ -12,6 +12,7 @@ import {
   CheckCircle2, 
   Clock, 
   CornerDownRight, 
+  Download,
   Edit3, 
   Eye, 
   FileImage,
@@ -20,6 +21,8 @@ import {
   Layers, 
   Link2,
   Plus, 
+  Printer,
+  QrCode,
   RotateCcw, 
   Search, 
   Store, 
@@ -27,6 +30,7 @@ import {
   Upload, 
   X 
 } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import type { Book, BookCategory, BookInput, BookSubmission, Language, PartnerBooth, StallBookRecord } from '../../types';
 import { libraryApi } from '../../services/libraryApi';
 import './PartnerBookSalesPage.css';
@@ -133,20 +137,19 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
   const [viewingSubmission, setViewingSubmission] = useState<BookSubmission | null>(null);
   const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
   const [modalNotice, setModalNotice] = useState<ModalNotice | null>(null);
+  const [previewImage, setPreviewImage] = useState<{ url: string; title: string } | null>(null);
+
+  const [qrModalBook, setQrModalBook] = useState<{ book: Book; stallName: string; stallCode: string; inventoryQuantity: number } | null>(null);
 
   useModalBehavior(Boolean(modal), () => setModal(null));
   useModalBehavior(Boolean(viewingSubmission), () => setViewingSubmission(null));
   useModalBehavior(Boolean(confirmAction), () => setConfirmAction(null));
   useModalBehavior(Boolean(modalNotice), () => setModalNotice(null));
+  useModalBehavior(Boolean(previewImage), () => setPreviewImage(null));
+  useModalBehavior(Boolean(qrModalBook), () => setQrModalBook(null));
 
   const [form, setForm] = useState<FormState>(blankForm);
   const [match, setMatch] = useState<Book | null>(null);
-  const [lookupQuery, setLookupQuery] = useState('');
-  const [lookupResults, setLookupResults] = useState<Book[]>([]);
-  const [lookupLoading, setLookupLoading] = useState(false);
-  const [lookupError, setLookupError] = useState(false);
-  const [lookupOpen, setLookupOpen] = useState(false);
-  const [lookupRequest, setLookupRequest] = useState(0);
   const [coverFileName, setCoverFileName] = useState('');
   const [coverError, setCoverError] = useState('');
 
@@ -166,6 +169,151 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
     window.addEventListener(libraryApi.changeEvent, handler);
     return () => window.removeEventListener(libraryApi.changeEvent, handler);
   }, [refresh]);
+
+  const escapeHtml = (str: string) => {
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  };
+
+  const handlePrintBookQr = (book: Book, stallName: string, stallCode?: string) => {
+    const svgElem = document.getElementById('partner-qr-code-svg-container')?.querySelector('svg');
+    const svgHtml = svgElem ? svgElem.outerHTML : '';
+    const printWindow = window.open('', '_blank', 'width=460,height=620');
+    if (!printWindow) {
+      window.print();
+      return;
+    }
+    const stallHtml = `<div class="tag-stall">Gian hàng: <strong>${escapeHtml(stallName)}</strong> (${escapeHtml(stallCode || '—')})</div>`;
+
+    printWindow.document.write(`
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>In mã QR - ${escapeHtml(book.title)}</title>
+  <style>
+    @page { size: auto; margin: 10mm; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 90vh;
+      margin: 0;
+      background: #fff;
+      color: #111827;
+    }
+    .tag-card {
+      width: 280px;
+      padding: 22px 18px;
+      border: 2px dashed #17382e;
+      border-radius: 12px;
+      text-align: center;
+      background: #fff;
+    }
+    .tag-brand {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #17382e;
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .tag-qr {
+      display: flex;
+      justify-content: center;
+      margin: 8px auto 14px;
+    }
+    .tag-qr svg {
+      width: 160px;
+      height: 160px;
+      display: block;
+    }
+    .tag-title {
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.35;
+      margin: 0 0 6px;
+      color: #111827;
+      word-break: break-word;
+    }
+    .tag-meta {
+      font-size: 11px;
+      color: #4b5563;
+      margin: 0 0 8px;
+    }
+    .tag-stall {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      color: #166534;
+      background: #f0fdf4;
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid #bbf7d0;
+      margin-bottom: 8px;
+    }
+    .tag-hint {
+      font-size: 10px;
+      color: #6b7280;
+      margin: 8px 0 0;
+      padding-top: 8px;
+      border-top: 1px dashed #e5e7eb;
+    }
+  </style>
+</head>
+<body>
+  <div class="tag-card">
+    <div class="tag-brand">ĐƯỜNG SÁCH TP. HỒ CHÍ MINH</div>
+    <div class="tag-qr">${svgHtml}</div>
+    <div class="tag-title">${escapeHtml(book.title)}</div>
+    <div class="tag-meta">${escapeHtml(book.author || '')} · ISBN: ${escapeHtml(book.isbn || '—')}</div>
+    ${stallHtml}
+    <div class="tag-hint">Quét mã QR để tra cứu thông tin sách & tồn kho</div>
+  </div>
+  <script>
+    window.onload = function() {
+      setTimeout(function() {
+        window.print();
+      }, 350);
+    };
+  </script>
+</body>
+</html>
+    `);
+    printWindow.document.close();
+  };
+
+  const handleDownloadQr = (book: Book, stallName?: string) => {
+    const svg = document.getElementById('partner-qr-code-svg-container')?.querySelector('svg');
+    if (!svg) return;
+    const svgData = new XMLSerializer().serializeToString(svg);
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    img.onload = () => {
+      canvas.width = img.width || 300;
+      canvas.height = img.height || 300;
+      if (ctx) {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+      }
+      const pngFile = canvas.toDataURL('image/png');
+      const downloadLink = document.createElement('a');
+      downloadLink.download = `QR-${book.isbn || 'book'}${stallName ? `-${stallName}` : ''}.png`;
+      downloadLink.href = pngFile;
+      downloadLink.click();
+    };
+    img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+  };
 
   const visibleRecords = useMemo(() => 
     records.filter(row => !query || `${row.book.title} ${row.book.author} ${row.book.isbn}`.normalize('NFC').toLocaleLowerCase('vi').includes(query.trim().normalize('NFC').toLocaleLowerCase('vi'))),
@@ -187,59 +335,12 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
   const rejected = submissions.filter(item => item.status === 'REJECTED').length;
   const lowStock = records.filter(item => item.stall.inventoryQuantity <= 4).length;
 
-  useEffect(() => {
-    const value = lookupQuery.trim();
-    if (modal !== 'add' || !value || !lookupOpen) {
-      return;
-    }
-    let cancelled = false;
-    const timer = window.setTimeout(() => {
-      libraryApi.searchGlobalBooks(value)
-        .then(books => {
-          if (!cancelled) setLookupResults(books);
-        })
-        .catch(() => {
-          if (!cancelled) {
-            setLookupResults([]);
-            setLookupError(true);
-          }
-        })
-        .finally(() => {
-          if (!cancelled) setLookupLoading(false);
-        });
-    }, lookupRequest ? 0 : 300);
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timer);
-    };
-  }, [lookupQuery, lookupOpen, lookupRequest, modal]);
-
-  const selectExisting = (book: Book) => {
-    setMatch(book);
-    setLookupOpen(false);
-    setLookupResults([]);
-    setLookupLoading(false);
-    setForm(value => ({
-      ...value,
-      isbn: book.isbn,
-      title: book.title,
-      author: book.author,
-      publisher: book.publisher || '',
-      publicationYear: String(book.publicationYear || ''),
-      categoryId: book.categoryId || '',
-      coverUrl: book.coverUrl,
-      description: book.description || ''
-    }));
-  };
+  const isViewingBook = modal === 'view';
 
   const openAdd = () => {
     setCurrent(null);
     setCurrentSubmission(null);
     setMatch(null);
-    setLookupQuery('');
-    setLookupResults([]);
-    setLookupOpen(false);
-    setLookupError(false);
     setForm(blankForm);
     setCoverFileName('');
     setCoverError('');
@@ -554,6 +655,18 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
                     <td style={{ textAlign: 'center' }}>{new Date(row.stall.updatedAt).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-GB')}</td>
                     <td style={{ textAlign: 'center' }}>
                       <div className="partner-book-actions" style={{ justifyContent: 'center' }}>
+                        <button 
+                          type="button"
+                          onClick={() => setQrModalBook({
+                            book: row.book,
+                            stallName: stall.name,
+                            stallCode: stall.code,
+                            inventoryQuantity: row.stall.inventoryQuantity
+                          })} 
+                          title={language === 'vi' ? 'Mã QR & In tem sách' : 'QR Code & Print Tag'}
+                        >
+                          <QrCode size={15}/>
+                        </button>
                         <button onClick={() => openRecord('edit', row)} title={language === 'vi' ? 'Cập nhật tồn kho / Sửa sách' : 'Edit'}>
                           <Edit3 size={15}/>
                         </button>
@@ -613,6 +726,20 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
                     </span>
                   </div>
                   <div className="book-mobile-card-actions">
+                    <button 
+                      type="button"
+                      className="book-mobile-action-btn qr"
+                      onClick={() => setQrModalBook({
+                        book: row.book,
+                        stallName: stall.name,
+                        stallCode: stall.code,
+                        inventoryQuantity: row.stall.inventoryQuantity
+                      })}
+                      title={language === 'vi' ? 'Mã QR & In tem' : 'QR Code'}
+                    >
+                      <QrCode size={14} />
+                      <span>{language === 'vi' ? 'Mã QR' : 'QR'}</span>
+                    </button>
                     <button 
                       type="button"
                       className="book-mobile-action-btn edit"
@@ -680,7 +807,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
             <table>
               <thead>
                 <tr>
-                  <th style={{ width: '60px' }}>{language === 'vi' ? 'Ảnh' : 'Cover'}</th>
+                  <th className="partner-col-cover">{language === 'vi' ? 'Ảnh' : 'Cover'}</th>
                   <th style={{ minWidth: '220px' }}>{language === 'vi' ? 'Sách đề xuất' : 'Proposed Book'}</th>
                   <th style={{ width: '130px' }}>ISBN</th>
                   <th style={{ width: '110px', textAlign: 'left' }}>{language === 'vi' ? 'Loại yêu cầu' : 'Request'}</th>
@@ -693,8 +820,8 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
               <tbody>
                 {submissionsPagination.items.map(sub => (
                   <tr key={sub.id}>
-                    <td>
-                      <SafeImage src={sub.proposedData.coverUrl || '/duong_sach_logo.png'} alt=""/>
+                    <td className="partner-col-cover">
+                      <SafeImage className="partner-book-table-cover" src={sub.proposedData.coverUrl || '/duong_sach_logo.png'} alt=""/>
                     </td>
                     <td>
                       <strong>{String(sub.proposedData.title || '—')}</strong>
@@ -849,13 +976,146 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
         </section>
       )}
 
-      {/* Modal Thêm / Chỉnh sửa / Gửi lại sách */}
-      {modal && createPortal(
+      {/* Modal Chi tiết cuốn sách (View Mode chuẩn giao diện) */}
+      {modal === 'view' && current && createPortal(
         <div 
           className="partner-book-modal" 
           role="dialog" 
           aria-modal="true"
+          onClick={e => { if (e.target === e.currentTarget) setModal(null); }}
+        >
+          <div className="admin-book-detail-modal" onClick={e => e.stopPropagation()}>
+            <div className="admin-form-head">
+              <div>
+                <h2>{language === 'vi' ? 'Chi tiết cuốn sách' : 'Book Details'}</h2>
+                <p>ISBN: <code>{current.book.isbn}</code></p>
+              </div>
+              <button type="button" onClick={() => setModal(null)}><X size={18} /></button>
+            </div>
+            
+            <div className="admin-book-detail-body">
+              <div 
+                className="admin-book-detail-cover-wrap is-clickable"
+                onClick={() => {
+                  if (current.book.coverUrl) {
+                    setPreviewImage({ url: current.book.coverUrl, title: current.book.title });
+                  }
+                }}
+                title={language === 'vi' ? 'Nhấn để phóng to xem ảnh' : 'Click to zoom image'}
+              >
+                <SafeImage className="admin-book-detail-cover" src={current.book.coverUrl} alt={current.book.title} />
+                <span className={`admin-book-detail-status ${current.contentStatus === 'APPROVED' ? 'active' : current.contentStatus === 'REJECTED' ? 'archived' : 'draft'}`}>
+                  {current.contentStatus === 'APPROVED' 
+                    ? (language === 'vi' ? 'Đang hiển thị' : 'Active') 
+                    : current.contentStatus === 'REJECTED' 
+                    ? (language === 'vi' ? 'Bị từ chối' : 'Rejected') 
+                    : (language === 'vi' ? 'Chờ duyệt' : 'Pending')}
+                </span>
+              </div>
 
+              <div className="admin-book-detail-info">
+                <h3 className="admin-book-detail-title">{current.book.title}</h3>
+                {current.book.titleEn && (
+                  <p className="admin-book-detail-title-en">{current.book.titleEn}</p>
+                )}
+
+                <div className="admin-book-detail-grid">
+                  <div className="admin-detail-row">
+                    <span className="admin-detail-label">{language === 'vi' ? 'Tác giả' : 'Author'}</span>
+                    <span className="admin-detail-value">{current.book.author}</span>
+                  </div>
+                  <div className="admin-detail-row">
+                    <span className="admin-detail-label">{language === 'vi' ? 'Nhà xuất bản' : 'Publisher'}</span>
+                    <span className="admin-detail-value">{current.book.publisher || '—'}</span>
+                  </div>
+                  <div className="admin-detail-row">
+                    <span className="admin-detail-label">{language === 'vi' ? 'Năm xuất bản' : 'Year'}</span>
+                    <span className="admin-detail-value">{current.book.publicationYear || '—'}</span>
+                  </div>
+                  <div className="admin-detail-row">
+                    <span className="admin-detail-label">{language === 'vi' ? 'Phân loại' : 'Category'}</span>
+                    <div className="admin-detail-value">
+                      {(() => {
+                        const cat = categories.find(c => c.id === current.book.categoryId) || current.book.category;
+                        return cat?.name ? (
+                          <span className="admin-category-pill">{cat.name}</span>
+                        ) : (
+                          <span className="admin-category-pill is-empty">{language === 'vi' ? 'Chưa phân loại' : 'Unclassified'}</span>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                  {/* BÊN GIAN HÀNG KHÔNG HIỂN THỊ XẾP HẠNG */}
+                </div>
+
+                <div className="admin-detail-stalls-section">
+                  <span className="admin-detail-section-title">{language === 'vi' ? 'Gian hàng phân phối & Tồn kho' : 'Stalls & Stock'}</span>
+                  <div className="admin-detail-stalls-body">
+                    <span className="admin-stall-pill">
+                      <Store size={13} />
+                      <strong className="admin-stall-pill-name">{stall.name} ({stall.code})</strong>
+                      <span className="admin-stall-pill-qty">
+                        {language === 'vi' ? 'Tồn:' : 'Stock:'} <strong>{current.stall.inventoryQuantity}</strong> | {language === 'vi' ? 'Bán:' : 'Sold:'} <strong>{current.stall.soldQuantity ?? 0}</strong>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setModal(null);
+                          setQrModalBook({
+                            book: current.book,
+                            stallName: stall.name,
+                            stallCode: stall.code,
+                            inventoryQuantity: current.stall.inventoryQuantity
+                          });
+                        }}
+                        className="admin-stall-qr-btn"
+                        title={language === 'vi' ? `Tạo mã QR riêng cho gian hàng ${stall.name}` : 'QR Code for this stall'}
+                      >
+                        <QrCode size={13} />
+                      </button>
+                    </span>
+                  </div>
+                </div>
+
+                {current.book.description && (
+                  <div className="admin-book-detail-desc">
+                    <span className="admin-detail-section-title">{language === 'vi' ? 'Tóm tắt nội dung' : 'Summary'}</span>
+                    <p>{current.book.description}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="admin-form-actions">
+              <button type="button" className="admin-btn-detail-close" onClick={() => setModal(null)}>
+                {language === 'vi' ? 'Đóng' : 'Close'}
+              </button>
+              {/* KHÔNG CÓ NÚT XẾP HẠNG (Chỉ dành cho Admin) */}
+              <button 
+                type="button" 
+                className="admin-library-primary" 
+                onClick={() => {
+                  const r = current;
+                  setModal(null);
+                  openRecord('edit', r);
+                }}
+              >
+                <Edit3 size={15}/>
+                <span>{language === 'vi' ? 'Chỉnh sửa sách' : 'Edit Book'}</span>
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Modal Thêm / Chỉnh sửa / Gửi lại sách */}
+      {modal && modal !== 'view' && createPortal(
+        <div 
+          className="partner-book-modal" 
+          role="dialog" 
+          aria-modal="true"
+          onClick={e => { if (e.target === e.currentTarget) setModal(null); }}
         >
           <form onSubmit={save} className="partner-book-form" onClick={e => e.stopPropagation()} autoComplete="off">
             <header>
@@ -863,16 +1123,12 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
                 <h2>
                   {modal === 'add' 
                     ? (language === 'vi' ? 'Thêm / Đề xuất sách mới' : 'Add / Submit Book') 
-                    : modal === 'view' 
-                    ? (language === 'vi' ? 'Chi tiết cuốn sách' : 'Book Details') 
                     : modal === 'resubmit'
                     ? (language === 'vi' ? 'Chỉnh sửa & Gửi lại duyệt sách' : 'Resubmit Book for Approval')
                     : (language === 'vi' ? 'Cập nhật sách tại gian hàng' : 'Edit Book')}
                 </h2>
                 <p>
-                  {modal === 'view' 
-                    ? '' 
-                    : language === 'vi' 
+                  {language === 'vi' 
                     ? 'Thông tin công khai của sách sẽ được gửi tới Ban quản trị phê duyệt trước khi xuất bản.' 
                     : 'Public book details require Admin approval.'}
                 </p>
@@ -894,80 +1150,6 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
             )}
 
             <div className="partner-book-form-grid">
-              {modal === 'add' && (
-                <div className="partner-book-lookup">
-                  <label>
-                    {language === 'vi' ? 'ISBN / Tên sách' : 'ISBN / Book title'}
-                    <input maxLength={200}
-                      value={lookupQuery}
-                      onChange={e => {
-                        setLookupQuery(e.target.value);
-                        const hasQuery = Boolean(e.target.value.trim());
-                        setLookupOpen(hasQuery);
-                        setLookupLoading(hasQuery);
-                        setLookupResults([]);
-                        setLookupError(false);
-                        setLookupRequest(0);
-                        if (match) {
-                          setMatch(null);
-                          setForm(current => ({ ...blankForm, inventoryQuantity: current.inventoryQuantity, soldQuantity: current.soldQuantity }));
-                        }
-                      }}
-                      onFocus={() => {
-                        if (lookupQuery.trim() && !match) {
-                          setLookupOpen(true);
-                          setLookupLoading(true);
-                        }
-                      }}
-                      onKeyDown={e => { if (e.key === 'Escape') setLookupOpen(false); }}
-                      role="combobox"
-                      aria-autocomplete="list"
-                      aria-expanded={lookupOpen}
-                      aria-controls="partner-book-lookup-results"
-                      placeholder={language === 'vi' ? 'Nhập ISBN hoặc tên sách để tìm trong Thư viện số' : 'Search the Digital Library by ISBN or book title'}
-                    />
-                  </label>
-                  <button type="button" onClick={() => {
-                    if (lookupQuery.trim()) {
-                      setLookupOpen(true);
-                      setLookupLoading(true);
-                      setLookupError(false);
-                      setLookupRequest(value => value + 1);
-                    }
-                  }}>
-                    <Search size={16}/>{language === 'vi' ? 'Tìm kiếm' : 'Find Book'}
-                  </button>
-                  {lookupOpen && lookupQuery.trim() && (
-                    <div className="partner-book-lookup-results" id="partner-book-lookup-results" role="listbox" aria-label={language === 'vi' ? 'Sách tìm thấy' : 'Matching books'}>
-                      {lookupLoading ? (
-                        <p>{language === 'vi' ? 'Đang tìm sách...' : 'Searching books...'}</p>
-                      ) : lookupError ? (
-                        <p>{language === 'vi' ? 'Không thể tìm sách. Vui lòng thử lại.' : 'Search failed. Please try again.'}</p>
-                      ) : lookupResults.length ? (
-                        lookupResults.map(book => (
-                          <button key={book.id} type="button" role="option" aria-selected={false} onClick={() => selectExisting(book)}>
-                            <SafeImage src={book.coverUrl || '/duong_sach_logo.png'} alt="" />
-                            <span><strong>{book.title}</strong><small>{book.author} · ISBN: {book.isbn}</small></span>
-                          </button>
-                        ))
-                      ) : (
-                        <p>{language === 'vi' ? 'Không có sách phù hợp. Bạn có thể nhập thông tin sách mới ở bên dưới.' : 'No matching books. You can enter a new book below.'}</p>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {modal === 'add' && match && (
-                <div className="existing-book-match">
-                  <CheckCircle2 size={20}/>
-                  <span>
-                    <small>{language === 'vi' ? 'Đã chọn sách trong Thư viện số TP.HCM' : 'Selected from Digital Library'}</small>
-                    <strong>{match.title}</strong>
-                    <em>{match.author} · ISBN: {match.isbn}</em>
-                  </span>
-                </div>
-              )}
               <label>
                 ISBN *
                 <input 
@@ -975,7 +1157,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
                   maxLength={13}
                   inputMode="numeric"
                   pattern="(?:[0-9]{10}|[0-9]{13})"
-                  readOnly={modal === 'view' || Boolean(match)} 
+                  readOnly={isViewingBook || Boolean(match)} 
                   onChange={e => setForm({ ...form, isbn: e.target.value.replace(/[^0-9]/g, '') })}
                   required 
                   placeholder="VD: 9786041000009"
@@ -987,7 +1169,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
                 <input 
                   value={form.title} 
                   maxLength={200}
-                  readOnly={modal === 'view' || Boolean(match)} 
+                  readOnly={isViewingBook || Boolean(match)} 
                   onChange={e => setForm({ ...form, title: e.target.value })} 
                   required 
                   placeholder={language === 'vi' ? 'Tên sách...' : 'Book title...'}
@@ -999,7 +1181,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
                 <input 
                   value={form.author} 
                   maxLength={200}
-                  readOnly={modal === 'view' || Boolean(match)} 
+                  readOnly={isViewingBook || Boolean(match)} 
                   onChange={e => setForm({ ...form, author: e.target.value })} 
                   required 
                   placeholder={language === 'vi' ? 'Tên tác giả...' : 'Author...'}
@@ -1011,7 +1193,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
                 <input 
                   value={form.publisher} 
                   maxLength={200}
-                  readOnly={modal === 'view' || Boolean(match)} 
+                  readOnly={isViewingBook || Boolean(match)} 
                   onChange={e => setForm({ ...form, publisher: e.target.value })} 
                   placeholder="NXB Trẻ, Kim Đồng, Nhã Nam..."
                 />
@@ -1025,7 +1207,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
                   max={new Date().getFullYear() + 1}
                   step="1"
                   value={form.publicationYear} 
-                  readOnly={modal === 'view' || Boolean(match)} 
+                  readOnly={isViewingBook || Boolean(match)} 
                   onChange={e => setForm({ ...form, publicationYear: e.target.value })} 
                   placeholder="2024"
                 />
@@ -1035,7 +1217,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
               <label>
                 {language === 'vi' ? 'Phân loại đề xuất' : 'Proposed Category'}
                 <select
-                  disabled={modal === 'view' || Boolean(match)}
+                  disabled={isViewingBook || Boolean(match)}
                   value={form.categoryId}
                   onChange={e => setForm({ ...form, categoryId: e.target.value })}
                 >
@@ -1048,138 +1230,216 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
 
               <div className="form-wide partner-cover-upload-section">
                 <span className="partner-cover-label">{language === 'vi' ? 'Ảnh bìa sách' : 'Book Cover'}</span>
+                
+                {/* Giao diện thêm / chỉnh sửa sách: Upload ảnh và URL */}
                 <div className="partner-cover-upload-card">
-                  {/* Khung ảnh xem trước bìa sách chuẩn tỉ lệ */}
-                  <div className="partner-cover-preview-box">
-                    {form.coverUrl ? (
-                      <SafeImage
-                        src={form.coverUrl} 
-                        alt="Preview" 
-                        className="partner-cover-img-preview" 
-
-                      />
-                    ) : (
-                      <div className="partner-cover-no-img">
-                        <ImagePlus size={20} className="partner-cover-empty-icon" />
-                        <span>{language === 'vi' ? 'Chưa có ảnh' : 'No image'}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Cột các điều khiển ảnh bìa nằm thẳng hàng ngang */}
-                  <div className="partner-cover-controls">
-                    <div className="partner-cover-actions-row">
-                      <div className="partner-cover-url-box">
-                        <Link2 size={16} className="partner-cover-url-icon" />
-                        <input 
-                          type="text"
-                          name="partnerCoverUrl"
-                          autoComplete="off"
-                          data-lpignore="true"
-                          value={form.coverUrl.startsWith('data:') ? '' : form.coverUrl} 
-                          readOnly={modal === 'view' || Boolean(match)} 
-                          onChange={e => { setForm({ ...form, coverUrl: e.target.value }); setCoverFileName(''); setCoverError(''); }} 
-                          placeholder={form.coverUrl.startsWith('data:') 
-                            ? (language === 'vi' ? 'Đang dùng ảnh tải lên từ máy tính' : 'Using uploaded image from device') 
-                            : (language === 'vi' ? 'Dán đường dẫn ảnh (URL https://... hoặc /duong_sach_logo.png)' : 'Paste image URL or enter path...')}
+                    <div 
+                      className={`partner-cover-preview-box ${form.coverUrl ? 'is-clickable' : ''}`}
+                      onClick={() => {
+                        if (form.coverUrl) {
+                          setPreviewImage({ url: form.coverUrl, title: form.title || 'Ảnh bìa sách' });
+                        }
+                      }}
+                      title={form.coverUrl ? (language === 'vi' ? 'Nhấn để phóng to xem ảnh' : 'Click to zoom image') : undefined}
+                    >
+                      {form.coverUrl ? (
+                        <SafeImage
+                          src={form.coverUrl} 
+                          alt="Preview" 
+                          className="partner-cover-img-preview" 
                         />
-                        {form.coverUrl && /^https?:\/\//.test(form.coverUrl) && <a href={form.coverUrl} target="_blank" rel="noopener noreferrer">{language === 'vi' ? 'Mở ảnh trong thẻ mới' : 'Open image in new tab'}</a>}
-                        {form.coverUrl && !form.coverUrl.startsWith('data:') && modal !== 'view' && !match && (
+                      ) : (
+                        <div className="partner-cover-no-img">
+                          <ImagePlus size={20} className="partner-cover-empty-icon" />
+                          <span>{language === 'vi' ? 'Chưa có ảnh' : 'No image'}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="partner-cover-controls">
+                      <div className="partner-cover-actions-row">
+                        <div className="partner-cover-url-box">
+                          <Link2 size={16} className="partner-cover-url-icon" />
+                          <input 
+                            type="text"
+                            name="partnerCoverUrl"
+                            autoComplete="off"
+                            data-lpignore="true"
+                            value={form.coverUrl.startsWith('data:') ? '' : form.coverUrl} 
+                            readOnly={Boolean(match)} 
+                            onChange={e => { setForm({ ...form, coverUrl: e.target.value }); setCoverFileName(''); setCoverError(''); }} 
+                            placeholder={form.coverUrl.startsWith('data:') 
+                              ? (language === 'vi' ? 'Đang dùng ảnh tải lên từ máy tính' : 'Using uploaded image from device') 
+                              : (language === 'vi' ? 'Dán đường dẫn ảnh (URL https://... hoặc /duong_sach_logo.png)' : 'Paste image URL or enter path...')}
+                          />
+                          {form.coverUrl && !form.coverUrl.startsWith('data:') && !match && (
+                            <button 
+                              type="button" 
+                              className="partner-cover-clear-url" 
+                              onClick={() => setForm(curr => ({ ...curr, coverUrl: '' }))}
+                              title={language === 'vi' ? 'Xóa URL' : 'Clear URL'}
+                            >
+                              <X size={14} />
+                            </button>
+                          )}
+                        </div>
+
+                        {!match && (
+                          <label 
+                            className="partner-upload-btn" 
+                            title={language === 'vi' ? 'Tải ảnh lên từ máy tính' : 'Upload image from device'}
+                            aria-label={language === 'vi' ? 'Tải ảnh lên' : 'Upload image'}
+                          >
+                            <Upload size={18} />
+                            <input 
+                              type="file" 
+                              accept="image/*" 
+                              style={{ display: 'none' }} 
+                              onChange={(e) => { const file = e.target.files?.[0]; if (file) handleCoverUpload(file); }} 
+                            />
+                          </label>
+                        )}
+
+                        {form.coverUrl && !match && (
                           <button 
                             type="button" 
-                            className="partner-cover-clear-url" 
-                            onClick={() => setForm(curr => ({ ...curr, coverUrl: '' }))}
-                            title={language === 'vi' ? 'Xóa URL' : 'Clear URL'}
+                            className="partner-cover-btn-delete"
+                            onClick={() => { setForm({ ...form, coverUrl: '' }); setCoverFileName(''); setCoverError(''); }} 
+                            title={language === 'vi' ? 'Xóa ảnh bìa hiện tại' : 'Remove cover image'}
+                            aria-label={language === 'vi' ? 'Xóa ảnh' : 'Remove image'}
                           >
-                            <X size={14} />
+                            <Trash2 size={16} />
                           </button>
                         )}
                       </div>
 
-                      {modal !== 'view' && !match && (
-                        <label 
-                          className="partner-upload-btn" 
-                          title={language === 'vi' ? 'Tải ảnh lên từ máy tính' : 'Upload image from device'}
-                          aria-label={language === 'vi' ? 'Tải ảnh lên' : 'Upload image'}
-                        >
-                          <Upload size={18} />
-                          <input 
-                            type="file" 
-                            accept="image/*" 
-                            style={{ display: 'none' }} 
-                            onChange={(e) => { const file = e.target.files?.[0]; if (file) handleCoverUpload(file); }} 
-                          />
-                        </label>
-                      )}
-
-                      {form.coverUrl && modal !== 'view' && !match && (
-                        <button 
-                          type="button" 
-                          className="partner-cover-btn-delete"
-                          onClick={() => { setForm({ ...form, coverUrl: '' }); setCoverFileName(''); setCoverError(''); }} 
-                          title={language === 'vi' ? 'Xóa ảnh bìa hiện tại' : 'Remove cover image'}
-                          aria-label={language === 'vi' ? 'Xóa ảnh' : 'Remove image'}
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      )}
-                    </div>
-
-                    <div className="partner-cover-footer-row">
-                      {coverFileName ? (
-                        <div className="partner-cover-file-info">
-                          <FileImage size={13} className="partner-file-badge-icon" />
-                          <span className="partner-cover-filename" title={coverFileName}>{coverFileName}</span>
-                          <button 
-                            type="button" 
-                            className="partner-cover-reset-btn" 
-                            onClick={() => { setForm(prev => ({ ...prev, coverUrl: '' })); setCoverFileName(''); setCoverError(''); }}
-                            title={language === 'vi' ? 'Xóa ảnh đã tải lên' : 'Remove uploaded image'}
-                          >
-                            <X size={12} />
-                            <span>{language === 'vi' ? 'Gỡ ảnh' : 'Remove'}</span>
-                          </button>
-                        </div>
-                      ) : (
-                        <span className="partner-cover-format-hint">
-                          <Info size={13} className="partner-hint-icon" />
-                          <span>{language === 'vi' ? 'Hỗ trợ JPG, PNG, WEBP (tối đa 5MB) hoặc liên kết ảnh trực tuyến' : 'Supports JPG, PNG, WEBP (up to 5MB) or online image URL'}</span>
-                        </span>
-                      )}
-                      {coverError && <p className="partner-cover-error-msg">{coverError}</p>}
+                      <div className="partner-cover-footer-row">
+                        {coverFileName ? (
+                          <div className="partner-cover-file-info">
+                            <FileImage size={13} className="partner-file-badge-icon" />
+                            <span className="partner-cover-filename" title={coverFileName}>{coverFileName}</span>
+                            <button 
+                              type="button" 
+                              className="partner-cover-reset-btn" 
+                              onClick={() => { setForm(prev => ({ ...prev, coverUrl: '' })); setCoverFileName(''); setCoverError(''); }}
+                              title={language === 'vi' ? 'Xóa ảnh đã tải lên' : 'Remove uploaded image'}
+                            >
+                              <X size={12} />
+                              <span>{language === 'vi' ? 'Gỡ ảnh' : 'Remove'}</span>
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="partner-cover-format-hint">
+                            <Info size={13} className="partner-hint-icon" />
+                            <span>{language === 'vi' ? 'Hỗ trợ JPG, PNG, WEBP (tối đa 5MB) hoặc liên kết ảnh trực tuyến' : 'Supports JPG, PNG, WEBP (up to 5MB) or online image URL'}</span>
+                          </span>
+                        )}
+                        {coverError && <p className="partner-cover-error-msg">{coverError}</p>}
+                      </div>
                     </div>
                   </div>
-                </div>
               </div>
 
               <label className="form-wide">
                 {language === 'vi' ? 'Mô tả nội dung sách' : 'Description'}
-                <textarea rows={3} maxLength={20000} value={form.description} readOnly={modal === 'view' || Boolean(match)} onChange={e => setForm({ ...form, description: e.target.value })} placeholder={language === 'vi' ? 'Tóm tắt nội dung cuốn sách...' : 'Book description...'}/>
+                <textarea rows={3} maxLength={20000} value={form.description} readOnly={Boolean(match)} onChange={e => setForm({ ...form, description: e.target.value })} placeholder={language === 'vi' ? 'Tóm tắt nội dung cuốn sách...' : 'Book description...'}/>
               </label>
 
-              <label>
-                {language === 'vi' ? 'Số lượng sách đưa vào kho *' : 'Initial Inventory *'}
-                <input type="number" min="0" max="2147483647" step="1" value={form.inventoryQuantity} readOnly={modal === 'view'} onChange={e => setForm({ ...form, inventoryQuantity: e.target.value })} required/>
-              </label>
+              <div className="form-wide partner-inventory-grid-wrap">
+                <label>
+                  {language === 'vi' ? 'Số lượng sách đưa vào kho *' : 'Initial Inventory *'}
+                  <input type="number" min="0" max="2147483647" step="1" value={form.inventoryQuantity} onChange={e => setForm({ ...form, inventoryQuantity: e.target.value })} required/>
+                </label>
 
-              <label>
-                {language === 'vi' ? 'Số lượng đã bán (không bắt buộc)' : 'Sold quantity (optional)'}
-                <input type="number" min="0" max="2147483647" step="1" value={form.soldQuantity} readOnly={modal === 'view'} onChange={e => setForm({ ...form, soldQuantity: e.target.value })}/>
-              </label>
+                <label>
+                  {language === 'vi' ? 'Số lượng đã bán (không bắt buộc)' : 'Sold quantity (optional)'}
+                  <input type="number" min="0" max="2147483647" step="1" value={form.soldQuantity} onChange={e => setForm({ ...form, soldQuantity: e.target.value })}/>
+                </label>
+              </div>
             </div>
 
-            {modal !== 'view' && (
-              <footer>
-                <button type="button" onClick={() => setModal(null)}>{language === 'vi' ? 'Hủy' : 'Cancel'}</button>
-                <button className="partner-books-primary" type="submit">
-                  {modal === 'add' || modal === 'resubmit' 
-                    ? (match ? (language === 'vi' ? 'Thêm vào gian hàng' : 'Add to stall') : (language === 'vi' ? 'Gửi Ban quản trị duyệt' : 'Submit for Review')) 
-                    : (language === 'vi' ? 'Lưu thay đổi' : 'Save changes')}
-                </button>
-              </footer>
-            )}
+            <footer>
+              <button type="button" onClick={() => setModal(null)}>{language === 'vi' ? 'Hủy' : 'Cancel'}</button>
+              <button className="partner-books-primary" type="submit">
+                {modal === 'add' || modal === 'resubmit' 
+                  ? (match ? (language === 'vi' ? 'Thêm vào gian hàng' : 'Add to stall') : (language === 'vi' ? 'Gửi Ban quản trị duyệt' : 'Submit for Review')) 
+                  : (language === 'vi' ? 'Lưu thay đổi' : 'Save changes')}
+              </button>
+            </footer>
           </form>
         </div>,
+        document.body
+      )}
+
+      {/* Modal Mã QR & In tem cho gian hàng */}
+      {qrModalBook && createPortal(
+        (() => {
+          const qrUrl = `${window.location.origin}/library?search=${encodeURIComponent(qrModalBook.book.isbn || qrModalBook.book.id)}&stall=${encodeURIComponent(stall.id)}`;
+          return (
+            <div 
+              className="partner-book-modal" 
+              role="dialog" 
+              aria-modal="true"
+              onClick={e => { if (e.target === e.currentTarget) setQrModalBook(null); }}
+            >
+              <div className="admin-book-detail-modal admin-qr-modal" style={{ maxWidth: '520px' }} onClick={e => e.stopPropagation()}>
+                <div className="admin-form-head">
+                  <div>
+                    <h2>{language === 'vi' ? 'Mã QR & In tem sách' : 'Book QR Code & Label'}</h2>
+                    <p>{qrModalBook.book.title} (ISBN: <code>{qrModalBook.book.isbn}</code>)</p>
+                  </div>
+                  <button type="button" onClick={() => setQrModalBook(null)}><X size={18} /></button>
+                </div>
+
+                <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <div className="admin-qr-preview-wrapper">
+                    <div className="admin-printable-qr-tag" id="partner-printable-qr-card">
+                      <div className="admin-qr-tag-brand">ĐƯỜNG SÁCH TP. HỒ CHÍ MINH</div>
+                      <div className="admin-qr-tag-code" id="partner-qr-code-svg-container">
+                        <QRCodeSVG
+                          value={qrUrl}
+                          size={170}
+                          level="H"
+                          includeMargin={false}
+                        />
+                      </div>
+                      <h4 className="admin-qr-tag-title">{qrModalBook.book.title}</h4>
+                      <p className="admin-qr-tag-meta">
+                        {qrModalBook.book.author} · ISBN: {qrModalBook.book.isbn}
+                      </p>
+                      <div className="admin-qr-tag-stall">
+                        <Store size={12} />
+                        <span>{qrModalBook.stallName} ({qrModalBook.stallCode || '—'})</span>
+                      </div>
+                      <p className="admin-qr-tag-hint">Quét mã QR để tra cứu thông tin sách & tồn kho</p>
+                    </div>
+                  </div>
+
+                </div>
+
+                <div className="admin-form-actions">
+                  <button type="button" className="admin-btn-detail-close" onClick={() => setQrModalBook(null)}>
+                    {language === 'vi' ? 'Đóng' : 'Close'}
+                  </button>
+                  <button 
+                    type="button" 
+                    className="admin-library-secondary"
+                    onClick={() => handleDownloadQr(qrModalBook.book, qrModalBook.stallName)}
+                  >
+                    <Download size={16} /> {language === 'vi' ? 'Tải ảnh QR (PNG)' : 'Download PNG'}
+                  </button>
+                  <button 
+                    type="button" 
+                    className="admin-library-primary"
+                    onClick={() => handlePrintBookQr(qrModalBook.book, qrModalBook.stallName, qrModalBook.stallCode)}
+                  >
+                    <Printer size={16} /> {language === 'vi' ? 'In tem mã QR' : 'Print QR Tag'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })(),
         document.body
       )}
 
@@ -1313,6 +1573,41 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
             <button className="partner-notice-btn" onClick={() => setModalNotice(null)}>
               {language === 'vi' ? 'Đã hiểu' : 'OK'}
             </button>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Modal Xem ảnh bìa kích thước lớn (Lightbox) */}
+      {previewImage && createPortal(
+        <div 
+          className="partner-image-lightbox-modal" 
+          role="dialog" 
+          aria-modal="true"
+          onClick={() => setPreviewImage(null)}
+        >
+          <div className="partner-image-lightbox-card" onClick={e => e.stopPropagation()}>
+            <header className="partner-image-lightbox-header">
+              <div className="partner-image-lightbox-title-box">
+                <span className="partner-image-lightbox-label">{language === 'vi' ? 'Bìa cuốn sách' : 'Book Cover'}</span>
+                <strong className="partner-image-lightbox-title">{previewImage.title}</strong>
+              </div>
+              <button 
+                type="button" 
+                className="partner-image-lightbox-close"
+                onClick={() => setPreviewImage(null)}
+                title={language === 'vi' ? 'Đóng xem ảnh' : 'Close preview'}
+              >
+                <X size={18} />
+              </button>
+            </header>
+            <div className="partner-image-lightbox-body">
+              <SafeImage 
+                src={previewImage.url} 
+                alt={previewImage.title} 
+                className="partner-image-lightbox-img" 
+              />
+            </div>
           </div>
         </div>,
         document.body

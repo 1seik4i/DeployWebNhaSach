@@ -21,7 +21,11 @@ import {
   Trash2,
   Upload,
   UploadCloud,
-  Paperclip
+  Paperclip,
+  Clock,
+  BookOpen,
+  Tag,
+  Info
 } from 'lucide-react';
 import { Language, PartnerBooth } from '../../types';
 import { partnerApi } from '../../services/partnerApi';
@@ -317,7 +321,7 @@ export const BoothManagementPage: React.FC<BoothManagementPageProps> = ({
       )}
 
       {/* 1. Header matching Sketch Screen 4 */}
-      <div className="partner-page-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+      <div className="partner-page-header" style={{ marginBottom: '1.25rem' }}>
         <div>
           <h1 className="partner-page-title">
             {language === 'vi' ? 'Quản lý gian hàng' : 'Booth Management'}
@@ -328,37 +332,11 @@ export const BoothManagementPage: React.FC<BoothManagementPageProps> = ({
               : 'Manage assigned booth information, display images, and documents.'}
           </p>
         </div>
-
-        <div className="partner-page-header-actions">
-          <button
-            type="button"
-            className="btn-part-secondary"
-            onClick={() => navigate('/partner/booths/select')}
-          >
-            <Map size={15} />
-            <span>{language === 'vi' ? 'Xem trên bản đồ' : 'View on Map'}</span>
-          </button>
-          
-          <button
-            type="button"
-            className="btn-part-primary"
-            onClick={() => {
-              if (isEditing) {
-                handleCancelEdit();
-              } else {
-                handleStartEdit();
-              }
-            }}
-          >
-            <Edit3 size={15} />
-            <span>{isEditing ? (language === 'vi' ? 'Hủy chỉnh sửa' : 'Cancel') : (language === 'vi' ? 'Chỉnh sửa' : 'Edit Booth')}</span>
-          </button>
-        </div>
       </div>
 
-      {/* 2. Booth Detail Card matching Sketch Screen 4 */}
-      <div className="booth-detail-card">
-        <div>
+      {/* 2. Booth Overview Hero Card */}
+      <div className="booth-detail-card" style={{ marginBottom: '1.5rem' }}>
+        <div style={{ position: 'relative' }}>
           <img 
             src={booth.imageUrl || 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=600&q=80'} 
             alt={booth.name} 
@@ -372,7 +350,7 @@ export const BoothManagementPage: React.FC<BoothManagementPageProps> = ({
 
         <div className="booth-detail-content">
           <div>
-            <div className="booth-title-row" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+            <div className="booth-title-row" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '0.85rem' }}>
               <span className="booth-code-badge">
                 {booth.code}
               </span>
@@ -381,64 +359,95 @@ export const BoothManagementPage: React.FC<BoothManagementPageProps> = ({
               </h2>
             </div>
 
-            <div className="booth-specs-row">
+            <div className="booth-specs-row" style={{ marginTop: '0.5rem', gap: '0.75rem' }}>
               {booth.areaName && (
-                <div className="booth-spec-pill">
-                  <strong>{language === 'vi' ? 'Khu vực:' : 'Area:'}</strong> {booth.areaName}
+                <div className="booth-spec-pill" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.85rem' }}>
+                  <MapPin size={14} color="#17382E" />
+                  <span><strong>{language === 'vi' ? 'Khu vực:' : 'Area:'}</strong> {booth.areaName}</span>
                 </div>
               )}
 
-              <div className="booth-spec-pill" style={{ borderColor: '#E9BC63', background: '#FDFBF7' }}>
-                <strong style={{ color: '#B3862A' }}>{language === 'vi' ? '⏰ Khung giờ hoạt động:' : '⏰ Hours:'}</strong> {booth.openHours || '08:00 - 22:00'}
+              <div className="booth-spec-pill" style={{ borderColor: '#E9BC63', background: '#FDFBF7', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.85rem' }}>
+                <Clock size={14} color="#B3862A" />
+                <span><strong style={{ color: '#B3862A' }}>{language === 'vi' ? 'Khung giờ hoạt động:' : 'Hours:'}</strong> {booth.openHours || '08:00 - 22:00'}</span>
               </div>
             </div>
           </div>
 
-          <div className="booth-card-actions">
-            <button
-              type="button"
-              className="btn-part-secondary"
-              onClick={() => navigate('/partner/booths/select')}
-            >
-              <Map size={15} />
-              <span>{language === 'vi' ? 'Xem trên bản đồ' : 'View on Map'}</span>
-            </button>
-            <button
-              type="button"
-              className="btn-part-danger"
-              onClick={() => setModalType('cancel')}
-            >
-              <XCircle size={15} />
-              <span>{language === 'vi' ? 'Yêu cầu hủy gian hàng' : 'Request Cancellation'}</span>
-            </button>
+          <div className="booth-card-actions" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid #EEF2F0', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '0.8rem', color: '#687D75' }}>
+              {booth.imageUrl ? (language === 'vi' ? '✓ Đã thiết lập ảnh riêng hiển thị trên trang chủ' : '✓ Custom cover photo active') : (language === 'vi' ? 'Đang dùng ảnh đại diện mặc định' : 'Default cover photo')}
+            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+              <button
+                type="button"
+                className="btn-part-secondary"
+                style={{ padding: '0.45rem 0.9rem', fontSize: '0.84rem' }}
+                onClick={() => navigate('/partner/booths/select')}
+              >
+                <Map size={15} />
+                <span>{language === 'vi' ? 'Xem trên bản đồ' : 'View on Map'}</span>
+              </button>
+              <button
+                type="button"
+                className="btn-part-danger"
+                style={{ padding: '0.45rem 0.9rem', fontSize: '0.84rem' }}
+                onClick={() => setModalType('cancel')}
+              >
+                <XCircle size={15} />
+                <span>{language === 'vi' ? 'Yêu cầu hủy gian hàng' : 'Request Cancellation'}</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
       {/* 3. Tabs Navigation matching Sketch Screen 4 */}
       <div className="partner-card-pad" style={{ background: '#FFFFFF', border: '1px solid #E2EAE5', borderRadius: '14px' }}>
-        <div className="partner-tabs-bar">
-          <button
-            type="button"
-            className={`partner-tab-btn ${activeTab === 'info' ? 'is-active' : ''}`}
-            onClick={() => setActiveTab('info')}
-          >
-            {language === 'vi' ? 'Thông tin chung' : 'General Info'}
-          </button>
-          <button
-            type="button"
-            className={`partner-tab-btn ${activeTab === 'images' ? 'is-active' : ''}`}
-            onClick={() => setActiveTab('images')}
-          >
-            {language === 'vi' ? 'Hình ảnh' : 'Images'}
-          </button>
-          <button
-            type="button"
-            className={`partner-tab-btn ${activeTab === 'documents' ? 'is-active' : ''}`}
-            onClick={() => setActiveTab('documents')}
-          >
-            {language === 'vi' ? 'Hồ sơ pháp lý' : 'Documents'}
-          </button>
+        <div className="partner-tabs-bar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', borderBottom: '2px solid #E5ECE8', marginBottom: '1.5rem', overflow: 'visible' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', overflow: 'visible' }}>
+            <button
+              type="button"
+              className={`partner-tab-btn ${activeTab === 'info' ? 'is-active' : ''}`}
+              onClick={() => setActiveTab('info')}
+            >
+              {language === 'vi' ? 'Thông tin chung' : 'General Info'}
+            </button>
+            <button
+              type="button"
+              className={`partner-tab-btn ${activeTab === 'images' ? 'is-active' : ''}`}
+              onClick={() => setActiveTab('images')}
+            >
+              {language === 'vi' ? 'Hình ảnh' : 'Images'}
+            </button>
+            <button
+              type="button"
+              className={`partner-tab-btn ${activeTab === 'documents' ? 'is-active' : ''}`}
+              onClick={() => setActiveTab('documents')}
+            >
+              {language === 'vi' ? 'Hồ sơ pháp lý' : 'Documents'}
+            </button>
+          </div>
+
+          {/* Nút Chỉnh sửa ở bên phải hồ sơ pháp lý */}
+          <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0, paddingBottom: '0.2rem' }}>
+            <button
+              type="button"
+              className="btn-part-primary"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', padding: '0.45rem 1rem', fontSize: '0.84rem' }}
+              onClick={() => {
+                if (isEditing) {
+                  handleCancelEdit();
+                } else {
+                  setActiveTab('info');
+                  handleStartEdit();
+                }
+              }}
+            >
+              <Edit3 size={14} />
+              <span>{isEditing ? (language === 'vi' ? 'Hủy chỉnh sửa' : 'Cancel') : (language === 'vi' ? 'Chỉnh sửa' : 'Edit Booth')}</span>
+            </button>
+          </div>
         </div>
 
         {/* Tab 1: General Info */}
@@ -639,67 +648,65 @@ export const BoothManagementPage: React.FC<BoothManagementPageProps> = ({
               </div>
             </form>
           ) : (
-            <div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem', marginBottom: '1.5rem', padding: '1rem', background: '#F8FAF9', borderRadius: '12px', border: '1px solid #E5EBE8' }}>
-                <div>
-                  <span style={{ fontSize: '0.76rem', fontWeight: 700, color: '#728880', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                    {language === 'vi' ? '⏰ Khung giờ hoạt động' : '⏰ Operating Hours'}
-                  </span>
-                  <div style={{ fontSize: '1.05rem', fontWeight: 750, color: '#17382E', marginTop: '0.25rem' }}>
-                    {booth.openHours || '08:00 - 22:00 (Tiêu chuẩn)'}
-                  </div>
-                  <small style={{ color: '#687D75', fontSize: '0.78rem' }}>Được cập nhật tự động lên thẻ gian hàng tại Landing page.</small>
+            <div style={{ maxWidth: '900px' }}>
+              {/* Detailed booth description section */}
+              <div style={{ marginBottom: '1.75rem' }}>
+                <div style={{ marginBottom: '0.65rem' }}>
+                  <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#172421', margin: 0, display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                    <BookOpen size={17} color="#17382E" />
+                    <span>{language === 'vi' ? 'Giới thiệu & Mô tả gian hàng' : 'Booth Description'}</span>
+                  </h3>
                 </div>
-
-                <div>
-                  <span style={{ fontSize: '0.76rem', fontWeight: 700, color: '#728880', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                    {language === 'vi' ? '📍 Khu vực gian hàng' : '📍 Booth Area'}
-                  </span>
-                  <div style={{ fontSize: '1.05rem', fontWeight: 750, color: '#17382E', marginTop: '0.25rem' }}>
-                    {booth.areaName || 'Khu A'}
-                  </div>
-                  <small style={{ color: '#687D75', fontSize: '0.78rem' }}>Vị trí phân bổ tại Đường Sách.</small>
-                </div>
-
-                <div>
-                  <span style={{ fontSize: '0.76rem', fontWeight: 700, color: '#728880', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                    {language === 'vi' ? '🖼️ Ảnh đại diện gian hàng' : '🖼️ Cover Photo'}
-                  </span>
-                  <div style={{ fontSize: '0.88rem', color: '#2C4A3E', marginTop: '0.25rem' }}>
-                    {booth.imageUrl ? '✓ Đã thiết lập ảnh riêng' : 'Dùng ảnh mặc định của Đường Sách'}
-                  </div>
+                <div style={{ background: '#F8FAF9', border: '1px solid #E5EBE8', borderRadius: '12px', padding: '1.15rem 1.25rem' }}>
+                  <p style={{ color: '#3A4D46', lineHeight: 1.65, fontSize: '0.92rem', margin: 0, whiteSpace: 'pre-wrap' }}>
+                    {booth.description || (language === 'vi' ? 'Chưa cập nhật mô tả cho gian hàng.' : 'No description provided yet.')}
+                  </p>
                 </div>
               </div>
 
-              <div style={{ marginBottom: '1.5rem' }}>
-                <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#172421', marginBottom: '0.65rem' }}>
-                  {language === 'vi' ? 'Mô tả gian hàng' : 'Booth Description'}
+              {/* Display categories */}
+              <div style={{ marginBottom: '1.75rem' }}>
+                <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#172421', marginBottom: '0.65rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                  <Tag size={17} color="#B3862A" />
+                  <span>{language === 'vi' ? 'Danh mục ngành hàng trưng bày' : 'Display Categories'}</span>
                 </h3>
-                <p style={{ color: '#495D57', lineHeight: 1.6, fontSize: '0.9rem', margin: 0, maxWidth: '800px' }}>
-                  {booth.description}
-                </p>
+                {booth.categories && booth.categories.length > 0 ? (
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    {booth.categories.map((cat, idx) => (
+                      <span
+                        key={idx}
+                        style={{
+                          backgroundColor: '#FAF8F3',
+                          border: '1px solid #EFE8D8',
+                          color: '#8C6519',
+                          fontSize: '0.84rem',
+                          fontWeight: 600,
+                          padding: '0.35rem 0.85rem',
+                          borderRadius: '20px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.35rem'
+                        }}
+                      >
+                        <span>{cat}</span>
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p style={{ color: '#7E928B', fontSize: '0.88rem', fontStyle: 'italic', margin: 0 }}>
+                    {language === 'vi' ? 'Chưa thiết lập danh mục ngành hàng' : 'No display categories assigned'}
+                  </p>
+                )}
               </div>
 
-              <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#172421', marginBottom: '0.65rem' }}>
-                {language === 'vi' ? 'Danh mục ngành hàng trưng bày' : 'Display Categories'}
-              </h3>
-              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                {booth.categories.map((cat, idx) => (
-                  <span
-                    key={idx}
-                    style={{
-                      backgroundColor: '#FAF8F3',
-                      border: '1px solid #EFE8D8',
-                      color: '#8C6519',
-                      fontSize: '0.82rem',
-                      fontWeight: 600,
-                      padding: '0.35rem 0.85rem',
-                      borderRadius: '20px'
-                    }}
-                  >
-                    {cat}
-                  </span>
-                ))}
+              {/* Display notice & guidelines */}
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', padding: '0.85rem 1rem', background: '#F4F7F5', border: '1px solid #E0EAE5', borderRadius: '10px' }}>
+                <Info size={17} color="#17382E" style={{ flexShrink: 0, marginTop: '2px' }} />
+                <div style={{ fontSize: '0.83rem', color: '#445952', lineHeight: 1.5 }}>
+                  <strong>{language === 'vi' ? 'Ghi chú quản lý:' : 'Management Note:'}</strong> {language === 'vi' 
+                    ? 'Thông tin giới thiệu và hình ảnh của gian hàng sẽ được hiển thị công khai tới khách tham quan trên cổng thông tin Đường Sách. Mọi thay đổi sẽ có hiệu lực ngay sau khi lưu.' 
+                    : 'Booth details and display photos are shown to visitors on the public portal.'}
+                </div>
               </div>
             </div>
           )

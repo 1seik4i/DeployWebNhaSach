@@ -73,7 +73,7 @@ router.get('/events', asyncHandler(async (req, res) => {
 }));
 
 // Public activities are deliberately separate from events: an activity only
-// becomes visible after the organizer has explicitly published it (BR-57).
+// becomes visible after publication, including publication during proposal approval.
 router.get('/activities', asyncHandler(async (req, res) => {
   const today = startOfTodayVietnam();
   const activities = await prisma.activity.findMany({
@@ -98,7 +98,7 @@ router.get('/activities', asyncHandler(async (req, res) => {
     endAt: activity.endAt,
     capacity: activity.capacity,
     registeredCount: activity.registeredCount,
-    imageUrl: activity.imageUrl || null,
+    imageUrl: activity.event.coverImageUrl || activity.imageUrl || null,
     location: activity.location.name,
     venue: activity.location.venue?.name || null,
   })));

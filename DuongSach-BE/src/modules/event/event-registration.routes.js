@@ -33,7 +33,6 @@ export async function registerIndependentEvent(input, user) {
   if (user.primaryRole === 'partner' && vietnamDateKey(data.startAt) < vietnamDateKey(new Date())) {
     throw ApiError.validation([{ field: 'startAt', message: 'Không thể đăng ký sự kiện vào ngày đã qua.' }]);
   }
-  if (user.primaryRole === 'partner' && !data.targetAudience) throw ApiError.validation([{ field: 'targetAudience', message: 'Vui lòng nhập đối tượng tham gia.' }]);
   return transaction(async tx => {
     const location = await tx.location.findFirst({ where: { id: data.locationId, isDeleted: false } });
     if (!location) throw ApiError.validation([{ field: 'locationId', message: 'Địa điểm không tồn tại hoặc đã bị xóa.' }]);

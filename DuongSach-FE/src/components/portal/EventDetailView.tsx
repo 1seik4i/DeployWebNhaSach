@@ -318,7 +318,7 @@ export const EventDetailView: React.FC<EventDetailViewProps> = ({
                   e.currentTarget.onerror = null;
                   e.currentTarget.src = '/duong_sach_logo.png';
                 }}
-                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }}
               />
               <label 
                 title={language === 'vi' ? 'Nhấn để tải ảnh sự kiện mới lên' : 'Click to upload new event image'}
@@ -867,6 +867,11 @@ export const EventDetailView: React.FC<EventDetailViewProps> = ({
                           <h3 style={{ margin: 0, fontSize: '1.15rem', color: '#11281E', fontWeight: 750, letterSpacing: '-0.01em' }}>
                             {application.orgName}
                           </h3>
+                          <span style={{ fontSize: '0.76rem', color: '#0E6549', fontWeight: 700 }}>
+                            {application.participationRole === 'organizer'
+                              ? (language === 'vi' ? 'Đối tác tổ chức' : 'Organizing partner')
+                              : (language === 'vi' ? 'Đối tác tham gia' : 'Participating partner')}
+                          </span>
                           <span style={{ fontSize: '0.76rem', color: '#6A8277', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
                             <Calendar size={12} />
                             {language === 'vi' ? 'Nộp ngày:' : 'Submitted on:'} {application.date || '—'}

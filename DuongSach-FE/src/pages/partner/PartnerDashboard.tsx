@@ -21,6 +21,8 @@ import {
   PartnerTodoItem 
 } from '../../types';
 import './PartnerPages.css';
+import { activityDateKey } from '../../utils/activityDate';
+import { vietnamDateKey } from '../../utils/inputValidation';
 
 interface PartnerDashboardProps {
   language: Language;
@@ -43,6 +45,15 @@ export const PartnerDashboard: React.FC<PartnerDashboardProps> = ({
   totalEngagementCount = 0,
 }) => {
   const proposedActivitiesCount = activities.length;
+  const today = vietnamDateKey();
+  const visibleTodos = todos.filter(todo => {
+    const deadline = todo.deadline.trim().replace(
+      /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/,
+      (_, day: string, month: string, year: string) => `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`,
+    );
+    const deadlineKey = activityDateKey(deadline) || vietnamDateKey(deadline);
+    return !deadlineKey || deadlineKey >= today;
+  });
 
   // Lấy hoạt động vừa có thông tin mới nhất (dựa trên updatedAt hoặc submittedAt hoặc createdAt)
   const latestActivity = activities.length > 0
@@ -233,7 +244,7 @@ export const PartnerDashboard: React.FC<PartnerDashboardProps> = ({
         </div>
 
         <div className="todo-list-items">
-          {todos.map((todo) => {
+          {visibleTodos.map((todo) => {
             const isNeedAction = todo.status === 'need_action';
             const isPending = todo.status === 'pending_review';
 

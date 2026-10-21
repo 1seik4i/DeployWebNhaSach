@@ -29,6 +29,7 @@ export interface OrganizerFeedback {
 }
 
 export interface OrganizerPartnerApplication {
+  participationRole?: 'organizer' | 'participant';
   id: string;
   eventId: string;
   orgName: string;
@@ -125,7 +126,7 @@ const mapActivity = (activity: any): OrganizerActivityItem => ({
   status: activity.status,
   statusLabelVi: activity.status === 'published' ? 'Đã công bố' : activity.status === 'ongoing' ? 'Đang diễn ra' : activity.status === 'completed' ? 'Đã kết thúc' : activity.status === 'approved' ? 'Đã duyệt' : activity.status === 'need_revision' ? 'Cần chỉnh sửa' : activity.status === 'rejected' ? 'Không duyệt' : activity.status === 'cancelled' ? 'Đã hủy' : activity.status === 'draft' ? 'Bản nháp' : 'Chờ duyệt',
   isPublished: ['published', 'ongoing', 'completed'].includes(activity.status),
-  thumbnail: activity.imageUrl || '',
+  thumbnail: activity.event?.coverImageUrl || activity.imageUrl || '',
   description: activity.description || '',
 });
 
@@ -190,6 +191,7 @@ export const organizerApi = {
       id: item.id,
       eventId: item.eventId,
       orgName: item.organization?.name || '',
+      participationRole: item.participationRole,
       rep: item.organization?.representativeName || '',
       phone: item.organization?.phone || '',
       date: viDate(item.submittedAt),
@@ -206,6 +208,8 @@ export const organizerApi = {
   async getProposals(eventId?: string): Promise<OrganizerActivityProposal[]> {
     const rows = await apiClient.get<any[]>(`/admin/activity-proposals?limit=100${eventId ? `&eventId=${encodeURIComponent(eventId)}` : ''}`);
     return rows.filter(item => !item.publishedActivityId).map(item => {
+      let metadata: Record<string, any> = {};
+      try { metadata = JSON.parse(item.managementNotes || '{}') || {}; } catch { /* Legacy plain text note. */ }
       const activeBooth = item.booth || item.organization?.boothAssignments?.find((ba: any) => !ba.eventId || ba.eventId === item.eventId)?.booth || item.organization?.boothAssignments?.[0]?.booth;
       return {
         id: item.id,
@@ -225,9 +229,10 @@ export const organizerApi = {
       status: item.status,
       description: item.description || '',
       requiredEquipments: item.requiredEquipments || item.devices?.map((device: any) => device.name) || [],
-      thumbnail: item.imageUrl || '',
+      thumbnail: item.event?.coverImageUrl || item.imageUrl || metadata.imageUrl || '',
+      standaloneEvent: Boolean(metadata.standaloneEvent),
       submittedAt: item.submittedAt,
-      reviewNote: item.reviewNote || undefined,
+      reviewNote: item.reviewNote || metadata.reviewNote || undefined,
       hasConflict: Boolean(item.hasConflict),
       conflictNotes: item.conflictNotes || undefined,
     };

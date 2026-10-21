@@ -14,10 +14,12 @@ import { apiClient } from './apiClient';
 const CHANGE_EVENT = 'duongsach:library-changed';
 const changed = <T>(value: T): T => {
   window.dispatchEvent(new Event(CHANGE_EVENT));
+  try { localStorage.setItem(CHANGE_EVENT, `${Date.now()}:${Math.random()}`); } catch { /* Same-tab refresh still works when storage is unavailable. */ }
   return value;
 };
 
 type AssignedStall = { id: string; code: string; name: string };
+export type Bookshelf = { id: string; name: string; ranked: boolean; books: Book[] };
 export type LibraryStallSummary = {
   id: string;
   code: string;
@@ -35,6 +37,16 @@ type Rankings = {
 
 export const libraryApi = {
   changeEvent: CHANGE_EVENT,
+  getBookshelves: (admin = false) => apiClient.get<Bookshelf[]>(admin ? '/admin/bookshelves' : '/public/bookshelves'),
+  async deleteBookshelf(id: string) {
+    return changed(await apiClient.delete(`/admin/bookshelves/${encodeURIComponent(id)}`));
+  },
+  async createBookshelf(data: { name: string; ranked: boolean; bookIds: string[] }) {
+    return changed(await apiClient.post<{ id: string }>('/admin/bookshelves', data));
+  },
+  async updateBookshelf(id: string, data: { name?: string; ranked?: boolean; bookIds?: string[] }) {
+    return changed(await apiClient.patch(`/admin/bookshelves/${encodeURIComponent(id)}`, data));
+  },
 
   getBooks: () => apiClient.get<Book[]>('/public/books'),
   getAllBooks: () => apiClient.get<Book[]>('/admin/books'),
