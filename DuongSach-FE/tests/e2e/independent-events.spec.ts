@@ -29,15 +29,16 @@ for (const role of ['admin', 'partner'] as const) {
     await page.getByRole('button', { name: role === 'admin' ? 'Tạo sự kiện' : 'Đăng ký sự kiện mới', exact: true }).first().click();
     const form = page.locator('[data-event-registration-form]');
     await expect(form).toBeVisible();
-    await form.locator('input[required]').first().fill(`Independent ${role} event`);
-    await page.getByRole('textbox', { name: 'Ngày bắt đầu', exact: true }).fill('21/10/2010');
-    await page.getByRole('textbox', { name: 'Ngày kết thúc', exact: true }).fill('22/10/2010');
+    await form.getByRole('textbox', { name: 'Đối tượng tham gia', exact: true }).fill('Bạn đọc');
+    await form.getByPlaceholder('Ví dụ: Giao lưu tác giả & Ký tặng sách mới').fill(`Independent ${role} event`);
+    await page.getByRole('textbox', { name: 'Ngày bắt đầu', exact: true }).fill('21/10/2030');
+    await page.getByRole('textbox', { name: 'Ngày kết thúc', exact: true }).fill('22/10/2030');
     await form.locator('select[required]').selectOption(locationId);
     if (role === 'partner') await form.locator('input[type=checkbox][required]').check();
-    await page.getByRole('button', { name: role === 'admin' ? 'Tạo sự kiện' : 'Đăng ký sự kiện', exact: true }).click();
+    await form.getByRole('button', { name: role === 'admin' ? 'Tạo sự kiện' : 'Đăng ký sự kiện', exact: true }).click();
     await expect.poll(() => writes.length).toBe(1);
     expect(writes[0]).not.toHaveProperty('eventId');
-    expect(writes[0]).toMatchObject({ title: `Independent ${role} event`, locationId, startAt: '2010-10-21T09:00:00+07:00', endAt: '2010-10-22T11:00:00+07:00' });
+    expect(writes[0]).toMatchObject({ title: `Independent ${role} event`, locationId, startAt: '2030-10-21T09:00:00+07:00', endAt: '2030-10-22T11:00:00+07:00' });
     await expect(form).toHaveCount(0);
   });
 }

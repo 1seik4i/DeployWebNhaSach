@@ -56,6 +56,7 @@ export interface OrganizerBoothItem {
 }
 
 export interface OrganizerActivityItem {
+  targetAudience?: string;
   id: string;
   eventId: string;
   title: string;

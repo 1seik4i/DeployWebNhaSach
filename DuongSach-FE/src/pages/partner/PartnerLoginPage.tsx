@@ -40,6 +40,11 @@ export const PartnerLoginPage: React.FC<PartnerLoginPageProps> = ({
       return;
     }
 
+    if (password.length < 8) {
+      setErrorMsg(language === 'vi' ? 'Mật khẩu phải có ít nhất 8 ký tự' : 'Password must be at least 8 characters');
+      return;
+    }
+
     setIsLoading(true);
 
     try {

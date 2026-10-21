@@ -1,3 +1,4 @@
+import { recordGuestSubmission } from '../utils/guestSubmission';
 import { useModalBehavior } from '../hooks/useModalBehavior';
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -68,7 +69,7 @@ export const EventFeedbackModal: React.FC<EventFeedbackModalProps> = ({
     setIsSubmitting(true);
     setSubmitError('');
     try {
-      await publicApi.submitFeedback({
+      const result = await publicApi.submitFeedback({
         rating,
         eventId: event.id,
         targetScope: 'entire',
@@ -78,6 +79,7 @@ export const EventFeedbackModal: React.FC<EventFeedbackModalProps> = ({
         contactEmail: contact.trim() || undefined,
         source: 'web_landing',
       });
+      recordGuestSubmission('feedback', result?.submissionQuota);
       setIsSuccess(true);
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : 'Không thể gửi đánh giá.');

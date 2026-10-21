@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 test('partner login in another tab does not change admin taxonomy permissions', async ({ page, context, request }) => {
   await page.goto('/admin');
   await page.locator('#admin-username').fill(process.env.E2E_ADMIN_EMAIL || 'admin@duongsach.example.vn');
-  await page.locator('#admin-password').fill(process.env.E2E_ADMIN_PASSWORD || '123456');
+  await page.locator('#admin-password').fill(process.env.E2E_ADMIN_PASSWORD || 'Demo2026!');
   await page.getByRole('button', { name: 'Đăng nhập vào Hệ thống', exact: true }).click();
   await page.getByRole('button', { name: 'Mặt bằng & Gian hàng', exact: true }).click();
   await page.getByRole('button', { name: 'Thư viện số', exact: true }).click();
@@ -12,7 +12,7 @@ test('partner login in another tab does not change admin taxonomy permissions', 
   const partner = await context.newPage();
   await partner.goto('/partner');
   await partner.locator('#partner-username').fill(process.env.E2E_PARTNER_EMAIL || 'nxbtre@partner.duongsach.vn');
-  await partner.locator('#partner-password').fill(process.env.E2E_PARTNER_PASSWORD || '123456');
+  await partner.locator('#partner-password').fill(process.env.E2E_PARTNER_PASSWORD || 'Demo2026!');
   await partner.getByRole('button', { name: 'Đăng nhập vào Cổng Đối tác', exact: true }).click();
   await expect(partner.locator('#partner-username')).not.toBeVisible();
   await page.bringToFront();

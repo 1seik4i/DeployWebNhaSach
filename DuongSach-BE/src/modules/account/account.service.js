@@ -32,7 +32,7 @@ export const AccountService = {
       const data = parse(z.object({ name: z.string().trim().min(2).max(200).optional(), representativeName: validName.optional(), fullName: validName.optional(), shortDesc: z.string().max(5000).optional(), email: z.string().trim().email().max(200).optional(), phone: supportPhone.optional(), address: z.string().max(1000).optional(), website: webUrl.or(z.literal('')).optional(), logoUrl: imageSource.optional(), avatarUrl: imageSource.optional(), categories: z.array(z.string().max(100)).max(50).optional() }).strict(), input);
       const { fullName, avatarUrl, ...fields } = data;
       const updated = await prisma.organization.update({ where: { id: org.id }, data: { ...fields, ...(fullName ? { representativeName: fullName } : {}), ...(avatarUrl ? { logoUrl: avatarUrl } : {}) } });
-      return { ...updated, email: current.email };
+      return { ...updated, email: current.email, lastActiveAt: current.lastActiveAt };
     }
     const fields = parse(z.object({
       fullName: validName.optional(),

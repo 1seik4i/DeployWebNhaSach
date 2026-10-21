@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import { prisma } from '../../config/database.js';
 import { config } from '../../config/env.js';
 import { ApiError } from '../../utils/ApiError.js';
-import { securityPolicy } from './security-policy.js';
+import { validatePassword, securityPolicy } from './security-policy.js';
 import { transaction } from '../../utils/contract.js';
 import { MailService } from '../../services/mail.service.js';
 const attempts = new Map();
@@ -12,6 +12,7 @@ const attempts = new Map();
 export class AuthService {
   // BR-03: Đăng nhập & sinh JWT token
   static async login({ email, password }, ip = '') {
+    if (typeof password !== 'string' || password.length < 8) throw ApiError.validation('Mật khẩu phải có ít nhất 8 ký tự');
     const rawId = (email || '').trim().toLowerCase();
     const policy=await securityPolicy(),key=ip+':'+rawId,now=Date.now();
     let attempt=attempts.get(key);
@@ -47,14 +48,14 @@ export class AuthService {
     if(user.status!=='active')throw ApiError.forbidden('Tài khoản chưa được kích hoạt');
     attempts.delete(key);
     // Cập nhật thời điểm hoạt động
-    await prisma.user.update({
+    const signedInUser = await prisma.user.update({
       where: { id: user.id },
       data: { lastActiveAt: new Date() },
     });
 
     const tokens = await this.generateTokens(user);
     return {
-      user: this.mapUser(user),
+      user: this.mapUser(signedInUser),
       ...tokens,
     };
   }
@@ -153,6 +154,7 @@ export class AuthService {
       primaryRole: user.primaryRole,
       status: user.status,
       avatar: user.avatarUrl || '',
+      lastActiveAt: user.lastActiveAt,
       totalPoints: user.totalPoints,
       emailNotifications: user.emailNotifications,
     };
@@ -241,9 +243,7 @@ export class AuthService {
   // Đặt lại mật khẩu mới
   static async resetPassword({ token: rawToken, newPassword }) {
     if (!rawToken) throw ApiError.badRequest('Mã token không hợp lệ');
-    if (!newPassword || newPassword.length < 6) {
-      throw ApiError.badRequest('Mật khẩu mới phải có ít nhất 6 ký tự');
-    }
+    await validatePassword(newPassword);
 
     const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
 

@@ -144,6 +144,7 @@ export interface ActivityAuditItem {
    ========================================================================== */
 
 export interface PartnerOrganization {
+  lastActiveAt?: string;
   id: string;
   name: string;
   shortDesc: string;

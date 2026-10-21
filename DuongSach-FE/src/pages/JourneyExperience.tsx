@@ -1,3 +1,4 @@
+import { localizeLanding } from '../utils/localizeLanding';
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
@@ -131,7 +132,7 @@ export const JourneyExperience: React.FC<JourneyExperienceProps> = ({ language, 
     }
   }, [activeChapter]);
 
-  const [journeyData, setJourneyData] = useState(() => landingContentService.getJourney());
+  const [journeyContent, setJourneyData] = useState(() => landingContentService.getJourney());
 
   useEffect(() => {
     const handleUpdate = () => {
@@ -142,6 +143,8 @@ export const JourneyExperience: React.FC<JourneyExperienceProps> = ({ language, 
     window.addEventListener('duongsach_landing_content_changed', handleUpdate);
     return () => window.removeEventListener('duongsach_landing_content_changed', handleUpdate);
   }, []);
+
+  const journeyData = localizeLanding(journeyContent, language);
 
   const prefersReducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 

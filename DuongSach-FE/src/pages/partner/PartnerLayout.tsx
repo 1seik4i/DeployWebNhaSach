@@ -328,7 +328,6 @@ export const PartnerLayout: React.FC<PartnerLayoutProps> = ({
             subtitle: language === 'vi' ? 'Đối tác / Đơn vị triển lãm' : 'Partner',
             avatar: organization.logoUrl,
             onProfileClick: () => navigate('/partner/profile'),
-            onLogout: onLogout,
             logoutLabel: language === 'vi' ? 'Đăng xuất' : 'Sign Out'
           }}
         />

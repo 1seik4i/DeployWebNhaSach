@@ -1,3 +1,4 @@
+import { SafeImage } from '../../components/ui/SafeImage';
 import { useUrlTab } from '../../hooks/useUrlTab';
 import { useModalBehavior } from '../../hooks/useModalBehavior';
 import { ListPagination, useListPagination } from '../../components/ui/ListPagination';
@@ -78,7 +79,7 @@ const toForm = (row: StallBookRecord): FormState => ({
   coverUrl: row.book.coverUrl,
   description: row.book.description || '',
   inventoryQuantity: String(row.stall.inventoryQuantity),
-  soldQuantity: row.stall.soldQuantity === undefined ? '' : String(row.stall.soldQuantity)
+  soldQuantity: row.stall.soldQuantity == null ? '' : String(row.stall.soldQuantity)
 });
 
 const submissionToForm = (sub: BookSubmission): FormState => ({
@@ -98,10 +99,11 @@ const metadataChanged = (form: FormState, book: Book) =>
   form.isbn.trim() !== book.isbn ||
   form.title.trim() !== book.title ||
   form.author.trim() !== book.author ||
-  (form.publisher.trim() || undefined) !== book.publisher ||
-  (form.publicationYear ? Number(form.publicationYear) : undefined) !== book.publicationYear ||
+  (form.publisher.trim() || undefined) !== (book.publisher || undefined) ||
+  (form.publicationYear ? Number(form.publicationYear) : undefined) !== (book.publicationYear || undefined) ||
   form.coverUrl.trim() !== book.coverUrl ||
-  (form.description.trim() || undefined) !== book.description;
+  (form.description.trim() || undefined) !== (book.description || undefined) ||
+  (form.categoryId || undefined) !== (book.categoryId || undefined);
 
 const contentLabel = (status: StallBookRecord['contentStatus'] | BookSubmission['status'], language: Language) =>
   status === 'PENDING'
@@ -121,10 +123,10 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
   const [records, setRecords] = useState<StallBookRecord[]>([]);
   const [submissions, setSubmissions] = useState<BookSubmission[]>([]);
   const [categories, setCategories] = useState<BookCategory[]>([]);
-  
+
   const [query, setQuery] = useState('');
   const [submissionStatusFilter, setSubmissionStatusFilter] = useState<'all' | 'PENDING' | 'APPROVED' | 'REJECTED'>('all');
-  
+
   const [modal, setModal] = useState<ModalMode | null>(null);
   const [current, setCurrent] = useState<StallBookRecord | null>(null);
   const [currentSubmission, setCurrentSubmission] = useState<BookSubmission | null>(null);
@@ -172,6 +174,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
 
   const visibleSubmissions = useMemo(() =>
     submissions
+      .filter(sub => sub.status !== 'APPROVED')
       .filter(sub => submissionStatusFilter === 'all' || sub.status === submissionStatusFilter)
       .filter(sub => !query || `${sub.proposedData.title || ''} ${sub.proposedData.author || ''} ${sub.proposedData.isbn || ''}`.normalize('NFC').toLocaleLowerCase('vi').includes(query.trim().normalize('NFC').toLocaleLowerCase('vi'))),
     [submissions, submissionStatusFilter, query]
@@ -332,8 +335,10 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
 
     try {
       if (modal === 'edit' && current) {
-        await libraryApi.updateInventory(stall.id, current.book.id, inventory);
-        await libraryApi.updateSoldQuantity(stall.id, current.book.id, sold);
+        const quantities: { inventoryQuantity?: number; soldQuantity?: number | null } = {};
+        if (inventory !== current.stall.inventoryQuantity) quantities.inventoryQuantity = inventory;
+        if (sold !== (current.stall.soldQuantity ?? undefined)) quantities.soldQuantity = sold ?? null;
+        if (Object.keys(quantities).length) await libraryApi.updateQuantities(current.book.id, quantities);
         if (metadataChanged(form, current.book)) {
           const updates: Partial<BookInput> = {
             isbn: form.isbn.trim(),
@@ -491,7 +496,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
           <Clock size={16} />
           <span>{language === 'vi' ? 'Yêu cầu gửi duyệt' : 'Submissions & Approvals'}</span>
           {pending > 0 && <span className="partner-tab-badge pending">{pending}</span>}
-          {pending === 0 && <span className="partner-tab-badge count">{submissions.length}</span>}
+          {pending === 0 && <span className="partner-tab-badge count">{submissions.filter(item => item.status !== 'APPROVED').length}</span>}
         </button>
       </div>
 
@@ -530,7 +535,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
                       style={{ cursor: 'pointer' }}
                       title={language === 'vi' ? 'Nhấn để xem chi tiết sách' : 'Click to view book details'}
                     >
-                      <img className="partner-book-table-cover" src={row.book.coverUrl} alt="" loading="lazy" />
+                      <SafeImage className="partner-book-table-cover" src={row.book.coverUrl} alt="" loading="lazy" />
                     </td>
                     <td 
                       className="is-clickable"
@@ -588,7 +593,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
                   onClick={() => openRecord('view', row)}
                   title={language === 'vi' ? 'Nhấn để xem chi tiết sách' : 'Click to view book details'}
                 >
-                  <img src={row.book.coverUrl} alt={row.book.title} className="book-mobile-card-cover" loading="lazy" />
+                  <SafeImage src={row.book.coverUrl} alt={row.book.title} className="book-mobile-card-cover" loading="lazy" />
                 </div>
                 <div className="book-mobile-card-body">
                   <div 
@@ -668,7 +673,6 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
             >
               <option value="all">{language === 'vi' ? 'Tất cả trạng thái' : 'All Statuses'}</option>
               <option value="PENDING">{language === 'vi' ? 'Đang chờ duyệt' : 'Pending'}</option>
-              <option value="APPROVED">{language === 'vi' ? 'Đã duyệt' : 'Approved'}</option>
               <option value="REJECTED">{language === 'vi' ? 'Bị từ chối' : 'Rejected'}</option>
             </select>
           </div>
@@ -690,7 +694,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
                 {submissionsPagination.items.map(sub => (
                   <tr key={sub.id}>
                     <td>
-                      <img src={sub.proposedData.coverUrl || '/duong_sach_logo.png'} alt=""/>
+                      <SafeImage src={sub.proposedData.coverUrl || '/duong_sach_logo.png'} alt=""/>
                     </td>
                     <td>
                       <strong>{String(sub.proposedData.title || '—')}</strong>
@@ -765,7 +769,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
                   onClick={() => setViewingSubmission(sub)}
                   title={language === 'vi' ? 'Nhấn để xem chi tiết' : 'Click to view details'}
                 >
-                  <img src={sub.proposedData.coverUrl || '/duong_sach_logo.png'} alt="" className="book-mobile-card-cover" loading="lazy" />
+                  <SafeImage src={sub.proposedData.coverUrl || '/duong_sach_logo.png'} alt="" className="book-mobile-card-cover" loading="lazy" />
                 </div>
                 <div className="book-mobile-card-body">
                   <div 
@@ -851,7 +855,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
           className="partner-book-modal" 
           role="dialog" 
           aria-modal="true"
-          onClick={e => { if (e.target === e.currentTarget) setModal(null); }}
+
         >
           <form onSubmit={save} className="partner-book-form" onClick={e => e.stopPropagation()} autoComplete="off">
             <header>
@@ -942,7 +946,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
                       ) : lookupResults.length ? (
                         lookupResults.map(book => (
                           <button key={book.id} type="button" role="option" aria-selected={false} onClick={() => selectExisting(book)}>
-                            <img src={book.coverUrl || '/duong_sach_logo.png'} alt="" />
+                            <SafeImage src={book.coverUrl || '/duong_sach_logo.png'} alt="" />
                             <span><strong>{book.title}</strong><small>{book.author} · ISBN: {book.isbn}</small></span>
                           </button>
                         ))
@@ -1048,11 +1052,11 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
                   {/* Khung ảnh xem trước bìa sách chuẩn tỉ lệ */}
                   <div className="partner-cover-preview-box">
                     {form.coverUrl ? (
-                      <img 
+                      <SafeImage
                         src={form.coverUrl} 
                         alt="Preview" 
                         className="partner-cover-img-preview" 
-                        onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} 
+
                       />
                     ) : (
                       <div className="partner-cover-no-img">
@@ -1079,6 +1083,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
                             ? (language === 'vi' ? 'Đang dùng ảnh tải lên từ máy tính' : 'Using uploaded image from device') 
                             : (language === 'vi' ? 'Dán đường dẫn ảnh (URL https://... hoặc /duong_sach_logo.png)' : 'Paste image URL or enter path...')}
                         />
+                        {form.coverUrl && /^https?:\/\//.test(form.coverUrl) && <a href={form.coverUrl} target="_blank" rel="noopener noreferrer">{language === 'vi' ? 'Mở ảnh trong thẻ mới' : 'Open image in new tab'}</a>}
                         {form.coverUrl && !form.coverUrl.startsWith('data:') && modal !== 'view' && !match && (
                           <button 
                             type="button" 
@@ -1156,7 +1161,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
                 {language === 'vi' ? 'Số lượng sách đưa vào kho *' : 'Initial Inventory *'}
                 <input type="number" min="0" max="2147483647" step="1" value={form.inventoryQuantity} readOnly={modal === 'view'} onChange={e => setForm({ ...form, inventoryQuantity: e.target.value })} required/>
               </label>
-              
+
               <label>
                 {language === 'vi' ? 'Số lượng đã bán (không bắt buộc)' : 'Sold quantity (optional)'}
                 <input type="number" min="0" max="2147483647" step="1" value={form.soldQuantity} readOnly={modal === 'view'} onChange={e => setForm({ ...form, soldQuantity: e.target.value })}/>
@@ -1196,7 +1201,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
             </header>
 
             <div style={{ padding: '1.25rem', display: 'flex', gap: '1.25rem' }}>
-              <img 
+              <SafeImage
                 src={viewingSubmission.proposedData.coverUrl || '/duong_sach_logo.png'} 
                 alt="" 
                 style={{ width: '110px', height: '160px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #d1d5db' }}

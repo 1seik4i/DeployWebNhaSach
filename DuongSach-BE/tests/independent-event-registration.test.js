@@ -22,9 +22,11 @@ import { checkIndependentSchedule } from '../src/modules/event/independent-event
 
 const app = createApp();
 const proposalId = '00000000-0000-4000-8000-000000000010';
-const input = { title: 'Independent event', kind: 'talkshow', locationId: '00000000-0000-4000-8000-000000000002', startAt: '2026-10-21T09:00:00+07:00', endAt: '2026-10-22T23:00:00+07:00', capacity: 30 };
+const input = { targetAudience: 'Readers and students', title: 'Independent event', kind: 'talkshow', locationId: '00000000-0000-4000-8000-000000000002', startAt: '2026-10-21T09:00:00+07:00', endAt: '2026-10-22T23:00:00+07:00', capacity: 30 };
 let events, proposal;
 beforeEach(() => {
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(new Date('2026-10-20T18:00:00+07:00'));
   vi.clearAllMocks(); events = []; proposal = null;
   prisma.event.findFirst.mockRejectedValue(new Error('Must not inspect another event'));
   prisma.location.findFirst.mockResolvedValue({ id: input.locationId, venueId: 'venue' });
@@ -85,4 +87,16 @@ describe('independent event registration', () => {
     expect(prisma.event.update).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'own-event' }, data: expect.objectContaining({ endAt: new Date(data.endAt) }) }));
     expect(prisma.event.findFirst).not.toHaveBeenCalled();
   });
+});
+
+it('rejects a partner registration for yesterday in Vietnam before any write', async () => {
+  vi.setSystemTime(new Date('2026-10-22T00:01:00+07:00'));
+  const response = await request(app).post('/api/partner/event-registrations').set('x-role', 'partner').send(input);
+  expect(response.status).toBe(422);
+  expect(prisma.event.create).not.toHaveBeenCalled();
+});
+it.each([undefined, '', '   '])('requires a partner target audience: %s', async targetAudience => {
+  const response = await request(app).post('/api/partner/event-registrations').set('x-role', 'partner').send({ ...input, targetAudience });
+  expect(response.status).toBe(422);
+  expect(prisma.event.create).not.toHaveBeenCalled();
 });

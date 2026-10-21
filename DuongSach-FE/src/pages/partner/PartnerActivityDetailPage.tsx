@@ -15,7 +15,6 @@ import {
   CheckCircle2, 
   FileText, 
   Layers,
-  Sparkles,
   Info,
   Plus,
   Trash2,
@@ -498,7 +497,7 @@ export const PartnerActivityDetailPage: React.FC<PartnerActivityDetailPageProps>
               <div className="form-field-group">
                 <label>{language === 'vi' ? 'Đối tượng tham gia' : 'Target Audience'}</label>
                 <input maxLength={2000}
-                  type="text" 
+                  type="text" required
                   value={targetAudience} 
                   onChange={(e) => setTargetAudience(e.target.value)} 
                   placeholder={language === 'vi' ? 'Ví dụ: Độc giả trẻ, Học sinh...' : 'e.g. Young readers'}
@@ -546,7 +545,7 @@ export const PartnerActivityDetailPage: React.FC<PartnerActivityDetailPageProps>
                 {/* Key Specs Grid */}
                 <div className="specs-grid-pill">
                   <div className="spec-item">
-                    <span className="label">📅 {language === 'vi' ? 'Ngày diễn ra' : 'Date'}</span>
+                    <span className="label">{language === 'vi' ? 'Ngày diễn ra' : 'Date'}</span>
                     <span className="value">{activity.date}</span>
                   </div>
                   <div className="spec-item">
@@ -554,19 +553,19 @@ export const PartnerActivityDetailPage: React.FC<PartnerActivityDetailPageProps>
                     <span className="value">{activity.time}</span>
                   </div>
                   <div className="spec-item">
-                    <span className="label">📍 {language === 'vi' ? 'Địa điểm' : 'Location'}</span>
+                    <span className="label">{language === 'vi' ? 'Địa điểm' : 'Location'}</span>
                     <span className="value">{activity.location}</span>
                   </div>
                   <div className="spec-item">
-                    <span className="label">👥 {language === 'vi' ? 'Số người dự kiến' : 'Expected attendees'}</span>
+                    <span className="label">{language === 'vi' ? 'Số người dự kiến' : 'Expected attendees'}</span>
                     <span className="value">{capacity} {language === 'vi' ? 'người' : 'seats'}</span>
                   </div>
                   <div className="spec-item">
-                    <span className="label">🎯 {language === 'vi' ? 'Đối tượng tham gia' : 'Audience'}</span>
-                    <span className="value">{activity.targetAudience}</span>
+                    <span className="label">{language === 'vi' ? 'Đối tượng tham gia' : 'Audience'}</span>
+                    <span className="value">{activity.targetAudience || (language === 'vi' ? 'Chưa cập nhật đối tượng tham gia' : 'Audience not specified')}</span>
                   </div>
                   <div className="spec-item">
-                    <span className="label">🎟️ {language === 'vi' ? 'Đã đăng ký' : 'Registered'}</span>
+                    <span className="label">{language === 'vi' ? 'Đã đăng ký' : 'Registered'}</span>
                     <span className="value" style={{ fontWeight: 750, color: '#17382E' }}>
                       {participantCount}
                     </span>
@@ -877,7 +876,7 @@ export const PartnerActivityDetailPage: React.FC<PartnerActivityDetailPageProps>
                         </div>
                         {item.speaker && (
                           <div style={{ fontSize: '0.84rem', color: '#B3862A', fontWeight: 600, marginBottom: '0.25rem' }}>
-                            👤 {item.speaker}
+                            {item.speaker}
                           </div>
                         )}
                         {item.description && (
@@ -1071,7 +1070,7 @@ export const PartnerActivityDetailPage: React.FC<PartnerActivityDetailPageProps>
                       </div>
                       <div className="participant-mobile-card-bottom">
                         <span style={{ color: '#556B65', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          📞 {participant.phone || '—'}
+                          {participant.phone || '—'}
                         </span>
                         <span style={{ 
                           fontFamily: 'monospace', 

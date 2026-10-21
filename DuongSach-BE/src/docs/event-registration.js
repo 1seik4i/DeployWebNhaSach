@@ -7,6 +7,7 @@ const body = {
     locationId: { type: 'string', format: 'uuid' },
     startAt: { type: 'string', format: 'date-time' }, endAt: { type: 'string', format: 'date-time' },
     capacity: { type: 'integer', minimum: 0, default: 50 },
+    targetAudience: { type: 'string', minLength: 1, maxLength: 2000, description: 'Required for partners; whitespace-only values are invalid.' },
     description: { type: 'string', maxLength: 20000 }, speaker: { type: 'string', maxLength: 160 },
     imageUrl: { type: 'string', description: 'URL or base64 image, up to 20 MiB before encoding.' },
     isPublished: { type: 'boolean', description: 'Admin only: publish immediately unless false; partners always wait for review.' },
@@ -16,8 +17,8 @@ const body = {
 export const eventRegistrationPaths = Object.fromEntries(['admin', 'partner'].map(role => [`/${role}/event-registrations`, { post: {
   tags: [role === 'admin' ? 'Quản trị viên - Sự kiện' : 'Đối tác - Sự kiện'],
   summary: 'Đăng ký sự kiện độc lập', security: [{ BearerAuth: [] }],
-  description: 'Tạo sự kiện mới với ngày giờ riêng. Không nhận eventId, không kiểm tra lịch sự kiện khác, cho phép trùng lịch và ngày quá khứ. Kết thúc phải sau bắt đầu. Đối tác không cần hồ sơ tham gia sự kiện khác; đăng ký chờ Admin duyệt.',
-  requestBody: { required: true, content: { 'application/json': { schema: body } } },
+  description: 'Tạo sự kiện mới với ngày giờ riêng. Không nhận eventId, không kiểm tra lịch sự kiện khác, cho phép trùng lịch. Admin có thể nhập ngày quá khứ; đối tác không được nhập ngày trước ngày hiện tại theo Asia/Ho_Chi_Minh và bắt buộc cung cấp targetAudience. Kết thúc phải sau bắt đầu. Đối tác không cần hồ sơ tham gia sự kiện khác; đăng ký chờ Admin duyệt.',
+  requestBody: { required: true, content: { 'application/json': { schema: { ...body, required: role === 'partner' ? [...body.required, 'targetAudience'] : body.required } } } },
   responses: {
     200: { description: role === 'admin' ? 'Created independent event: data {id,status}.' : 'Pending registration: data {id,registrationId,status:"pending"}.' },
     401: { description: 'Authentication required.' }, 403: { description: 'Role or permission denied.' }, 422: { description: 'Invalid fields, missing location or end before start.' },

@@ -2442,7 +2442,7 @@ export const AdminLandingEditorView: React.FC<AdminLandingEditorViewProps> = ({
                   <div className="org-section-header light">
                     <span className="org-section-kicker gold">{vi ? 'TRIẾT LÝ VẬN HÀNH' : 'OPERATING PRINCIPLES'}</span>
                     <h2 className="org-section-heading light">
-                      {vi ? '3 Trụ Cột Quản Trị Vững Bền' : '3 Pillars of Sustainable Governance'}
+                      {vi ? `${org.principles.length} Trụ Cột Quản Trị Vững Bền` : `${org.principles.length} Pillars of Sustainable Governance`}
                     </h2>
                     <p className="org-principles-header-desc">
                       {vi

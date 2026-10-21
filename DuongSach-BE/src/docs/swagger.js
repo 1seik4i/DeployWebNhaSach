@@ -1,3 +1,4 @@
+import { guestSubmissionPaths } from './guest-submission.js';
 import swaggerUi from 'swagger-ui-express';
 import { heritageFeedbackPaths, heritageFeedbackSchemas } from './heritage-feedback.js';
 import { completionPaths } from './completion.js';
@@ -48,8 +49,9 @@ export const swaggerDocument = {
   paths: {
     ...eventRegistrationPaths,
     ...heritageFeedbackPaths,
+    ...guestSubmissionPaths,
     '/health': { get: { tags: ['Hệ thống'], summary: 'Kiểm tra trạng thái API', responses: success } },
-    '/auth/login': { post: { tags: ['Xác thực & phiên'], summary: 'Đăng nhập', requestBody: jsonBody({ email: { type: 'string' }, password: { type: 'string', format: 'password' } }), responses: success } },
+    '/auth/login': { post: { tags: ['Xác thực & phiên'], summary: 'Đăng nhập', requestBody: jsonBody({ email: { type: 'string' }, password: { type: 'string', format: 'password', minLength: 8 } }), responses: success } },
     '/auth/refresh': { post: { tags: ['Xác thực & phiên'], summary: 'Làm mới phiên', requestBody: jsonBody({ refreshToken: { type: 'string' } }), responses: success } },
     '/auth/logout': { post: { tags: ['Xác thực & phiên'], summary: 'Đăng xuất', responses: success } },
     '/auth/me': { get: { tags: ['Xác thực & phiên'], summary: 'Thông tin phiên', security: bearer, responses: success } },

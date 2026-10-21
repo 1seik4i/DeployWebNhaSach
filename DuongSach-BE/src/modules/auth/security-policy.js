@@ -10,6 +10,7 @@ export async function securityPolicy() {
     maxFailedAttempts: 5,
     sessionTimeoutMinutes: 15,
     ...row?.value?.security,
+    minPasswordLength: Math.max(8, Number(row?.value?.security?.minPasswordLength) || 8),
   };
 }
 export async function validatePassword(value) {

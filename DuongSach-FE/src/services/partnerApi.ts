@@ -36,6 +36,7 @@ const mapOrganization = (organization: Record<string, unknown>): PartnerOrganiza
   address: String(organization.address || ''),
   website: String(organization.website || ''),
   categories: Array.isArray(organization.categories) ? organization.categories.map(String) : [],
+  lastActiveAt: organization.lastActiveAt ? String(organization.lastActiveAt) : undefined,
   isVerified: Boolean(organization.isVerified),
 });
 

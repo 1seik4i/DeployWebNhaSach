@@ -32,6 +32,6 @@ export const QuickLoginService = {
       where: { code, primaryRole: role, status: 'active', isDeleted: false },
     });
     if (!user) throw ApiError.notFound('Tài khoản đăng nhập nhanh chưa có trong database');
-    return AuthService.login({ email: user.email, password: '123456' });
+    return AuthService.login({ email: user.email, password: process.env.DEMO_PASSWORD || 'Demo2026!' });
   },
 };

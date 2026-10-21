@@ -8,6 +8,7 @@ import { ApiResponse } from '../../utils/ApiResponse.js';
 import { ApiError } from '../../utils/ApiError.js';
 import { audit, organization, parse, transaction, uuid, text, quantity } from '../../utils/contract.js';
 import { eventImageInput } from '../../utils/eventImage.js';
+import { vietnamDateKey } from './event-time.js';
 import { slugify } from './event.service.js';
 
 export const independentEventInput = z.object({
@@ -18,6 +19,7 @@ export const independentEventInput = z.object({
   endAt: z.string().datetime({ offset: true }),
   capacity: quantity.default(50),
   description: z.string().max(20000).optional(),
+  targetAudience: z.string().trim().min(1).max(2000).optional(),
   speaker: z.string().trim().max(160).optional(),
   imageUrl: eventImageInput,
   isPublished: z.boolean().optional(),
@@ -28,6 +30,10 @@ export const independentEventInput = z.object({
 
 export async function registerIndependentEvent(input, user) {
   const data = parse(independentEventInput, input);
+  if (user.primaryRole === 'partner' && vietnamDateKey(data.startAt) < vietnamDateKey(new Date())) {
+    throw ApiError.validation([{ field: 'startAt', message: 'Không thể đăng ký sự kiện vào ngày đã qua.' }]);
+  }
+  if (user.primaryRole === 'partner' && !data.targetAudience) throw ApiError.validation([{ field: 'targetAudience', message: 'Vui lòng nhập đối tượng tham gia.' }]);
   return transaction(async tx => {
     const location = await tx.location.findFirst({ where: { id: data.locationId, isDeleted: false } });
     if (!location) throw ApiError.validation([{ field: 'locationId', message: 'Địa điểm không tồn tại hoặc đã bị xóa.' }]);
@@ -56,7 +62,7 @@ export async function registerIndependentEvent(input, user) {
     if (partner) {
       // Reuse the review queue, owned by this newly created independent event.
       const registration = await tx.activityProposal.create({ data: {
-        ...program, organizationId: org.id, status: 'pending',
+        ...program, targetAudience: data.targetAudience, organizationId: org.id, status: 'pending',
         managementNotes: JSON.stringify({ standaloneEvent: true, imageUrl: data.imageUrl || '' }),
         ...(data.devices?.length ? { devices: { create: data.devices } } : {}),
       } });

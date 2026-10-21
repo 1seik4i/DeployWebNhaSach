@@ -1456,3 +1456,14 @@ model SiteVisit {
   @@index([lastSeenAt])
   @@map("site_visits")
 }
+
+// Browser guest session quotas are separate from submissions so moderation/deletion
+// cannot restore a visitor's allowance. No personal data is stored here.
+model GuestSubmissionSession {
+  id            String   @id @db.Uuid
+  feedbackCount Int      @default(0) @map("feedback_count")
+  proposalCount Int      @default(0) @map("proposal_count")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("guest_submission_sessions")
+}

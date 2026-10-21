@@ -76,8 +76,8 @@ export const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({ language }
     e.preventDefault();
     setErrorMsg('');
 
-    if (newPassword.length < 6) {
-      setErrorMsg(isVi ? 'Mật khẩu mới phải có ít nhất 6 ký tự.' : 'Password must be at least 6 characters.');
+    if (newPassword.length < 8) {
+      setErrorMsg(isVi ? 'Mật khẩu mới phải có ít nhất 8 ký tự.' : 'Password must be at least 8 characters.');
       return;
     }
 
@@ -226,7 +226,7 @@ export const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({ language }
               {/* New Password */}
               <div className="rpp-form-group">
                 <label htmlFor="rpp-new-password" className="rpp-label">
-                  {isVi ? 'Mật khẩu mới (tối thiểu 6 ký tự)' : 'New Password (min 6 characters)'}
+                  {isVi ? 'Mật khẩu mới (tối thiểu 8 ký tự)' : 'New Password (min 8 characters)'}
                 </label>
                 <div className="rpp-input-wrap">
                   <Lock size={17} className="rpp-input-icon" />

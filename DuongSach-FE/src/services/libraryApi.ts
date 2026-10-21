@@ -84,6 +84,9 @@ export const libraryApi = {
     const { labelIds: _labelIds, status: _status, stallId: _stallId, ...proposedData } = updates;
     return changed(await apiClient.post<BookSubmission>('/partner/book-submissions', { bookId, proposedData }));
   },
+  async updateQuantities(bookId: string, changes: { inventoryQuantity?: number; soldQuantity?: number | null }): Promise<BookStall> {
+    return changed(await apiClient.patch<BookStall>(`/partner/books/${encodeURIComponent(bookId)}/quantities`, changes));
+  },
   async updateInventory(_stallId: string, bookId: string, inventoryQuantity: number): Promise<BookStall> {
     return changed(await apiClient.patch<BookStall>(`/partner/books/${encodeURIComponent(bookId)}/quantities`, { inventoryQuantity }));
   },
