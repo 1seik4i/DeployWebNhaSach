@@ -27,6 +27,9 @@ export const BookshelfService = {
       const shelves = await configuration(tx);
       const shelf = shelves.find(row => row.id === id);
       if (!shelf) throw ApiError.notFound('Không tìm thấy tủ sách');
+      if (shelf.id === 'bestseller' || shelf.source === 'bestseller') {
+        throw ApiError.badRequest('Tủ sách Top 100 bán chạy là mặc định của hệ thống, không được xóa');
+      }
       const next = shelves.filter(row => row.id !== id);
       await tx.setting.upsert({ where: { key }, create: { key, value: next }, update: { value: next } });
       await audit(tx, user, 'delete', 'Bookshelf', uuid.safeParse(id).success ? id : null, { shelfId: id, name: shelf.name });

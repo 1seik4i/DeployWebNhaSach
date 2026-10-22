@@ -175,9 +175,11 @@ export function BookshelfManager({ books, language, onEditBook }: { books: Book[
             <button className="admin-library-secondary" onClick={() => edit(shelf)} disabled={saving || dragging}>
               <Settings size={15}/>{vi ? 'Sửa tủ sách / Chọn sách' : 'Edit / Select books'}
             </button>
-            <button className="admin-library-secondary bookshelf-delete" disabled={saving || dragging} onClick={() => { setError(''); setRemoval({ shelf }); }}>
-              <Trash2 size={15}/>{vi ? 'Xóa tủ sách' : 'Delete bookshelf'}
-            </button>
+            {shelf.id !== 'bestseller' && !shelf.name.toLowerCase().includes('top 100') && (
+              <button className="admin-library-secondary bookshelf-delete" disabled={saving || dragging} onClick={() => { setError(''); setRemoval({ shelf }); }}>
+                <Trash2 size={15}/>{vi ? 'Xóa tủ sách' : 'Delete bookshelf'}
+              </button>
+            )}
           </div>
         )}
       </div>
