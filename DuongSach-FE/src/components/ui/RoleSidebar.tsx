@@ -184,23 +184,21 @@ export function RoleSidebar({
           })}
         </nav>
 
-        {userProfile && (
+        {userProfile?.onLogout && (
           <div className="role-sidebar-user-block">
-            {userProfile.onLogout && (
-              <button
-                type="button"
-                className="role-sidebar-logout-btn"
-                onClick={() => {
-                  userProfile.onLogout?.();
-                  onCloseMobile?.();
-                }}
-                title={userProfile.logoutLabel || 'Đăng xuất'}
-                aria-label={userProfile.logoutLabel || 'Đăng xuất'}
-              >
-                <LogOut size={16} />
-                <span className="role-sidebar-logout-label">{userProfile.logoutLabel || 'Đăng xuất'}</span>
-              </button>
-            )}
+            <button
+              type="button"
+              className="role-sidebar-logout-btn"
+              onClick={() => {
+                userProfile.onLogout?.();
+                onCloseMobile?.();
+              }}
+              title={userProfile.logoutLabel || 'Đăng xuất'}
+              aria-label={userProfile.logoutLabel || 'Đăng xuất'}
+            >
+              <LogOut size={16} />
+              <span className="role-sidebar-logout-label">{userProfile.logoutLabel || 'Đăng xuất'}</span>
+            </button>
           </div>
         )}
 
