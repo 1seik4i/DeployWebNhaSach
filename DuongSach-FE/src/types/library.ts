@@ -17,6 +17,7 @@ export interface BookCategory {
 export interface BookLabel {
   id: string;
   name: string;
+  nameEn?: string;
   status: LabelStatus;
 }
 
@@ -38,6 +39,7 @@ export interface Book {
   publisher?: string;
   coverUrl: string;
   description?: string;
+  descriptionEn?: string | null;
   publicationYear?: number;
   categoryId?: string;
   category?: BookCategory;

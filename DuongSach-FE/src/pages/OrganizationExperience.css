@@ -666,7 +666,17 @@
 }
 
 .org-tree-tier.tier-1 {
-  gap: 0;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: clamp(2.5rem, 6vw, 5rem);
+  width: 100%;
+}
+
+.org-tree-card.tier-1-card {
+  width: 300px;
 }
 
 .org-tree-tier.tier-2 {
@@ -785,6 +795,11 @@
   .org-tree-wrapper {
     gap: 2.5rem;
   }
+  .org-tree-tier.tier-1 {
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+  }
   .org-tree-tier.tier-2,
   .org-tree-tier.tier-3 {
     gap: 2rem;
@@ -800,6 +815,10 @@
   }
   .org-tree-card {
     width: 240px;
+  }
+  .org-tree-card.tier-1-card {
+    width: 100%;
+    max-width: 290px;
   }
 }
 

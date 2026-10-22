@@ -256,7 +256,7 @@ export const NewsExperience: React.FC<NewsExperienceProps> = ({ language, open }
 
               {/* Article Paragraphs & Inline Media */}
               <div className="news-detail-body">
-                {(vi ? activeArticle.contentVi : activeArticle.contentEn).map((item, pIdx) => {
+                {(vi ? activeArticle.contentVi : (activeArticle.contentEn && activeArticle.contentEn.length > 0 ? activeArticle.contentEn : activeArticle.contentVi)).map((item, pIdx) => {
                   const imgMatch = item.match(/^!\[(.*?)\]\((.*?)\)$/);
                   if (imgMatch) {
                     const caption = imgMatch[1];

@@ -28,10 +28,12 @@ export const createEventSchema = z.object({
     publicUntil: z.string().datetime({offset:true}).nullable().optional(),
     coverImageUrl: imageSource.nullable().optional(),
     summary: z.string().max(5000).nullable().optional(),
+    summaryEn: z.string().max(5000).nullable().optional(),
     title: z.string({ required_error: 'Tiêu đề là bắt buộc' })
       .trim()
       .min(1, 'Tiêu đề là bắt buộc')
       .max(200, 'Tiêu đề không được vượt quá 200 ký tự'),
+    titleEn: z.string().max(200).nullable().optional(),
     startAt: z.string({ required_error: 'Thời gian bắt đầu là bắt buộc' })
       .refine(isValidDateString, 'Thời gian bắt đầu không hợp lệ'),
     endAt: z.string({ required_error: 'Thời gian kết thúc là bắt buộc' })
@@ -57,7 +59,9 @@ export const updateEventSchema = z.object({
     publicUntil: z.string().datetime({offset:true}).nullable().optional(),
     coverImageUrl: imageSource.nullable().optional(),
     summary: z.string().max(5000).nullable().optional(),
+    summaryEn: z.string().max(5000).nullable().optional(),
     title: z.string().trim().min(1, 'Tiêu đề không được để trống').max(200, 'Tiêu đề không được vượt quá 200 ký tự').optional(),
+    titleEn: z.string().max(200).nullable().optional(),
     startAt: z.string().refine(isValidDateString, 'Thời gian bắt đầu không hợp lệ').optional(),
     endAt: z.string().refine(isValidDateString, 'Thời gian kết thúc không hợp lệ').optional(),
     venueId: z.string().uuid('ID địa điểm không hợp lệ').nullable().optional(),

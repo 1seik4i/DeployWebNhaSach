@@ -11,6 +11,7 @@ import {
 } from "../../utils/contract.js";
 import { config } from "../../config/env.js";
 import { searchText, imageSource } from '../../utils/input.validation.js';
+import { translateViToEn } from "../../services/translate.service.js";
 
 const nullableUuid = z
   .union([uuid, z.literal(""), z.null(), z.undefined()])
@@ -45,6 +46,7 @@ export const bookInput = z.object({
   publisher: nullableText(200).optional(),
   coverUrl: coverUrlSchema.optional(),
   description: z.union([z.string().trim().max(20000), z.literal(""), z.null(), z.undefined()]).transform((v) => (v && v.trim() ? v.trim() : null)).optional(),
+  descriptionEn: z.union([z.string().trim().max(20000), z.literal(""), z.null(), z.undefined()]).transform((v) => (v && v.trim() ? v.trim() : null)).optional(),
   publicationYear: nullableInt(1, new Date().getFullYear() + 1).optional(),
   categoryId: nullableUuid.optional(),
   labelIds: z.array(uuid).max(50).optional(),
@@ -123,6 +125,27 @@ async function saveBook(db, id, input) {
     }
   }
 
+  // Auto-translate Vietnamese title and description to English
+  if (id) {
+    const existingBook = await db.book.findUnique({
+      where: { id },
+      select: { title: true, titleEn: true, description: true, descriptionEn: true },
+    });
+    if (data.title && (existingBook?.title !== data.title || !data.titleEn || !data.titleEn.trim())) {
+      data.titleEn = await translateViToEn(data.title);
+    }
+    if (data.description && (!data.descriptionEn || !data.descriptionEn.trim() || existingBook?.description !== data.description)) {
+      data.descriptionEn = await translateViToEn(data.description);
+    }
+  } else {
+    if (data.title && (!data.titleEn || !data.titleEn.trim())) {
+      data.titleEn = await translateViToEn(data.title);
+    }
+    if (data.description && (!data.descriptionEn || !data.descriptionEn.trim())) {
+      data.descriptionEn = await translateViToEn(data.description);
+    }
+  }
+
   const allowed = [
     'isbn',
     'title',
@@ -131,6 +154,7 @@ async function saveBook(db, id, input) {
     'publisher',
     'coverUrl',
     'description',
+    'descriptionEn',
     'publicationYear',
     'categoryId',
     'status',

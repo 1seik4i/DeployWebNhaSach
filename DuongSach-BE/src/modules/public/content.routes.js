@@ -16,6 +16,7 @@ import {
   recordNewsArticleRead,
 } from "./content-analytics.service.js";
 import { getLiveOnlineCount, setVisitStatsProvider, broadcastVisitStats } from "../../services/websocket.service.js";
+import { translateViToEn } from "../../services/translate.service.js";
 
 const router = Router(),
   admin = [authenticate, authorize("admin")];
@@ -414,6 +415,34 @@ function withoutEmbeddedReadCounts(payload) {
     },
   };
 }
+async function autoTranslateArticles(payload) {
+  if (!Array.isArray(payload?.data?.articles)) return payload;
+  const articles = await Promise.all(
+    payload.data.articles.map(async (article) => {
+      let titleEn = article.titleEn;
+      if ((!titleEn || !titleEn.trim()) && article.titleVi) {
+        titleEn = await translateViToEn(article.titleVi);
+      }
+      let summaryEn = article.summaryEn;
+      if ((!summaryEn || !summaryEn.trim()) && article.summaryVi) {
+        summaryEn = await translateViToEn(article.summaryVi);
+      }
+      return {
+        ...article,
+        titleEn: titleEn || article.titleVi || '',
+        summaryEn: summaryEn || article.summaryVi || '',
+      };
+    }),
+  );
+  return {
+    ...payload,
+    data: {
+      ...payload.data,
+      articles,
+    },
+  };
+}
+
 router.get(
   "/public/content",
   run(async (r) => {
@@ -465,8 +494,10 @@ router.post(
   ...admin,
   run((r) =>
     transaction(async (tx) => {
+      const parsed = parse(contentSchema, r.body);
+      const translated = await autoTranslateArticles(parsed);
       const row = await tx.contentEntry.create({
-        data: withoutEmbeddedReadCounts(parse(contentSchema, r.body)),
+        data: withoutEmbeddedReadCounts(translated),
       });
       await audit(tx, r.user, "create", "ContentEntry", row.id);
       return row;
@@ -485,8 +516,9 @@ router.patch(
             .extend({ expectedVersion: z.number().int().positive() }),
           r.body,
         ),
-        { expectedVersion, ...rawData } = parsed,
-        data = withoutEmbeddedReadCounts(rawData);
+        { expectedVersion, ...rawData } = parsed;
+      const translated = await autoTranslateArticles(rawData);
+      const data = withoutEmbeddedReadCounts(translated);
       const changed = await tx.contentEntry.updateMany({
         where: { id, version: expectedVersion },
         data: { ...data, version: { increment: 1 } },

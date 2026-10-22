@@ -1846,7 +1846,16 @@ export const AdminLandingEditorView: React.FC<AdminLandingEditorViewProps> = ({
                               nameVi: '', roleVi: '', badgeVi: '', subVi: '', bioVi: '',
                               contactEmail: '', avatarText: '', imageUrl: '', tagsVi: []
                             };
-                            setOrg(p => ({ ...p, leaders: [newLeader, ...p.leaders] }));
+                            setOrg(p => {
+                              const lastTier1Idx = p.leaders.reduce((last, l, idx) => ((l.tier || 1) === 1 ? idx : last), -1);
+                              const copy = [...p.leaders];
+                              if (lastTier1Idx >= 0) {
+                                copy.splice(lastTier1Idx + 1, 0, newLeader);
+                              } else {
+                                copy.push(newLeader);
+                              }
+                              return { ...p, leaders: copy };
+                            });
                             setHasUnsavedChanges(true);
                           }}
                         >
@@ -1863,15 +1872,11 @@ export const AdminLandingEditorView: React.FC<AdminLandingEditorViewProps> = ({
                             <div
                               key={leader.id}
                               className="org-tree-card tier-1-card"
-                              style={{
-                                background: '#FFFFFF',
-                                border: '1px solid #E2E8F0',
-                                borderRadius: '20px',
-                                padding: '1.5rem 1.25rem 1rem',
-                                boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
-                                width: '310px'
-                              }}
                             >
+                              <span className="tier-1-card-crown-badge">
+                                <Crown size={12} />
+                                {vi ? 'Lãnh đạo Tầng 1' : 'Tier 1 Leader'}
+                              </span>
                               {/* Avatar Box with Hover Camera */}
                               <div
                                 className="org-tree-avatar-box tier-1-avatar"

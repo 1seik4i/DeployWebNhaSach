@@ -13,6 +13,7 @@ import {
   Clock, 
   CornerDownRight, 
   Edit3, 
+  ExternalLink,
   Eye, 
   FileImage,
   ImagePlus, 
@@ -1083,17 +1084,31 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
                             ? (language === 'vi' ? 'Đang dùng ảnh tải lên từ máy tính' : 'Using uploaded image from device') 
                             : (language === 'vi' ? 'Dán đường dẫn ảnh (URL https://... hoặc /duong_sach_logo.png)' : 'Paste image URL or enter path...')}
                         />
-                        {form.coverUrl && /^https?:\/\//.test(form.coverUrl) && <a href={form.coverUrl} target="_blank" rel="noopener noreferrer">{language === 'vi' ? 'Mở ảnh trong thẻ mới' : 'Open image in new tab'}</a>}
-                        {form.coverUrl && !form.coverUrl.startsWith('data:') && modal !== 'view' && !match && (
-                          <button 
-                            type="button" 
-                            className="partner-cover-clear-url" 
-                            onClick={() => setForm(curr => ({ ...curr, coverUrl: '' }))}
-                            title={language === 'vi' ? 'Xóa URL' : 'Clear URL'}
-                          >
-                            <X size={14} />
-                          </button>
-                        )}
+                        <div className="partner-cover-url-actions">
+                          {form.coverUrl && /^https?:\/\//.test(form.coverUrl) && (
+                            <a 
+                              href={form.coverUrl} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="partner-cover-open-url"
+                              title={language === 'vi' ? 'Mở ảnh trong thẻ mới' : 'Open image in new tab'}
+                              aria-label={language === 'vi' ? 'Mở ảnh trong thẻ mới' : 'Open image in new tab'}
+                            >
+                              <ExternalLink size={14} />
+                            </a>
+                          )}
+                          {form.coverUrl && !form.coverUrl.startsWith('data:') && modal !== 'view' && !match && (
+                            <button 
+                              type="button" 
+                              className="partner-cover-clear-url" 
+                              onClick={() => setForm(curr => ({ ...curr, coverUrl: '' }))}
+                              title={language === 'vi' ? 'Xóa URL' : 'Clear URL'}
+                              aria-label={language === 'vi' ? 'Xóa URL' : 'Clear URL'}
+                            >
+                              <X size={14} />
+                            </button>
+                          )}
+                        </div>
                       </div>
 
                       {modal !== 'view' && !match && (

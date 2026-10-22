@@ -1294,6 +1294,7 @@ model BookCategory {
 model BookLabel {
   id     String                @id @default(uuid()) @db.Uuid
   name   String                @unique @db.VarChar(200)
+  nameEn String?               @map("name_en")
   status String                @default("active")
   books  BookLabelAssignment[]
 
@@ -1309,6 +1310,7 @@ model Book {
   publisher       String?
   coverUrl        String                @map("cover_url")
   description     String?
+  descriptionEn   String?               @map("description_en")
   publicationYear Int?                  @map("publication_year")
   categoryId      String?               @map("category_id") @db.Uuid
   status          String                @default("active")

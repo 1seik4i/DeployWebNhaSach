@@ -14,6 +14,7 @@ import {
   ChevronUp,
   Download,
   Edit3, 
+  ExternalLink,
   Eye, 
   FileImage,
   GripVertical, 
@@ -362,11 +363,12 @@ export function AdminDigitalLibraryView({ language }: {
                 ...form,
                 isbn: form.isbn.trim(),
                 title: form.title.trim(),
-                titleEn: form.titleEn?.trim() || undefined,
+                titleEn: form.title === editing?.title ? (form.titleEn?.trim() || undefined) : undefined,
                 author: form.author.trim(),
                 publisher: form.publisher?.trim() || undefined,
                 coverUrl: form.coverUrl?.trim() || '',
                 description: form.description?.trim() || undefined,
+                descriptionEn: form.description === editing?.description ? (editing?.descriptionEn?.trim() || undefined) : undefined,
                 publicationYear: form.publicationYear ? Number(form.publicationYear) : undefined,
                 categoryId: form.categoryId || undefined,
                 stallId: form.stallId || undefined,
@@ -2086,17 +2088,31 @@ export function AdminDigitalLibraryView({ language }: {
                                                     ? (language === 'vi' ? 'Đang dùng ảnh tải lên từ máy tính' : 'Using uploaded image from device') 
                                                     : (language === 'vi' ? 'Dán đường dẫn ảnh (URL https://... hoặc /duong_sach_logo.png)' : 'Paste image URL or enter path...')}
                                             />
-                                            {form.coverUrl && /^https?:\/\//.test(form.coverUrl) && <a href={form.coverUrl} target="_blank" rel="noopener noreferrer">{language === 'vi' ? 'Mở ảnh trong thẻ mới' : 'Open image in new tab'}</a>}
-                                            {form.coverUrl && !form.coverUrl.startsWith('data:') && (
-                                                <button 
-                                                    type="button" 
-                                                    className="admin-cover-clear-url" 
-                                                    onClick={() => setForm(curr => ({ ...curr, coverUrl: '' }))}
-                                                    title={language === 'vi' ? 'Xóa URL' : 'Clear URL'}
-                                                >
-                                                    <X size={14} />
-                                                </button>
-                                            )}
+                                            <div className="admin-cover-url-actions">
+                                                {form.coverUrl && /^https?:\/\//.test(form.coverUrl) && (
+                                                    <a 
+                                                        href={form.coverUrl} 
+                                                        target="_blank" 
+                                                        rel="noopener noreferrer" 
+                                                        className="admin-cover-open-url" 
+                                                        title={language === 'vi' ? 'Mở ảnh trong thẻ mới' : 'Open image in new tab'} 
+                                                        aria-label={language === 'vi' ? 'Mở ảnh trong thẻ mới' : 'Open image in new tab'}
+                                                    >
+                                                        <ExternalLink size={14} />
+                                                    </a>
+                                                )}
+                                                {form.coverUrl && !form.coverUrl.startsWith('data:') && (
+                                                    <button 
+                                                        type="button" 
+                                                        className="admin-cover-clear-url" 
+                                                        onClick={() => setForm(curr => ({ ...curr, coverUrl: '' }))}
+                                                        title={language === 'vi' ? 'Xóa URL' : 'Clear URL'}
+                                                        aria-label={language === 'vi' ? 'Xóa URL' : 'Clear URL'}
+                                                    >
+                                                        <X size={14} />
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
 
                                         <label 
@@ -2292,7 +2308,7 @@ export function AdminDigitalLibraryView({ language }: {
                             {viewingBook.description && (
                                 <div className="admin-book-detail-desc">
                                     <span className="admin-detail-section-title">{language === 'vi' ? 'Tóm tắt nội dung' : 'Summary'}</span>
-                                    <p>{viewingBook.description}</p>
+                                    <p>{language === 'en' && viewingBook.descriptionEn ? viewingBook.descriptionEn : viewingBook.description}</p>
                                 </div>
                             )}
                         </div>

@@ -103,7 +103,7 @@
 .partner-cover-url-box input {
   width: 100%;
   height: 40px;
-  padding: 0 2rem 0 2.25rem !important;
+  padding: 0 4.25rem 0 2.25rem !important;
   border: 1px solid #d5dcd8 !important;
   border-radius: 7px !important;
   background: #ffffff !important;
@@ -125,9 +125,38 @@
   color: #637770 !important;
 }
 
-.partner-cover-clear-url {
+.partner-cover-url-actions {
   position: absolute;
-  right: 0.6rem;
+  right: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.partner-cover-open-url {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 120ms ease;
+  flex-shrink: 0;
+}
+
+.partner-cover-open-url:hover {
+  background: #dcfce7;
+  color: #14532d;
+  border-color: #86efac;
+}
+
+.partner-cover-clear-url {
+  position: static;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -139,6 +168,7 @@
   border-radius: 50%;
   cursor: pointer;
   transition: background 120ms ease, color 120ms ease;
+  flex-shrink: 0;
 }
 
 .partner-cover-clear-url:hover {
