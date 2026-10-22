@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { BookOpen, ChevronLeft, ChevronRight, Search, Trophy, X } from 'lucide-react';
+import { BookOpen, ChevronLeft, ChevronRight, ChevronsRight, Search, Trophy, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import type { Book, Language } from '../../types';
 import { libraryApi, type Bookshelf } from '../../services/libraryApi';
@@ -53,7 +53,7 @@ export function DigitalLibrarySection({ language }: { language: Language }) {
     return () => { window.removeEventListener(libraryApi.changeEvent, handler); window.removeEventListener('focus', handler); window.removeEventListener('storage', storageHandler); };
   }, []);
 
-  const visible = useMemo(() => books.slice(0, 20), [books]);
+  const visible = useMemo(() => books.slice(0, 11), [books]);
   const updateControls = useCallback(() => {
     const track = trackRef.current;
     if (!track) return;
@@ -195,16 +195,22 @@ export function DigitalLibrarySection({ language }: { language: Language }) {
                 <LibraryBookSkeleton key={`skeleton-book-${idx}`} index={idx + 1} />
               ))
             ) : (
-              visible.map((book, idx) => {
-                const rank = idx + 1;
-                return <Link key={book.id} to={`/thu-vien-so?book=${encodeURIComponent(book.id)}`} className="library-ranking-item">
-                  <span className="library-ranking-visual">
-                    <span className={`library-ranking-number ${rank >= 10 ? 'is-double-digit' : ''}`} aria-label={`${language === 'vi' ? 'Hạng' : 'Rank'} ${rank}`}>{rank}</span>
-                    <BookCover book={book} decorative language={language} />
-                    <span className="library-ranking-badge"><Trophy size={11} />{language === 'vi' ? 'Top 100 Bán chạy' : 'Top 100 Bestseller'}</span>
-                  </span>
-                </Link>;
-              })
+              <>
+                {visible.map((book, idx) => {
+                  const rank = idx + 1;
+                  return <Link key={book.id} to={`/thu-vien-so?book=${encodeURIComponent(book.id)}`} className="library-ranking-item">
+                    <span className="library-ranking-visual">
+                      <span className={`library-ranking-number ${rank >= 10 ? 'is-double-digit' : ''}`} aria-label={`${language === 'vi' ? 'Hạng' : 'Rank'} ${rank}`}>{rank}</span>
+                      <BookCover book={book} decorative language={language} />
+                      <span className="library-ranking-badge"><Trophy size={11} />{language === 'vi' ? 'Top 100 Bán chạy' : 'Top 100 Bestseller'}</span>
+                    </span>
+                  </Link>;
+                })}
+                <Link to="/thu-vien-so" className="library-explore-card" aria-label={language === 'vi' ? 'Khám phá thêm sách tại Thư viện số' : 'Explore more books in Digital Library'}>
+                  <span>{language === 'vi' ? 'Khám phá thêm sách' : 'Explore more books'}</span>
+                  <ChevronsRight size={30} aria-hidden="true" />
+                </Link>
+              </>
             )}
           </div>
           <button type="button" className="library-carousel-control is-next" data-unavailable={!canScrollForward} disabled={!canScrollForward} onClick={() => scroll(1)} aria-label={language === 'vi' ? 'Các sách tiếp theo' : 'Next books'}><ChevronRight size={19} aria-hidden="true" /></button>
