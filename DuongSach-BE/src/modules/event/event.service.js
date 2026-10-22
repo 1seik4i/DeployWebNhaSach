@@ -3,6 +3,7 @@ import { ApiError } from '../../utils/ApiError.js';
 import { getPagination } from '../../utils/pagination.js';
 import { EventMapper } from './event.mapper.js';
 import { formatDateVietnam } from '../../utils/dateFormat.js';
+import { translateViToEn } from '../../services/translate.service.js';
 
 export const slugify = (text) => {
   return String(text || '')
@@ -118,13 +119,24 @@ export class EventService {
     const slug = await this.generateUniqueSlug(input.title);
     const locations = input.venueId ? await prisma.location.findMany({ where: { venueId: input.venueId, isDeleted: false }, select: { id: true } }) : [];
 
+    let titleEn = input.titleEn;
+    if (!titleEn && input.title) {
+      titleEn = await translateViToEn(input.title);
+    }
+    let summaryEn = input.summaryEn;
+    if (!summaryEn && input.summary) {
+      summaryEn = await translateViToEn(input.summary);
+    }
+
     const event = await prisma.event.create({
       data: {
         title: input.title,
+        titleEn: titleEn || null,
         visibility: input.visibility || 'public',
         publicUntil: input.publicUntil ? new Date(input.publicUntil) : null,
         coverImageUrl: input.coverImageUrl || null,
         summary: input.summary || null,
+        summaryEn: summaryEn || null,
         slug,
         startAt: new Date(input.startAt),
         endAt: new Date(input.endAt),
@@ -170,7 +182,7 @@ export class EventService {
     }
 
     const updateData = {};
-    for (const key of ['visibility','coverImageUrl','summary']) if (input[key] !== undefined) updateData[key] = input[key];
+    for (const key of ['visibility','coverImageUrl','summary','summaryEn','titleEn']) if (input[key] !== undefined) updateData[key] = input[key];
     if (input.publicUntil !== undefined) updateData.publicUntil = input.publicUntil ? new Date(input.publicUntil) : null;
     if (input.title !== undefined) updateData.title = input.title;
     if (input.startAt !== undefined) updateData.startAt = new Date(input.startAt);
@@ -178,6 +190,14 @@ export class EventService {
     if (input.venueId !== undefined) updateData.venueId = input.venueId;
     if (input.description !== undefined) updateData.description = input.description;
     if (input.priorityLevel !== undefined) updateData.priorityLevel = input.priorityLevel;
+
+    // Auto-translate if English counterpart is missing or title/summary updated
+    if (input.title !== undefined && (input.titleEn === undefined || !input.titleEn)) {
+      updateData.titleEn = await translateViToEn(input.title);
+    }
+    if (input.summary !== undefined && (input.summaryEn === undefined || !input.summaryEn)) {
+      updateData.summaryEn = await translateViToEn(input.summary);
+    }
 
     // slug is immutable - never added to updateData
 

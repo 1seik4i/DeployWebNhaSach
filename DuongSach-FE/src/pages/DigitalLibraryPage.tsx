@@ -150,7 +150,7 @@ function BookListView({ title, books, bookStalls, language, onOpen }: { title: s
                 </span>
               )}
             </div>
-            <h3>{book.title}</h3>
+            <h3>{language === 'en' && book.titleEn ? book.titleEn : book.title}</h3>
             <p>{book.author}</p>
           </div>
           <div className="library-list-status">
@@ -541,19 +541,19 @@ export function DigitalLibraryPage({ language }: { language: Language }) {
         </div>
         <div className="book-detail-showcase">
           <div className="book-detail-visual">
-            <BookCover book={selected} className="book-detail-cover" />
+            <BookCover book={selected} className="book-detail-cover" language={language} />
           </div>
           <div className="book-detail-content">
             <div className="book-detail-heading">
-              <span className="book-detail-category">{selected.category?.name || (language === 'vi' ? 'Chưa phân loại' : 'Unclassified')}</span>
-              <h2 id="book-detail-title">{selected.title}</h2>
+              <span className="book-detail-category">{(language === 'en' && selected.category?.nameEn ? selected.category.nameEn : selected.category?.name) || (language === 'vi' ? 'Chưa phân loại' : 'Unclassified')}</span>
+              <h2 id="book-detail-title">{language === 'en' && selected.titleEn ? selected.titleEn : selected.title}</h2>
               <p>{selected.author}</p>
               <div className="book-detail-ranks">
                 {selected.bestsellerRank && <span>#{String(selected.bestsellerRank).padStart(2, '0')} {language === 'vi' ? 'Bán chạy' : 'Bestseller'}</span>}
                 {selected.weeklyRank && <span className="is-hot">#{String(selected.weeklyRank).padStart(2, '0')} {language === 'vi' ? 'Hot tuần' : 'Weekly hot'}</span>}
                 {selected.labels && selected.labels.length > 0 && selected.labels.map(label => (
                   <span key={label.id} className="book-detail-label-tag">
-                    <Tag size={12} /> {label.name}
+                    <Tag size={12} /> {language === 'en' && label.nameEn ? label.nameEn : label.name}
                   </span>
                 ))}
               </div>
@@ -566,7 +566,9 @@ export function DigitalLibraryPage({ language }: { language: Language }) {
             <BookStallAvailability stalls={selectedStalls} language={language} />
             <div className="book-detail-summary">
               <h3>{language === 'vi' ? 'Giới thiệu' : 'About this book'}</h3>
-              <p id="book-detail-description">{selected.description || '—'}</p>
+              <p id="book-detail-description">
+                {(language === 'en' && selected.descriptionEn ? selected.descriptionEn : selected.description) || (language === 'vi' ? 'Chưa có thông tin mô tả chi tiết cho cuốn sách này.' : 'Detailed description is not yet available.')}
+              </p>
             </div>
           </div>
         </div>

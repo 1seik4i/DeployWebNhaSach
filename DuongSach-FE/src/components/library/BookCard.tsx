@@ -33,10 +33,10 @@ export function BookCard({ book, language, mode, onClick, exposeBookId = true, c
       onClick={onClick}
       aria-hidden={carouselClone || undefined}
       tabIndex={carouselClone ? -1 : undefined}
-      aria-label={`${language === 'vi' ? 'Xem chi tiết' : 'View details'} ${book.title}`}
+      aria-label={`${language === 'vi' ? 'Xem chi tiết' : 'View details'} ${language === 'en' && book.titleEn ? book.titleEn : book.title}`}
     >
       <span className="library-cover-wrap">
-        <BookCover book={book} />
+        <BookCover book={book} language={language} />
         {rank && <span className={`library-rank ${rank <= 10 ? 'is-top-ten' : ''}`}><span>{language === 'vi' ? 'Hạng' : 'Rank'}</span>{String(rank).padStart(2, '0')}</span>}
         {effectiveMode && <span className={`library-card-badge ${effectiveMode === 'weekly_hot' ? 'is-hot' : ''}`}>
           {effectiveMode === 'weekly_hot' ? <Flame size={11} /> : <Trophy size={11} />}
@@ -45,7 +45,7 @@ export function BookCard({ book, language, mode, onClick, exposeBookId = true, c
       </span>
       <span className="library-book-copy">
         {!compact && <small>{category}</small>}
-        <strong>{book.title}</strong>
+        <strong>{language === 'en' && book.titleEn ? book.titleEn : book.title}</strong>
         {!compact && <span>{book.author}</span>}
       </span>
     </button>

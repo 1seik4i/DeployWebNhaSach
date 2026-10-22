@@ -544,6 +544,120 @@ main.admin-main-viewport.is-full-width-editor {
   align-items: center;
 }
 
+/* Tier 1 Live Editor Container & Member Cards */
+.org-tree-tier.tier-1 {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: center !important;
+  align-items: stretch !important;
+  flex-wrap: wrap !important;
+  gap: 2rem !important;
+  width: 100% !important;
+}
+
+.org-tree-card.tier-1-card {
+  width: 360px !important;
+  max-width: 420px !important;
+  background: #FFFFFF !important;
+  border: 1.5px solid #FDE68A !important;
+  border-radius: 20px !important;
+  padding: 1.75rem 1.5rem 1.25rem !important;
+  box-shadow: 0 6px 20px rgba(217, 119, 6, 0.08), 0 2px 6px rgba(0, 0, 0, 0.03) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  transition: all 0.25s ease !important;
+  box-sizing: border-box !important;
+  position: relative;
+}
+
+.tier-1-card .org-tree-info {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.org-tree-card.tier-1-card:hover {
+  border-color: #F59E0B !important;
+  box-shadow: 0 10px 28px rgba(217, 119, 6, 0.14), 0 4px 10px rgba(0, 0, 0, 0.05) !important;
+}
+
+.tier-1-card-crown-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #B45309;
+  background: #FEF3C7;
+  padding: 3px 10px;
+  border-radius: 999px;
+  margin-bottom: 1rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.tier-1-card .org-tree-avatar-box.tier-1-avatar {
+  width: 175px !important;
+  height: 175px !important;
+  border: 4px solid #FEF3C7 !important;
+  box-shadow: 0 8px 22px rgba(217, 119, 6, 0.15) !important;
+  margin-bottom: 1.15rem !important;
+}
+
+.tier-1-card .org-tree-name {
+  font-size: 1.2rem !important;
+  font-weight: 800 !important;
+  color: #0F172A !important;
+  letter-spacing: 0.02em;
+}
+
+.tier-1-card .org-tree-role {
+  font-size: 0.92rem !important;
+  color: #1E293B !important;
+  font-weight: 600 !important;
+}
+
+.tier-1-card .org-tree-sub {
+  font-size: 0.82rem !important;
+  color: #64748B !important;
+}
+
+@media (max-width: 768px) {
+  .org-tree-tier.tier-1 {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 1.35rem !important;
+  }
+
+  .org-tree-card.tier-1-card {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: 1.35rem 1.15rem 1rem !important;
+    border-radius: 18px !important;
+  }
+
+  .tier-1-card .org-tree-avatar-box.tier-1-avatar {
+    width: 145px !important;
+    height: 145px !important;
+    margin-bottom: 0.95rem !important;
+  }
+
+  .tier-1-card .org-tree-name {
+    font-size: 1.08rem !important;
+  }
+
+  .tier-1-card .org-tree-role {
+    font-size: 0.88rem !important;
+  }
+
+  .tier-1-card .org-tree-sub {
+    font-size: 0.8rem !important;
+  }
+}
+
 /* ==========================================================================
    Interactive Image Positioner, Zoom & Rule-of-Thirds Grid
    ========================================================================== */
