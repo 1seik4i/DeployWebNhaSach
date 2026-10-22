@@ -201,8 +201,8 @@ export function DigitalLibrarySection({ language }: { language: Language }) {
               visible.map((book, idx) => {
                 const rank = idx + 1;
                 return <Link key={book.id} to={`/thu-vien-so?book=${encodeURIComponent(book.id)}`} className="library-ranking-item">
-                  <span className={`library-ranking-visual ${activeShelf?.ranked ? '' : 'is-unranked'}`}>
-                    {activeShelf?.ranked && <span className={`library-ranking-number ${rank >= 10 ? 'is-double-digit' : ''}`} aria-label={`${language === 'vi' ? 'Hạng' : 'Rank'} ${rank}`}>{rank}</span>}
+                  <span className="library-ranking-visual">
+                    <span className={`library-ranking-number ${rank >= 10 ? 'is-double-digit' : ''}`} aria-label={`${language === 'vi' ? 'Hạng' : 'Rank'} ${rank}`}>{rank}</span>
                     <BookCover book={book} decorative language={language} />
                     {activeShelf?.ranked && <span className="library-ranking-badge"><Trophy size={11} />{activeShelf.name}</span>}
                   </span>
