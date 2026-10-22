@@ -53,7 +53,7 @@ export function DigitalLibrarySection({ language }: { language: Language }) {
     return () => { window.removeEventListener(libraryApi.changeEvent, handler); window.removeEventListener('focus', handler); window.removeEventListener('storage', storageHandler); };
   }, []);
 
-  const visible = useMemo(() => books.slice(0, 12), [books]);
+  const visible = useMemo(() => books.slice(0, 20), [books]);
   const updateControls = useCallback(() => {
     const track = trackRef.current;
     if (!track) return;
