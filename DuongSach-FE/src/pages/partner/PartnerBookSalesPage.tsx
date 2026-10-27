@@ -738,7 +738,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
                       })}
                       title={language === 'vi' ? 'Mã QR & In tem' : 'QR Code'}
                     >
-                      <QrCode size={14} />
+                      <QrCode size={13} />
                       <span>{language === 'vi' ? 'Mã QR' : 'QR'}</span>
                     </button>
                     <button 
@@ -746,7 +746,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
                       className="book-mobile-action-btn edit"
                       onClick={() => openRecord('edit', row)}
                     >
-                      <Edit3 size={14} />
+                      <Edit3 size={13} />
                       <span>{language === 'vi' ? 'Sửa tồn kho' : 'Edit'}</span>
                     </button>
                     <button 
@@ -759,7 +759,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
                         message: language === 'vi' ? `Bạn có chắc muốn gỡ cuốn sách "${row.book.title}" khỏi gian hàng? Sách vẫn còn trên Thư viện số chung.` : `Remove "${row.book.title}" from stall?`
                       })}
                     >
-                      <Trash2 size={14} />
+                      <Trash2 size={13} />
                       <span>{language === 'vi' ? 'Gỡ' : 'Remove'}</span>
                     </button>
                   </div>
@@ -929,7 +929,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
                       className="book-mobile-action-btn view"
                       onClick={() => setViewingSubmission(sub)}
                     >
-                      <Eye size={14} />
+                      <Eye size={13} />
                       <span>{language === 'vi' ? 'Chi tiết' : 'View'}</span>
                     </button>
                     {sub.status === 'REJECTED' && (
@@ -938,7 +938,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
                         className="book-mobile-action-btn resubmit"
                         onClick={() => openResubmit(sub)}
                       >
-                        <RotateCcw size={14} />
+                        <RotateCcw size={13} />
                         <span>{language === 'vi' ? 'Gửi lại' : 'Resubmit'}</span>
                       </button>
                     )}
@@ -953,7 +953,7 @@ export function PartnerBookSalesPage({ language, booth }: { language: Language; 
                           message: language === 'vi' ? `Bạn có chắc muốn hủy yêu cầu duyệt cho sách "${sub.proposedData.title || ''}"?` : 'Cancel this submission?'
                         })}
                       >
-                        <Trash2 size={14} />
+                        <Trash2 size={13} />
                         <span>{language === 'vi' ? 'Hủy' : 'Cancel'}</span>
                       </button>
                     )}
