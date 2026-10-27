@@ -2,12 +2,12 @@ import { DatePicker } from '../ui/DatePicker';
 import { useModalBehavior } from '../../hooks/useModalBehavior';
 import { imageFileError } from '../../utils/fileValidation';
 import React, { useState } from 'react';
-import { 
-  X, 
-  MapPin, 
-  Users, 
-  Calendar, 
-  Clock, 
+import {
+  X,
+  MapPin,
+  Users,
+  Calendar,
+  Clock,
   AlertCircle,
   Building2,
   Mic,
@@ -33,6 +33,7 @@ export interface EventRegistrationData extends Omit<OrganizerActivityItem, 'even
   startAt: string;
   endAt: string;
   devices?: Array<{ name: string; quantity: number }>;
+  eventId?: string;
 }
 
 interface EventRegistrationModalProps {
@@ -44,6 +45,11 @@ interface EventRegistrationModalProps {
   organization?: PartnerOrganization;
   assets?: Array<{ id: string; name: string; totalQuantity: number }>;
   onRegister: (newActivity: EventRegistrationData) => void | Promise<void>;
+  titleOverride?: string;
+  subtitleOverride?: string;
+  submitLabel?: string;
+  isActivity?: boolean;
+  events?: Array<{ id: string; title: string; startDate?: string; endDate?: string }>;
 }
 
 export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
@@ -55,7 +61,17 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
   initialDate,
   organization,
   assets = [],
+  titleOverride,
+  subtitleOverride,
+  submitLabel,
+  isActivity,
+  events = [],
 }) => {
+  const isActivityMode = isActivity ?? Boolean(
+    titleOverride?.toLowerCase().includes('hoạt động') || 
+    submitLabel?.toLowerCase().includes('hoạt động')
+  );
+  const [selectedEventId, setSelectedEventId] = useState('');
   const [title, setTitle] = useState('');
   const [type, setType] = useState('talkshow');
   const [partnerName, setPartnerName] = useState('');
@@ -66,7 +82,9 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
   const [endTime, setEndTime] = useState('11:00');
   const [location, setLocation] = useState('');
   const [capacity, setCapacity] = useState(50);
-  const [targetAudience, setTargetAudience] = useState('');
+  const [targetAudience, setTargetAudience] = useState(
+    language === 'vi' ? 'Mọi lứa tuổi, độc giả yêu sách' : 'General public, book lovers'
+  );
   const [description, setDescription] = useState('');
   const [isPublished, setIsPublished] = useState(true);
   const [thumbnail, setThumbnail] = useState('');
@@ -84,8 +102,9 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
     const date = initialDate && initialDate >= firstRegistrationDate() ? initialDate.split('-').reverse().join('/') : '';
     setDateStr(date);
     setEndDateStr(date);
+    setTargetAudience(prev => prev.trim() ? prev : (language === 'vi' ? 'Mọi lứa tuổi, độc giả yêu sách' : 'General public, book lovers'));
     setError(null);
-  }, [isOpen, initialDate]);
+  }, [isOpen, initialDate, language]);
 
   if (!isOpen) return null;
   const minRegistrationDate = firstRegistrationDate();
@@ -94,7 +113,11 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
     e.preventDefault();
     if (isSubmitting || isReadingImage) return;
     if (!title.trim() || title.trim().length > 200) {
-      setError(language === 'vi' ? 'Vui lòng nhập tên sự kiện' : 'Please enter event title');
+      setError(
+        language === 'vi' 
+          ? (isActivityMode ? 'Vui lòng nhập tên hoạt động' : 'Vui lòng nhập tên sự kiện') 
+          : (isActivityMode ? 'Please enter activity title' : 'Please enter event title')
+      );
       return;
     }
     const startDate = activityDateKey(dateStr);
@@ -104,11 +127,17 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
       return;
     }
     if (!location || !locations.some(item => item.id === location)) {
-      setError(language === 'vi' ? 'Vui lòng chọn sự kiện và địa điểm hợp lệ' : 'Please select a valid event and location');
+      setError(language === 'vi' ? 'Vui lòng chọn địa điểm tổ chức hợp lệ' : 'Please select a valid location');
       return;
     }
     if (!Number.isInteger(Number(capacity)) || Number(capacity) < 1 || Number(capacity) > 2147483647) {
       setError(language === 'vi' ? 'Sức chứa phải là số nguyên dương' : 'Capacity must be a positive integer');
+      return;
+    }
+
+    const finalTargetAudience = targetAudience.trim() || (language === 'vi' ? 'Mọi lứa tuổi, độc giả yêu sách' : 'General public, book lovers');
+    if (!finalTargetAudience) {
+      setError(language === 'vi' ? 'Vui lòng nhập đối tượng tham gia' : 'Please enter target audience');
       return;
     }
 
@@ -125,7 +154,11 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
     }
 
     if (organization && !agreedTerms) {
-      setError(language === 'vi' ? 'Vui lòng xác nhận tuân thủ quy chế tổ chức sự kiện.' : 'Please agree to the event registration terms.');
+      setError(
+        language === 'vi' 
+          ? (isActivityMode ? 'Vui lòng xác nhận tuân thủ quy chế tổ chức hoạt động.' : 'Vui lòng xác nhận tuân thủ quy chế tổ chức sự kiện.')
+          : (isActivityMode ? 'Please agree to the activity registration terms.' : 'Please agree to the event registration terms.')
+      );
       return;
     }
     const newActivity: EventRegistrationData = {
@@ -146,9 +179,10 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
       statusLabelVi: 'Đã duyệt',
       isPublished,
       thumbnail,
-      targetAudience: targetAudience.trim() || undefined,
+      targetAudience: finalTargetAudience,
       description: description.trim(),
-      devices: selectedEquipment.map(name => ({ name, quantity: 1 }))
+      devices: selectedEquipment.map(name => ({ name, quantity: 1 })),
+      eventId: selectedEventId || undefined,
     };
 
     setIsSubmitting(true);
@@ -156,7 +190,7 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
       await onRegister(newActivity);
       onClose();
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : 'Không thể đăng ký sự kiện');
+      setError(submitError instanceof Error ? submitError.message : (isActivityMode ? 'Không thể đăng ký hoạt động' : 'Không thể đăng ký sự kiện'));
     } finally {
       setIsSubmitting(false);
     }
@@ -164,45 +198,45 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
 
   return (
     <div className="org-modal-backdrop" style={{ zIndex: 1200 }} onClick={() => { if (!isSubmitting) onClose(); }}>
-      <div 
-        className="org-modal-box" 
-        style={{ 
-          maxWidth: '720px', 
+      <div
+        className="org-modal-box"
+        style={{
+          maxWidth: '720px',
           background: '#FFFFFF',
           borderRadius: '16px',
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
           border: '1px solid #E2EAE5',
           overflow: 'hidden'
-        }} 
+        }}
         onClick={e => e.stopPropagation()}
       >
         {/* Modal Header */}
         <div className="org-modal-header" style={{ padding: '1.25rem 1.75rem', background: '#FFFFFF', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, color: '#17382E', fontFamily: 'var(--font-serif, serif)' }}>
-              {language === 'vi' ? (organization ? 'Đăng ký sự kiện mới' : 'Tạo sự kiện mới') : (organization ? 'Register New Event' : 'Create New Event')}
+              {titleOverride || (language === 'vi' ? (organization ? 'Đăng ký sự kiện mới' : 'Tạo sự kiện mới') : (organization ? 'Register New Event' : 'Create New Event'))}
             </h3>
             <p style={{ fontSize: '0.84rem', color: '#556B65', margin: '4px 0 0 0' }}>
-              {language === 'vi' 
+              {subtitleOverride || (language === 'vi'
                 ? 'Thiết lập thông tin sự kiện, diễn giả, thời gian và số người tham gia'
-                : 'Configure event details, speaker, schedule and attendance'}
+                : 'Configure event details, speaker, schedule and attendance')}
             </p>
           </div>
-          <button 
+          <button
             type="button"
             onClick={onClose}
-            style={{ 
-              width: '32px', 
-              height: '32px', 
-              borderRadius: '8px', 
-              background: '#F3F4F6', 
-              border: 'none', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              cursor: 'pointer', 
+            style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '8px',
+              background: '#F3F4F6',
+              border: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
               color: '#6B7280',
-              transition: 'all 0.15s ease' 
+              transition: 'all 0.15s ease'
             }}
             title="Đóng"
           >
@@ -231,12 +265,12 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
                 <span>{error}</span>
               </div>
             )}
-            {/* 1. Event Title */}
+            {/* 1. Event / Activity Title */}
             <div style={{ marginBottom: '1.1rem' }}>
               <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 650, color: '#1F2937', marginBottom: '0.4rem' }}>
-                {language === 'vi' ? 'Tên sự kiện *' : 'Event Title *'}
+                {language === 'vi' ? (isActivityMode ? 'Tên hoạt động *' : 'Tên sự kiện *') : (isActivityMode ? 'Activity Title *' : 'Event Title *')}
               </label>
-              <input 
+              <input
                 type="text"
                 placeholder={language === 'vi' ? 'Ví dụ: Giao lưu tác giả & Ký tặng sách mới' : 'e.g. Author Meet & Greet'}
                 maxLength={200}
@@ -258,12 +292,75 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
               />
             </div>
 
+            {/* Associated Event Selection for Activity */}
+            {isActivityMode && events && events.length > 0 && (
+              <div style={{ marginBottom: '1.1rem' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.82rem', fontWeight: 650, color: '#1F2937', marginBottom: '0.4rem' }}>
+                  <Calendar size={14} color="#17382E" />
+                  <span>{language === 'vi' ? 'Thuộc sự kiện (Sự kiện bạn tham gia)' : 'Associated Event'}</span>
+                </label>
+                <select
+                  value={selectedEventId}
+                  onChange={e => {
+                    const evtId = e.target.value;
+                    setSelectedEventId(evtId);
+                    const found = events.find(ev => ev.id === evtId);
+                    if (found?.startDate) {
+                      const d = found.startDate.split('-').reverse().join('/');
+                      setDateStr(d);
+                      if (found.endDate) {
+                        setEndDateStr(found.endDate.split('-').reverse().join('/'));
+                      } else {
+                        setEndDateStr(d);
+                      }
+                    }
+                  }}
+                  style={{
+                    width: '100%',
+                    height: '40px',
+                    padding: '0 0.75rem',
+                    borderRadius: '8px',
+                    border: '1px solid #D1D5DB',
+                    background: '#FFFFFF',
+                    fontSize: '0.88rem',
+                    color: '#111827',
+                    fontWeight: 500,
+                    outline: 'none',
+                    boxSizing: 'border-box'
+                  }}
+                >
+                  <option value="">
+                    {language === 'vi' ? '— Hoạt động độc lập (Không thuộc sự kiện nào) —' : '— Independent activity (No parent event) —'}
+                  </option>
+                  {events.map(evt => (
+                    <option key={evt.id} value={evt.id}>
+                      {evt.title} {evt.startDate ? `(${evt.startDate.split('-').reverse().join('/')}${evt.endDate ? ` – ${evt.endDate.split('-').reverse().join('/')}` : ''})` : ''}
+                    </option>
+                  ))}
+                </select>
+                {selectedEventId && (() => {
+                  const found = events.find(ev => ev.id === selectedEventId);
+                  if (!found) return null;
+                  return (
+                    <p style={{ margin: '0.4rem 0 0', fontSize: '0.8rem', color: '#166534', background: '#F0FDF4', border: '1px solid #BBF7D0', padding: '0.4rem 0.65rem', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <span>ℹ️</span>
+                      <span>
+                        {language === 'vi'
+                          ? `Sự kiện diễn ra từ ${found.startDate?.split('-').reverse().join('/') || '...'} đến ${found.endDate?.split('-').reverse().join('/') || '...'}. Hoạt động cần diễn ra trong khung thời gian này.`
+                          : `Event runs from ${found.startDate} to ${found.endDate}. Activity must be scheduled within this period.`}
+                      </span>
+                    </p>
+                  );
+                })()}
+              </div>
+            )}
+
             {/* 2. Grid 2x2: Type & Associated Event */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.1rem' }}>
               <div>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.82rem', fontWeight: 650, color: '#1F2937', marginBottom: '0.4rem' }}>
                   <Tag size={14} color="#17382E" />
-                  <span>{language === 'vi' ? 'Thể loại sự kiện' : 'Event Type'}</span>
+                  <span>{language === 'vi' ? 'Thể loại' : 'Type'}</span>
                 </label>
                 <select
                   value={type}
@@ -350,12 +447,12 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
                   <Users size={14} color="#17382E" />
                   <span>{language === 'vi' ? 'Số người tham dự dự kiến' : 'Expected attendees'}</span>
                 </label>
-                <input 
+                <input
                   type="number"
                   min="1"
                   max="2147483647"
                   required
-                  
+
                   step="1"
                   value={capacity}
                   onChange={e => setCapacity(parseInt(e.target.value) || 0)}
@@ -375,29 +472,68 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
               </div>
             </div>
 
+            {/* Target Audience */}
+            <div style={{ marginBottom: '1.1rem' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.82rem', fontWeight: 650, color: '#1F2937', marginBottom: '0.4rem' }}>
+                <Users size={14} color="#17382E" />
+                <span>{language === 'vi' ? 'Đối tượng tham gia *' : 'Target Audience *'}</span>
+              </label>
+              <input maxLength={2000}
+                type="text"
+                required
+                placeholder={language === 'vi' ? 'Ví dụ: Độc giả trẻ, học sinh, sinh viên, đại chúng...' : 'e.g. Young readers, students, general public...'}
+                value={targetAudience}
+                onChange={e => setTargetAudience(e.target.value)}
+                style={{
+                  width: '100%',
+                  height: '40px',
+                  padding: '0 0.85rem',
+                  borderRadius: '8px',
+                  border: '1px solid #D1D5DB',
+                  background: '#FFFFFF',
+                  fontSize: '0.9rem',
+                  color: '#111827',
+                  outline: 'none',
+                  boxSizing: 'border-box'
+                }}
+              />
+            </div>
+
             {/* 4. Schedule Card: Date & Time */}
-            <div style={{ 
-              background: '#F8FAF9', 
-              borderRadius: '12px', 
-              padding: '1.1rem 1.25rem', 
+            <div style={{
+              background: '#F8FAF9',
+              borderRadius: '12px',
+              padding: '1.1rem 1.25rem',
               border: '1px solid #E2EAE5',
-              marginBottom: '1.25rem' 
+              marginBottom: '1.25rem'
             }}>
               <div style={{ fontSize: '0.78rem', fontWeight: 750, color: '#17382E', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                 <Calendar size={14} />
-                <span>{language === 'vi' ? 'THỜI GIAN & ĐỊA ĐIỂM TỔ CHỨC' : 'SCHEDULE & LOCATION'}</span>
+                <span>{language === 'vi' ? (isActivityMode ? 'THỜI GIAN & ĐỊA ĐIỂM TỔ CHỨC HOẠT ĐỘNG' : 'THỜI GIAN & ĐỊA ĐIỂM TỔ CHỨC') : (isActivityMode ? 'ACTIVITY SCHEDULE & LOCATION' : 'SCHEDULE & LOCATION')}</span>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '0.85rem', marginBottom: '0.85rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.76rem', color: '#556B65', fontWeight: 600, marginBottom: '0.25rem' }}>
-                    {language === 'vi' ? 'Ngày bắt đầu *' : 'Start date *'}
+                    {language === 'vi' ? (isActivityMode ? 'Ngày bắt đầu hoạt động *' : 'Ngày bắt đầu *') : (isActivityMode ? 'Activity start date *' : 'Start date *')}
                   </label>
-                  <DatePicker label={language === 'vi' ? 'Ngày bắt đầu' : 'Start date'} value={dateStr} onChange={setDateStr} language={language} min={minRegistrationDate} align="left" />
+                  <DatePicker
+                    label={language === 'vi' ? 'Ngày bắt đầu' : 'Start date'}
+                    value={dateStr}
+                    onChange={val => {
+                      setDateStr(val);
+                      if (isActivityMode && (!endDateStr || endDateStr === dateStr)) {
+                        setEndDateStr(val);
+                      }
+                    }}
+                    language={language}
+                    min={minRegistrationDate}
+                    align="left"
+                  />
                 </div>
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.76rem', color: '#556B65', fontWeight: 600, marginBottom: '0.25rem' }}>
-                    {language === 'vi' ? 'Ngày kết thúc *' : 'End date *'}
+                    {language === 'vi' ? (isActivityMode ? 'Ngày kết thúc hoạt động *' : 'Ngày kết thúc *') : (isActivityMode ? 'Activity end date *' : 'End date *')}
                   </label>
                   <DatePicker label={language === 'vi' ? 'Ngày kết thúc' : 'End date'} value={endDateStr} onChange={setEndDateStr} language={language} min={(activityDateKey(dateStr) || '') > minRegistrationDate ? activityDateKey(dateStr)! : minRegistrationDate} align="right" />
                 </div>
@@ -407,7 +543,7 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
                     <Clock size={12} />
                     <span>{language === 'vi' ? 'Giờ bắt đầu' : 'Start time'}</span>
                   </label>
-                  <input 
+                  <input
                     type="time"
                     aria-label={language === 'vi' ? 'Giờ bắt đầu' : 'Start time'}
                     required
@@ -422,7 +558,7 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
                     <Clock size={12} />
                     <span>{language === 'vi' ? 'Giờ kết thúc' : 'End time'}</span>
                   </label>
-                  <input 
+                  <input
                     type="time"
                     aria-label={language === 'vi' ? 'Giờ kết thúc' : 'End time'}
                     required
@@ -454,16 +590,16 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
             <div style={{ marginBottom: '1.25rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
                 <label style={{ fontSize: '0.82rem', fontWeight: 650, color: '#1F2937', margin: 0 }}>
-                  {language === 'vi' ? 'Hình ảnh đại diện sự kiện' : 'Event Image'}
+                  {language === 'vi' ? (isActivityMode ? 'Hình ảnh đại diện hoạt động' : 'Hình ảnh đại diện sự kiện') : (isActivityMode ? 'Activity Image' : 'Event Image')}
                 </label>
-                <label 
-                  className="btn-org-secondary" 
-                  style={{ 
-                    padding: '0.25rem 0.65rem', 
-                    fontSize: '0.75rem', 
-                    cursor: 'pointer', 
-                    display: 'inline-flex', 
-                    alignItems: 'center', 
+                <label
+                  className="btn-org-secondary"
+                  style={{
+                    padding: '0.25rem 0.65rem',
+                    fontSize: '0.75rem',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
                     gap: '0.35rem',
                     background: '#FFFFFF',
                     border: '1px solid #D1D5DB',
@@ -571,12 +707,12 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
               </fieldset>
               <label style={{ display: 'block', marginBottom: '1rem' }}>
                 <input type="checkbox" required checked={agreedTerms} onChange={e => setAgreedTerms(e.target.checked)} />{' '}
-                {language === 'vi' ? 'Tôi cam kết tuân thủ quy chế tổ chức sự kiện tại Đường Sách.' : 'I agree to the event registration terms.'}
+                {language === 'vi' ? 'Tôi cam kết tuân thủ quy chế tổ chức hoạt động tại Đường Sách.' : 'I agree to the activity registration terms.'}
               </label>
             </>}
             {/* 7. Public status toggle */}
             {!organization && <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-              <input 
+              <input
                 id="act-published"
                 type="checkbox"
                 checked={isPublished}
@@ -591,29 +727,29 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
 
           {/* Modal Footer */}
           <div className="org-modal-footer" style={{ padding: '1rem 1.75rem', background: '#F9FAFB', borderTop: '1px solid #E5E7EB', display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
-            <button 
-              type="button" 
+            <button
+              type="button"
               className="btn-org-secondary"
               onClick={onClose}
               style={{ padding: '0.5rem 1.25rem', fontSize: '0.88rem' }}
             >
               {language === 'vi' ? 'Hủy bỏ' : 'Cancel'}
             </button>
-            <button 
+            <button
               type="submit"
               disabled={isSubmitting || isReadingImage}
               className="btn-org-primary"
-              style={{ 
-                padding: '0.5rem 1.4rem', 
-                fontSize: '0.88rem', 
-                display: 'flex', 
-                alignItems: 'center', 
+              style={{
+                padding: '0.5rem 1.4rem',
+                fontSize: '0.88rem',
+                display: 'flex',
+                alignItems: 'center',
                 gap: '0.5rem',
                 background: '#17382E',
-                boxShadow: '0 4px 12px rgba(23, 56, 46, 0.2)' 
+                boxShadow: '0 4px 12px rgba(23, 56, 46, 0.2)'
               }}
             >
-              <span>{isSubmitting ? (language === 'vi' ? 'Đang gửi…' : 'Submitting…') : (language === 'vi' ? (organization ? 'Đăng ký sự kiện' : 'Tạo sự kiện') : (organization ? 'Register Event' : 'Create Event'))}</span>
+              <span>{isSubmitting ? (language === 'vi' ? 'Đang gửi…' : 'Submitting…') : (submitLabel || (language === 'vi' ? (organization ? 'Đăng ký sự kiện' : 'Tạo sự kiện') : (organization ? 'Register Event' : 'Create Event')))}</span>
             </button>
           </div>
         </form>
