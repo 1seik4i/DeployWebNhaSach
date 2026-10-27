@@ -44,6 +44,9 @@ interface EventRegistrationModalProps {
   organization?: PartnerOrganization;
   assets?: Array<{ id: string; name: string; totalQuantity: number }>;
   onRegister: (newActivity: EventRegistrationData) => void | Promise<void>;
+  titleOverride?: string;
+  subtitleOverride?: string;
+  submitLabel?: string;
 }
 
 export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
@@ -55,6 +58,9 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
   initialDate,
   organization,
   assets = [],
+  titleOverride,
+  subtitleOverride,
+  submitLabel,
 }) => {
   const [title, setTitle] = useState('');
   const [type, setType] = useState('talkshow');
@@ -180,12 +186,12 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
         <div className="org-modal-header" style={{ padding: '1.25rem 1.75rem', background: '#FFFFFF', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, color: '#17382E', fontFamily: 'var(--font-serif, serif)' }}>
-              {language === 'vi' ? (organization ? 'Đăng ký sự kiện mới' : 'Tạo sự kiện mới') : (organization ? 'Register New Event' : 'Create New Event')}
+              {titleOverride || (language === 'vi' ? (organization ? 'Đăng ký sự kiện mới' : 'Tạo sự kiện mới') : (organization ? 'Register New Event' : 'Create New Event'))}
             </h3>
             <p style={{ fontSize: '0.84rem', color: '#556B65', margin: '4px 0 0 0' }}>
-              {language === 'vi' 
+              {subtitleOverride || (language === 'vi' 
                 ? 'Thiết lập thông tin sự kiện, diễn giả, thời gian và số người tham gia'
-                : 'Configure event details, speaker, schedule and attendance'}
+                : 'Configure event details, speaker, schedule and attendance')}
             </p>
           </div>
           <button 
@@ -613,7 +619,7 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
                 boxShadow: '0 4px 12px rgba(23, 56, 46, 0.2)' 
               }}
             >
-              <span>{isSubmitting ? (language === 'vi' ? 'Đang gửi…' : 'Submitting…') : (language === 'vi' ? (organization ? 'Đăng ký sự kiện' : 'Tạo sự kiện') : (organization ? 'Register Event' : 'Create Event'))}</span>
+              <span>{isSubmitting ? (language === 'vi' ? 'Đang gửi…' : 'Submitting…') : (submitLabel || (language === 'vi' ? (organization ? 'Đăng ký sự kiện' : 'Tạo sự kiện') : (organization ? 'Register Event' : 'Create Event')))}</span>
             </button>
           </div>
         </form>

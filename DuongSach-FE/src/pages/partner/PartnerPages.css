@@ -447,13 +447,13 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  background-color: #FEE2E2;
-  color: #B91C1C;
-  font-size: 0.82rem;
-  font-weight: 700;
+  background-color: #FEF2F2;
+  color: #DC2626;
+  font-size: 0.84rem;
+  font-weight: 650;
   padding: 0.55rem 1rem;
   border-radius: 8px;
-  border: 1px solid #FCA5A5;
+  border: 1px solid #FECACA;
   cursor: pointer;
   text-decoration: none;
   white-space: nowrap;
@@ -461,8 +461,9 @@
 }
 
 .btn-part-danger:hover {
-  background-color: #FCA5A5;
-  color: #7F1D1D;
+  background-color: #FEE2E2;
+  color: #B91C1C;
+  border-color: #F87171;
 }
 
 /* 7. TABS BAR */
@@ -1470,11 +1471,33 @@
 
   .partner-active-event-card {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
   }
 
   .booth-detail-card {
     grid-template-columns: 1fr;
+  }
+
+  .booth-card-actions {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.75rem !important;
+  }
+
+  .booth-card-btn-group {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.6rem !important;
+    width: 100% !important;
+  }
+
+  .booth-card-btn-group button,
+  .booth-card-btn-group .btn-part-secondary,
+  .booth-card-btn-group .btn-part-danger {
+    width: 100% !important;
+    min-height: 42px !important;
+    justify-content: center !important;
+    white-space: nowrap !important;
   }
 
   .partner-charts-grid {
@@ -1745,15 +1768,25 @@
 
   /* Quick Actions & Reports */
   .partner-dashboard-quick-actions {
+    display: flex !important;
     flex-direction: column !important;
-    gap: 0.75rem !important;
+    gap: 0.65rem !important;
     width: 100% !important;
+    margin-top: 0.75rem !important;
   }
 
   .partner-dashboard-quick-actions .btn-part-secondary {
     width: 100% !important;
+    min-height: 44px !important;
+    display: inline-flex !important;
+    align-items: center !important;
     justify-content: center !important;
-    padding: 0.8rem 1rem !important;
+    padding: 0.65rem 1rem !important;
+    font-size: 0.88rem !important;
+    font-weight: 650 !important;
+    box-sizing: border-box !important;
+    white-space: nowrap !important;
+    border-radius: 9px !important;
   }
 
   .partner-reports-actions {
@@ -1775,63 +1808,217 @@
   }
 
   /* Dashboard mobile adjustments */
+  .partner-sales-reminder {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.85rem !important;
+    padding: 1rem !important;
+    margin: 0 0 1.25rem 0 !important;
+    border-radius: 14px !important;
+    box-shadow: 0 3px 12px rgba(180, 138, 60, 0.08) !important;
+  }
+
+  .partner-sales-reminder-main {
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 0.85rem !important;
+    width: 100% !important;
+  }
+
+  .partner-sales-reminder-icon {
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 10px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .partner-sales-reminder-body {
+    flex: 1 !important;
+    min-width: 0 !important;
+  }
+
+  .partner-sales-reminder-body strong {
+    font-size: 0.94rem !important;
+    font-weight: 750 !important;
+    color: #17382E !important;
+    line-height: 1.3 !important;
+    margin-bottom: 0.25rem !important;
+  }
+
+  .partner-sales-reminder-body small {
+    font-size: 0.8rem !important;
+    line-height: 1.45 !important;
+    color: #5C6E68 !important;
+    margin-top: 0.2rem !important;
+    word-break: normal !important;
+    text-wrap: pretty !important;
+  }
+
+  .partner-sales-reminder-link {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.4rem !important;
+    width: 100% !important;
+    min-height: 40px !important;
+    padding: 0.6rem 1rem !important;
+    font-size: 0.86rem !important;
+    font-weight: 700 !important;
+    border-radius: 9px !important;
+    background: #FFFFFF !important;
+    border: 1.5px solid #D4A343 !important;
+    color: #996B15 !important;
+    box-shadow: 0 2px 6px rgba(180, 138, 60, 0.12) !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+  }
+
   .partner-summary-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem;
-    margin-bottom: 1.25rem;
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.65rem !important;
+    margin-bottom: 1.25rem !important;
   }
 
   .partner-stat-card {
-    padding: 1rem;
-    border-radius: 12px;
+    padding: 0.85rem 0.85rem !important;
+    border-radius: 12px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    min-height: 105px !important;
+  }
+
+  .stat-card-top {
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: space-between !important;
+    gap: 0.35rem !important;
+    margin-bottom: 0.25rem !important;
+  }
+
+  .stat-label-muted {
+    font-size: 0.78rem !important;
+    line-height: 1.25 !important;
+    font-weight: 650 !important;
+    color: #556B65 !important;
+    word-break: normal !important;
+  }
+
+  .stat-icon-wrap {
+    width: 30px !important;
+    height: 30px !important;
+    border-radius: 8px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .stat-icon-wrap svg {
+    width: 16px !important;
+    height: 16px !important;
   }
 
   .stat-num-box {
-    font-size: 1.65rem;
+    font-size: 1.55rem !important;
+    font-weight: 800 !important;
+    line-height: 1.1 !important;
+    margin: 0.15rem 0 0.2rem 0 !important;
+  }
+
+  .stat-card-hint {
+    font-size: 0.72rem !important;
+    line-height: 1.25 !important;
+    color: #7B8E88 !important;
+    white-space: normal !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
   }
 
   .partner-active-event-card {
-    padding: 1.1rem;
-    gap: 1rem;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding: 1rem !important;
+    gap: 0.85rem !important;
+    border-radius: 14px !important;
+    margin-bottom: 1.25rem !important;
   }
 
   .event-card-left {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.85rem;
-    width: 100%;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.85rem !important;
+    width: 100% !important;
   }
 
   .event-thumb-img {
-    width: 100%;
-    height: 140px;
+    width: 100% !important;
+    height: 160px !important;
+    border-radius: 10px !important;
+    object-fit: cover !important;
+  }
+
+  .event-info-main {
+    width: 100% !important;
+  }
+
+  .event-info-main h2 {
+    font-size: 1.12rem !important;
+    line-height: 1.35 !important;
+    margin: 0.25rem 0 0.5rem 0 !important;
+    word-break: break-word !important;
   }
 
   .event-meta-line {
     display: flex !important;
     flex-direction: column !important;
-    align-items: flex-start !important;
+    align-items: stretch !important;
     gap: 0.45rem !important;
-    margin-bottom: 0.75rem !important;
-    font-size: 0.82rem !important;
+    margin: 0.75rem 0 0.85rem 0 !important;
+    background: #F8FAF9 !important;
+    padding: 0.75rem 0.85rem !important;
+    border-radius: 10px !important;
+    border: 1px solid #EAEFEA !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
   }
 
   .event-meta-item {
-    display: inline-flex !important;
+    display: flex !important;
     align-items: center !important;
-    gap: 0.45rem !important;
-    white-space: normal !important;
+    gap: 0.5rem !important;
+    width: 100% !important;
+    font-size: 0.82rem !important;
+    color: #374A45 !important;
     line-height: 1.4 !important;
-    color: #4B635B !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+  }
+
+  .event-meta-item .meta-icon {
+    width: 20px !important;
+    text-align: center !important;
+    font-size: 0.95rem !important;
+    flex-shrink: 0 !important;
   }
 
   .event-card-right {
-    width: 100%;
+    width: 100% !important;
+    margin-top: 0.25rem !important;
   }
 
   .event-card-right .btn-part-secondary {
-    width: 100%;
-    justify-content: center;
+    width: 100% !important;
+    min-height: 42px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 0.86rem !important;
+    font-weight: 650 !important;
+    padding: 0.6rem 1rem !important;
+    box-sizing: border-box !important;
+    border-radius: 8px !important;
   }
 
   /* Activity cards on mobile */
@@ -1867,15 +2054,60 @@
   }
 
   /* To-do list item rows on mobile */
+  .partner-todo-section {
+    padding: 1.1rem 1rem !important;
+    border-radius: 14px !important;
+    margin-bottom: 1.25rem !important;
+  }
+
+  .todo-header-row {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    margin-bottom: 0.85rem !important;
+  }
+
+  .todo-title {
+    font-size: 1.1rem !important;
+  }
+
+  .todo-list-items {
+    gap: 0.65rem !important;
+  }
+
   .todo-item-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.65rem;
-    padding: 0.75rem 0.85rem;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.55rem !important;
+    padding: 0.75rem 0.85rem !important;
+    border-radius: 10px !important;
   }
 
   .todo-item-left {
-    width: 100%;
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 0.65rem !important;
+    width: 100% !important;
+  }
+
+  .todo-item-left svg {
+    flex-shrink: 0 !important;
+    margin-top: 2px !important;
+  }
+
+  .todo-item-name {
+    font-size: 0.86rem !important;
+    line-height: 1.35 !important;
+    font-weight: 700 !important;
+    color: #172421 !important;
+    margin-bottom: 0.15rem !important;
+    word-break: break-word !important;
+  }
+
+  .todo-deadline {
+    font-size: 0.75rem !important;
+    color: #637771 !important;
   }
 
   /* Tabs horizontal touch scroll */
@@ -1943,32 +2175,52 @@
   }
 
   .booth-card-actions {
+    display: flex !important;
     flex-direction: column !important;
     align-items: stretch !important;
-    gap: 0.85rem !important;
+    gap: 0.75rem !important;
     width: 100% !important;
+    margin-top: 1rem !important;
+    padding-top: 0.85rem !important;
   }
 
   .booth-card-status-note {
     width: 100% !important;
-    font-size: 0.82rem !important;
+    font-size: 0.8rem !important;
     line-height: 1.4 !important;
     color: #556B65 !important;
+    text-align: center !important;
+    justify-content: center !important;
   }
 
   .booth-card-btn-group {
     display: flex !important;
     flex-direction: column !important;
-    gap: 0.55rem !important;
+    gap: 0.6rem !important;
     width: 100% !important;
   }
 
-  .booth-card-btn-group button {
+  .booth-card-btn-group button,
+  .booth-card-btn-group .btn-part-secondary,
+  .booth-card-btn-group .btn-part-danger {
     width: 100% !important;
+    min-height: 42px !important;
+    display: inline-flex !important;
+    align-items: center !important;
     justify-content: center !important;
+    gap: 0.5rem !important;
     white-space: nowrap !important;
-    padding: 0.65rem 1rem !important;
+    padding: 0.6rem 1rem !important;
     font-size: 0.86rem !important;
+    font-weight: 650 !important;
+    box-sizing: border-box !important;
+    border-radius: 8px !important;
+  }
+
+  .btn-part-danger,
+  .btn-part-danger span,
+  .booth-card-btn-group button span {
+    white-space: nowrap !important;
   }
 
   /* Booth Selection & Map Mobile */
@@ -2324,7 +2576,7 @@
   border-color: #B3862A;
 }
 
-@media(max-width: 650px) {
+@media (max-width: 768px) {
   .partner-sales-reminder {
     flex-direction: column !important;
     align-items: stretch !important;
@@ -2335,33 +2587,45 @@
   .partner-sales-reminder-main {
     display: flex !important;
     align-items: flex-start !important;
-    gap: 0.75rem !important;
+    gap: 0.85rem !important;
     width: 100% !important;
   }
 
   .partner-sales-reminder-icon {
-    width: 38px !important;
-    height: 38px !important;
+    width: 40px !important;
+    height: 40px !important;
     border-radius: 10px !important;
+    flex-shrink: 0 !important;
   }
 
   .partner-sales-reminder-body strong {
-    font-size: 0.92rem !important;
+    font-size: 0.94rem !important;
     line-height: 1.3 !important;
   }
 
   .partner-sales-reminder-body small {
     font-size: 0.8rem !important;
-    line-height: 1.4 !important;
-    margin-top: 0.25rem !important;
+    line-height: 1.45 !important;
+    margin-top: 0.2rem !important;
+    word-break: normal !important;
+    text-wrap: pretty !important;
   }
 
   .partner-sales-reminder-link {
-    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
     justify-content: center !important;
-    padding: 0.55rem 1rem !important;
-    font-size: 0.82rem !important;
-    border-radius: 8px !important;
+    gap: 0.4rem !important;
+    width: 100% !important;
+    min-height: 40px !important;
+    padding: 0.6rem 1rem !important;
+    font-size: 0.86rem !important;
+    font-weight: 700 !important;
+    border-radius: 9px !important;
+    background: #FFFFFF !important;
+    border: 1.5px solid #D4A343 !important;
+    color: #996B15 !important;
+    box-shadow: 0 2px 6px rgba(180, 138, 60, 0.12) !important;
     box-sizing: border-box !important;
     margin: 0 !important;
   }

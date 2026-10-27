@@ -1,26 +1,57 @@
 import { useUrlTab } from '../../hooks/useUrlTab';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { matchesSearch } from '../../utils/inputValidation';
-import { Calendar, Clock, MapPin, Users, Eye, Edit3, AlertCircle, Mic } from 'lucide-react';
-import { Language, PartnerActivityProposal } from '../../types';
+import { Calendar, Clock, MapPin, Users, Eye, Edit3, AlertCircle, Mic, Plus } from 'lucide-react';
+import { Language, PartnerActivityProposal, PartnerOrganization } from '../../types';
+import { EventRegistrationModal, EventRegistrationData } from '../../components/portal/EventRegistrationModal';
+import { partnerApi } from '../../services/partnerApi';
 import './PartnerPages.css';
 
 interface ActivityProposalPageProps {
   language: Language;
+  organization?: PartnerOrganization;
   activities: PartnerActivityProposal[];
-  locations: Array<{ id: string; name: string; capacity: number }>;
-  assets: Array<{ id: string; name: string; totalQuantity: number }>;
+  locations?: Array<{ id: string; name: string; capacity: number }>;
+  assets?: Array<{ id: string; name: string; totalQuantity: number }>;
   onAddActivity: (newAct: Omit<PartnerActivityProposal, 'id'>) => void | Promise<void>;
   onOpenAttendanceModal?: (activityId: string) => void;
 }
 
 export const ActivityProposalPage: React.FC<ActivityProposalPageProps> = ({
   language,
+  organization,
   activities,
+  locations = [],
+  assets = [],
+  onAddActivity,
 }) => {
   const [activeTab, setActiveTab] = useUrlTab(['all', 'pending', 'approved', 'need_changes', 'rejected', 'withdrawn'], 'all');
   const [searchParams, setSearchParams] = useSearchParams();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalLocations, setModalLocations] = useState(locations);
+  const [modalAssets, setModalAssets] = useState(assets);
+
+  useEffect(() => {
+    if (locations.length === 0) {
+      void partnerApi.getEventLocations().then(items => {
+        if (items?.length) setModalLocations(items);
+      }).catch(() => {});
+    } else {
+      setModalLocations(locations);
+    }
+  }, [locations]);
+
+  useEffect(() => {
+    if (assets.length === 0) {
+      void partnerApi.getAssets().then(items => {
+        if (items?.length) setModalAssets(items);
+      }).catch(() => {});
+    } else {
+      setModalAssets(assets);
+    }
+  }, [assets]);
+
   const rawSearch = (searchParams.get('search') || '').slice(0, 200);
   const query = rawSearch.normalize('NFC').trim();
   const pendingCount = activities.filter(a => a.status === 'pending').length;
@@ -51,7 +82,15 @@ export const ActivityProposalPage: React.FC<ActivityProposalPageProps> = ({
           </p>
         </div>
 
-
+        <button
+          type="button"
+          className="btn-part-primary"
+          onClick={() => setIsModalOpen(true)}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', whiteSpace: 'nowrap' }}
+        >
+          <Plus size={18} />
+          <span>{language === 'vi' ? 'Thêm hoạt động' : 'Add Activity'}</span>
+        </button>
       </div>
 
       <input
@@ -124,7 +163,16 @@ export const ActivityProposalPage: React.FC<ActivityProposalPageProps> = ({
           textAlign: 'center',
           color: '#637771'
         }}>
-          <p>{language === 'vi' ? 'Không có hoạt động nào trong danh mục này.' : 'No activities found.'}</p>
+          <p style={{ margin: '0 0 1rem 0' }}>{language === 'vi' ? 'Không có hoạt động nào trong danh mục này.' : 'No activities found.'}</p>
+          <button
+            type="button"
+            className="btn-part-secondary"
+            onClick={() => setIsModalOpen(true)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+          >
+            <Plus size={16} />
+            <span>{language === 'vi' ? 'Thêm hoạt động mới' : 'Add New Activity'}</span>
+          </button>
         </div>
       ) : (
         <div className="partner-activities-list">
@@ -219,6 +267,54 @@ export const ActivityProposalPage: React.FC<ActivityProposalPageProps> = ({
       )}
 
       {/* 4. MODAL: Đăng ký Đề xuất Hoạt động mới (Sử dụng chuẩn Form từ Đăng ký Tổ chức Sự kiện) */}
+      {isModalOpen && (
+        <EventRegistrationModal
+          language={language}
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          locations={modalLocations}
+          assets={modalAssets}
+          organization={organization}
+          titleOverride={language === 'vi' ? 'Đăng ký hoạt động mới' : 'Register New Activity'}
+          subtitleOverride={language === 'vi' 
+            ? 'Thiết lập thông tin hoạt động, diễn giả, thời gian và số người tham gia' 
+            : 'Configure activity details, speaker, schedule and attendance'}
+          submitLabel={language === 'vi' ? 'Đăng ký hoạt động' : 'Register Activity'}
+          onRegister={async (regData: EventRegistrationData) => {
+            const categoryMap: Record<string, PartnerActivityProposal['category']> = {
+              talkshow: 'Talkshow',
+              workshop: 'Workshop',
+              launch: 'Talkshow',
+              exhibition: 'Exhibition',
+              minigame: 'Minigame',
+              signing: 'Signings',
+            };
+            const category = categoryMap[regData.type] || 'Talkshow';
+
+            await onAddActivity({
+              title: regData.title,
+              category,
+              date: regData.dateStr,
+              time: regData.timeStr,
+              duration: '2h',
+              location: regData.location,
+              capacity: regData.capacity,
+              registeredCount: 0,
+              targetAudience: regData.targetAudience || '',
+              description: regData.description || '',
+              speaker: regData.speaker,
+              requiredEquipments: (regData.devices || []).map(d => d.name),
+              imageUrl: regData.thumbnail || '',
+              status: 'pending',
+              eventId: '',
+              eventName: '',
+              feedbacks: '',
+            });
+            window.dispatchEvent(new Event('duongsach:data-changed'));
+            setIsModalOpen(false);
+          }}
+        />
+      )}
     </div>
   );
 };
