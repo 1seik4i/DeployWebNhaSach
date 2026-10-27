@@ -180,6 +180,19 @@
   font-size: 0.84rem;
   color: #556B65;
   margin-bottom: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.event-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  white-space: nowrap;
+}
+
+.event-meta-item .meta-icon {
+  font-size: 0.9em;
+  flex-shrink: 0;
 }
 
 /* 4. TO-DO LIST (Screen 1) */
@@ -364,6 +377,7 @@
   border: 1px solid rgba(233, 188, 99, 0.28);
   cursor: pointer;
   text-decoration: none;
+  white-space: nowrap;
   box-shadow: 0 4px 14px rgba(23, 56, 46, 0.2);
   transition: all 180ms cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -390,6 +404,7 @@
   border: 1px solid #D5DFDC;
   cursor: pointer;
   text-decoration: none;
+  white-space: nowrap;
   box-shadow: 0 1px 3px rgba(23, 56, 46, 0.04);
   transition: all 180ms ease;
 }
@@ -416,6 +431,7 @@
   border: 1px solid #D4A343;
   cursor: pointer;
   text-decoration: none;
+  white-space: nowrap;
   box-shadow: 0 4px 14px rgba(233, 188, 99, 0.28);
   transition: all 180ms ease;
 }
@@ -440,6 +456,7 @@
   border: 1px solid #FCA5A5;
   cursor: pointer;
   text-decoration: none;
+  white-space: nowrap;
   transition: all 160ms ease;
 }
 
@@ -497,6 +514,41 @@
   height: 3px;
   background-color: #17382E;
   border-radius: 3px 3px 0 0;
+}
+
+/* Booth Management Tabs & Action Header */
+.booth-tabs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 2px solid #E5ECE8;
+  margin-bottom: 1.5rem;
+}
+
+.booth-tabs-list {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.booth-tabs-list::-webkit-scrollbar {
+  display: none;
+}
+
+.booth-tabs-action {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding-bottom: 0.25rem;
+}
+
+.booth-tabs-action .btn-part-primary {
+  padding: 0.45rem 1rem;
+  font-size: 0.84rem;
+  white-space: nowrap;
 }
 
 /* 8. STEPPER (Screen 2) */
@@ -781,9 +833,32 @@
 .booth-card-actions {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  justify-content: space-between;
+  gap: 1rem;
   margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid #EEF2F0;
   flex-wrap: wrap;
+}
+
+.booth-card-status-note {
+  font-size: 0.82rem;
+  color: #687D75;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.booth-card-btn-group {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.booth-card-btn-group button {
+  padding: 0.45rem 0.95rem;
+  font-size: 0.84rem;
+  white-space: nowrap;
 }
 
 /* 12. ACTIVITY PROPOSAL LIST & CARDS (Screen 5) */
@@ -1732,6 +1807,24 @@
     height: 140px;
   }
 
+  .event-meta-line {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.45rem !important;
+    margin-bottom: 0.75rem !important;
+    font-size: 0.82rem !important;
+  }
+
+  .event-meta-item {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.45rem !important;
+    white-space: normal !important;
+    line-height: 1.4 !important;
+    color: #4B635B !important;
+  }
+
   .event-card-right {
     width: 100%;
   }
@@ -1799,6 +1892,37 @@
     flex-shrink: 0;
   }
 
+  /* Booth Management tabs mobile layout */
+  .booth-tabs-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.85rem !important;
+    border-bottom: none !important;
+    margin-bottom: 1.25rem !important;
+  }
+
+  .booth-tabs-list {
+    width: 100% !important;
+    border-bottom: 2px solid #E5ECE8 !important;
+    padding-bottom: 2px !important;
+    gap: 0.35rem !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .booth-tabs-action {
+    width: 100% !important;
+    padding-bottom: 0 !important;
+  }
+
+  .booth-tabs-action .btn-part-primary {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 0.65rem 1rem !important;
+    font-size: 0.86rem !important;
+    white-space: nowrap !important;
+  }
+
   /* Mobile card padding */
   .partner-card-pad {
     padding: 1rem 0.85rem !important;
@@ -1819,12 +1943,32 @@
   }
 
   .booth-card-actions {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.85rem !important;
     width: 100% !important;
   }
 
-  .booth-card-actions > * {
-    flex: 1 !important;
+  .booth-card-status-note {
+    width: 100% !important;
+    font-size: 0.82rem !important;
+    line-height: 1.4 !important;
+    color: #556B65 !important;
+  }
+
+  .booth-card-btn-group {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.55rem !important;
+    width: 100% !important;
+  }
+
+  .booth-card-btn-group button {
+    width: 100% !important;
     justify-content: center !important;
+    white-space: nowrap !important;
+    padding: 0.65rem 1rem !important;
+    font-size: 0.86rem !important;
   }
 
   /* Booth Selection & Map Mobile */
@@ -1980,23 +2124,6 @@
   .partner-page-title {
     font-size: 1.3rem;
   }
-
-  .partner-sales-reminder {
-    padding: 0.85rem 1rem;
-    gap: 0.75rem;
-  }
-
-  .partner-sales-reminder-icon {
-    width: 36px;
-    height: 36px;
-  }
-
-  .partner-sales-reminder-link {
-    margin-left: 0;
-    margin-top: 0.5rem;
-    width: 100%;
-    justify-content: center;
-  }
 }
 
 /* DYNAMIC BOOTH MAP POPOVER STYLES & ANIMATIONS */
@@ -2110,7 +2237,8 @@
 .partner-sales-reminder {
   display: flex;
   align-items: center;
-  gap: 1.15rem;
+  justify-content: space-between;
+  gap: 1.25rem;
   margin: -0.5rem 0 1.75rem;
   padding: 1rem 1.35rem;
   border: 1px solid #E6D8B6;
@@ -2126,6 +2254,14 @@
   transform: translateY(-2px);
   box-shadow: 0 8px 22px rgba(180, 138, 60, 0.14);
   border-color: #D4A343;
+}
+
+.partner-sales-reminder-main {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+  min-width: 0;
 }
 
 .partner-sales-reminder-icon {
@@ -2145,6 +2281,11 @@
   transform: scale(1.08);
 }
 
+.partner-sales-reminder-body {
+  flex: 1;
+  min-width: 0;
+}
+
 .partner-sales-reminder strong {
   display: block;
   font-size: 0.95rem;
@@ -2161,19 +2302,20 @@
 }
 
 .partner-sales-reminder-link {
-  margin-left: auto;
   font-size: 0.84rem;
   font-weight: 750;
   color: #B3862A;
   white-space: nowrap;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.35rem;
-  padding: 0.4rem 0.85rem;
-  background: rgba(255, 255, 255, 0.6);
+  padding: 0.45rem 0.95rem;
+  background: rgba(255, 255, 255, 0.7);
   border: 1px solid #E8DFCB;
   border-radius: 8px;
   transition: all 160ms ease;
+  flex-shrink: 0;
 }
 
 .partner-sales-reminder:hover .partner-sales-reminder-link {
@@ -2184,12 +2326,44 @@
 
 @media(max-width: 650px) {
   .partner-sales-reminder {
-    align-items: flex-start;
-    flex-wrap: wrap;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.85rem !important;
+    padding: 1rem !important;
   }
+
+  .partner-sales-reminder-main {
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 0.75rem !important;
+    width: 100% !important;
+  }
+
+  .partner-sales-reminder-icon {
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 10px !important;
+  }
+
+  .partner-sales-reminder-body strong {
+    font-size: 0.92rem !important;
+    line-height: 1.3 !important;
+  }
+
+  .partner-sales-reminder-body small {
+    font-size: 0.8rem !important;
+    line-height: 1.4 !important;
+    margin-top: 0.25rem !important;
+  }
+
   .partner-sales-reminder-link {
-    margin-left: 3.5rem;
-    margin-top: 0.5rem;
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 0.55rem 1rem !important;
+    font-size: 0.82rem !important;
+    border-radius: 8px !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
   }
 }
 .partner-activity-mobile-search { display: none; }

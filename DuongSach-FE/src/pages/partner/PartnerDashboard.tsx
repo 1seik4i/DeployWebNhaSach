@@ -100,12 +100,17 @@ export const PartnerDashboard: React.FC<PartnerDashboardProps> = ({
       </div>
 
       <Link to="/partner/books" className="partner-sales-reminder">
-        <span className="partner-sales-reminder-icon"><BookOpen size={20} /></span>
-        <span>
-          <strong>{language === 'vi' ? 'Quản lý sách tại gian hàng' : 'Manage stall books'}</strong>
-          <small>{language === 'vi' ? 'Cập nhật tồn kho, số lượng đã bán tùy chọn và theo dõi kiểm duyệt.' : 'Update inventory, optional sold quantity and moderation status.'}</small>
+        <div className="partner-sales-reminder-main">
+          <span className="partner-sales-reminder-icon"><BookOpen size={20} /></span>
+          <div className="partner-sales-reminder-body">
+            <strong>{language === 'vi' ? 'Quản lý sách tại gian hàng' : 'Manage stall books'}</strong>
+            <small>{language === 'vi' ? 'Cập nhật tồn kho, số lượng đã bán tùy chọn và theo dõi kiểm duyệt.' : 'Update inventory, optional sold quantity and moderation status.'}</small>
+          </div>
+        </div>
+        <span className="partner-sales-reminder-link">
+          <span>{language === 'vi' ? 'Mở quản lý' : 'Open management'}</span>
+          <ArrowRight size={14} />
         </span>
-        <span className="partner-sales-reminder-link">{language === 'vi' ? 'Mở quản lý →' : 'Open management →'}</span>
       </Link>
 
       {/* 2. Hoạt động vừa có thông tin mới nhất trên Dashboard */}
@@ -134,9 +139,20 @@ export const PartnerDashboard: React.FC<PartnerDashboardProps> = ({
                 </Link>
               </h2>
               <div className="event-meta-line">
-                <span>📅 {latestActivity.date || activeEvent.dateRange} {latestActivity.time ? `• ${latestActivity.time}` : ''}</span>
-                <span>📍 {latestActivity.location || activeEvent.location}</span>
-                {latestActivity.eventName && <span>🎪 {latestActivity.eventName}</span>}
+                <span className="event-meta-item">
+                  <span className="meta-icon">📅</span>
+                  <span>{latestActivity.date || activeEvent.dateRange} {latestActivity.time ? `• ${latestActivity.time}` : ''}</span>
+                </span>
+                <span className="event-meta-item">
+                  <span className="meta-icon">📍</span>
+                  <span>{latestActivity.location || activeEvent.location}</span>
+                </span>
+                {latestActivity.eventName && (
+                  <span className="event-meta-item">
+                    <span className="meta-icon">🎪</span>
+                    <span>{latestActivity.eventName}</span>
+                  </span>
+                )}
               </div>
               <div>
                 {(() => {
@@ -169,8 +185,14 @@ export const PartnerDashboard: React.FC<PartnerDashboardProps> = ({
             <div className="event-info-main">
               <h2>{activeEvent.eventTitle}</h2>
               <div className="event-meta-line">
-                <span>📅 {activeEvent.dateRange}</span>
-                <span>📍 {activeEvent.location}</span>
+                <span className="event-meta-item">
+                  <span className="meta-icon">📅</span>
+                  <span>{activeEvent.dateRange}</span>
+                </span>
+                <span className="event-meta-item">
+                  <span className="meta-icon">📍</span>
+                  <span>{activeEvent.location}</span>
+                </span>
               </div>
               <div>
                 <span className="status-badge approved">

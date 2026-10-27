@@ -25,6 +25,7 @@ export interface RoleSidebarUserProfile {
   onProfileClick?: () => void;
   onLogout?: () => void;
   logoutLabel?: string;
+  logoutOnlyMobile?: boolean;
 }
 
 interface RoleSidebarProps {
@@ -185,7 +186,7 @@ export function RoleSidebar({
         </nav>
 
         {userProfile?.onLogout && (
-          <div className="role-sidebar-user-block">
+          <div className={`role-sidebar-user-block ${userProfile.logoutOnlyMobile ? 'logout-mobile-only' : ''}`}>
             <button
               type="button"
               className="role-sidebar-logout-btn"

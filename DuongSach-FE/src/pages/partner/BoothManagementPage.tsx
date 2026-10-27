@@ -374,15 +374,14 @@ export const BoothManagementPage: React.FC<BoothManagementPageProps> = ({
             </div>
           </div>
 
-          <div className="booth-card-actions" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid #EEF2F0', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '0.8rem', color: '#687D75' }}>
+          <div className="booth-card-actions">
+            <span className="booth-card-status-note">
               {booth.imageUrl ? (language === 'vi' ? '✓ Đã thiết lập ảnh riêng hiển thị trên trang chủ' : '✓ Custom cover photo active') : (language === 'vi' ? 'Đang dùng ảnh đại diện mặc định' : 'Default cover photo')}
             </span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+            <div className="booth-card-btn-group">
               <button
                 type="button"
                 className="btn-part-secondary"
-                style={{ padding: '0.45rem 0.9rem', fontSize: '0.84rem' }}
                 onClick={() => navigate('/partner/booths/select')}
               >
                 <Map size={15} />
@@ -391,7 +390,6 @@ export const BoothManagementPage: React.FC<BoothManagementPageProps> = ({
               <button
                 type="button"
                 className="btn-part-danger"
-                style={{ padding: '0.45rem 0.9rem', fontSize: '0.84rem' }}
                 onClick={() => setModalType('cancel')}
               >
                 <XCircle size={15} />
@@ -404,8 +402,8 @@ export const BoothManagementPage: React.FC<BoothManagementPageProps> = ({
 
       {/* 3. Tabs Navigation matching Sketch Screen 4 */}
       <div className="partner-card-pad" style={{ background: '#FFFFFF', border: '1px solid #E2EAE5', borderRadius: '14px' }}>
-        <div className="partner-tabs-bar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', borderBottom: '2px solid #E5ECE8', marginBottom: '1.5rem', overflow: 'visible' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', overflow: 'visible' }}>
+        <div className="booth-tabs-header">
+          <div className="booth-tabs-list">
             <button
               type="button"
               className={`partner-tab-btn ${activeTab === 'info' ? 'is-active' : ''}`}
@@ -429,12 +427,11 @@ export const BoothManagementPage: React.FC<BoothManagementPageProps> = ({
             </button>
           </div>
 
-          {/* Nút Chỉnh sửa ở bên phải hồ sơ pháp lý */}
-          <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0, paddingBottom: '0.2rem' }}>
+          {/* Nút Chỉnh sửa */}
+          <div className="booth-tabs-action">
             <button
               type="button"
               className="btn-part-primary"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', padding: '0.45rem 1rem', fontSize: '0.84rem' }}
               onClick={() => {
                 if (isEditing) {
                   handleCancelEdit();

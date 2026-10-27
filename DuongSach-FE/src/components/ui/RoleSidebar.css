@@ -297,6 +297,10 @@
   gap: 0.6rem;
 }
 
+.role-sidebar-user-block.logout-mobile-only {
+  display: none !important;
+}
+
 .role-sidebar-user-info {
   display: flex;
   align-items: center;
@@ -427,6 +431,7 @@
     z-index: 1200; 
   }
   .role-sidebar.is-mobile-open { transform: translateX(0); }
+  .role-sidebar.is-mobile-open .role-sidebar-user-block.logout-mobile-only { display: flex !important; }
   .role-sidebar.is-collapsed { flex-basis: 285px; min-width: 285px; }
   .role-sidebar.is-collapsed .role-sidebar-heading, .role-sidebar.is-collapsed .role-sidebar-item-label, .role-sidebar.is-collapsed .role-sidebar-item-badge, .role-sidebar.is-collapsed .role-sidebar-section-label, .role-sidebar.is-collapsed .role-sidebar-footer { display: flex; }
   .role-sidebar.is-collapsed .role-sidebar-header { justify-content: initial; padding-inline: .35rem; }
