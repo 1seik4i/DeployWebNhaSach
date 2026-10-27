@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { applyApiCompletion } from './applyApiCompletion.js';
 import { upgradeDemoPasswords } from './upgradeDemoPasswords.js';
 import { installBundledMap } from './installBundledMap.js';
+import { ensureLandingContent } from './ensureLandingContent.js';
 
 const command = (name) => (process.platform === 'win32' ? `${name}.cmd` : name);
 
@@ -36,6 +37,7 @@ export async function bootstrapDatabase() {
     await upgradeDemoPasswords();
     await applyApiCompletion();
     await installBundledMap();
+    await ensureLandingContent();
     console.log('Database already contains data; demo seed is skipped.');
     return;
   }
@@ -44,6 +46,7 @@ export async function bootstrapDatabase() {
   run('npm', ['run', 'seed']);
   await applyApiCompletion();
   await installBundledMap();
+  await ensureLandingContent();
 }
 
 if (process.argv[1]?.endsWith('renderBootstrap.js')) {

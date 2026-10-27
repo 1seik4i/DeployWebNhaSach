@@ -1,6 +1,11 @@
 import { validateManagedContent } from '../utils/inputValidation';
 import type { NewsArticle } from '../pages/NewsExperience';
 import { apiClient } from './apiClient';
+import {
+  DEFAULT_JOURNEY,
+  DEFAULT_NEWS,
+  DEFAULT_ORGANIZATION
+} from './defaultLandingContent';
 
 export interface JourneyContent {
   hero: { era: string; titleLine1: string; titleLine2: string; titleLine3: string; summary: string; bgPhoto?: string };
@@ -46,23 +51,6 @@ export interface OrganizationContent {
   principles: Array<{ num: string; title: string; desc: string }>;
 }
 
-const EMPTY_JOURNEY: JourneyContent = {
-  hero: { era: '', titleLine1: '', titleLine2: '', titleLine3: '', summary: '' },
-  brandStory: { title: '', desc: '', heading: '', paragraph1: '', paragraph2: '', quote: '', quoteAuthor: '', image1: '', image2: '', image3: '', image4: '' },
-  visionMission: {},
-  milestones: [],
-  achievements: [],
-  educationPartners: [],
-  enterprisePartners: [],
-};
-
-const EMPTY_ORGANIZATION: OrganizationContent = {
-  hero: { era: '', title: '', lead: '' },
-  directory: { kicker: '', heading: '', sub: '' },
-  leaders: [],
-  principles: [],
-};
-
 type ContentKind = 'journey' | 'news' | 'organization';
 type ContentEntry = { id: string; slug: string; kind: ContentKind; title: string; data: Record<string, unknown>; status: 'draft' | 'published' | 'hidden'; version: number };
 const EVENT_NAME = 'duongsach_landing_content_changed';
@@ -73,9 +61,9 @@ const CONTENT_SLUGS: Record<ContentKind, string> = {
 };
 
 class LandingContentService {
-  private journey: JourneyContent = structuredClone(EMPTY_JOURNEY);
-  private news: NewsArticle[] = [];
-  private organization: OrganizationContent = structuredClone(EMPTY_ORGANIZATION);
+  private journey: JourneyContent = structuredClone(DEFAULT_JOURNEY);
+  private news: NewsArticle[] = structuredClone(DEFAULT_NEWS);
+  private organization: OrganizationContent = structuredClone(DEFAULT_ORGANIZATION);
   private entries = new Map<ContentKind, ContentEntry>();
 
   constructor() {
@@ -95,22 +83,30 @@ class LandingContentService {
       ?? entries.find(entry => entry.kind === kind);
 
     const journey = findContent('journey');
-    if (journey) {
-      this.journey = journey.data as unknown as JourneyContent;
+    if (journey && journey.data) {
+      const jData = journey.data as unknown as JourneyContent;
+      if (jData.hero?.titleLine1 || (Array.isArray(jData.milestones) && jData.milestones.length > 0)) {
+        this.journey = jData;
+      }
       this.entries.set('journey', journey);
       this.emit('journey');
     }
 
     const news = findContent('news');
     if (news) {
-      this.news = Array.isArray(news.data.articles) ? news.data.articles as NewsArticle[] : [];
+      if (Array.isArray(news.data.articles) && news.data.articles.length > 0) {
+        this.news = news.data.articles as NewsArticle[];
+      }
       this.entries.set('news', news);
       this.emit('news');
     }
 
     const organization = findContent('organization');
-    if (organization) {
-      this.organization = organization.data as unknown as OrganizationContent;
+    if (organization && organization.data) {
+      const oData = organization.data as unknown as OrganizationContent;
+      if (oData.hero?.title || (Array.isArray(oData.leaders) && oData.leaders.length > 0)) {
+        this.organization = oData;
+      }
       this.entries.set('organization', organization);
       this.emit('organization');
     }
@@ -138,7 +134,7 @@ class LandingContentService {
     this.emit('journey');
   }
   async resetJourney() {
-    const value = structuredClone(EMPTY_JOURNEY);
+    const value = structuredClone(DEFAULT_JOURNEY);
     await this.saveJourney(value);
     return value;
   }
@@ -165,7 +161,7 @@ class LandingContentService {
     return result.viewCount;
   }
   async resetNews() {
-    const value: NewsArticle[] = [];
+    const value = structuredClone(DEFAULT_NEWS);
     await this.saveNews(value);
     return value;
   }
@@ -177,7 +173,7 @@ class LandingContentService {
     this.emit('organization');
   }
   async resetOrganization() {
-    const value = structuredClone(EMPTY_ORGANIZATION);
+    const value = structuredClone(DEFAULT_ORGANIZATION);
     await this.saveOrganization(value);
     return value;
   }
