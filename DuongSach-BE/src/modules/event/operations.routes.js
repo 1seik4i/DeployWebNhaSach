@@ -69,14 +69,19 @@ export async function checkSchedule(tx, data) {
     throw ApiError.validation(
       "Thời gian không phù hợp với sự kiện",
     );
-  if (
-    !(await tx.eventLocation.findUnique({
-      where: {
-        eventId_locationId: { eventId: event.id, locationId: location.id },
-      },
-    }))
-  )
-    throw ApiError.validation("Địa điểm chưa được gán cho sự kiện");
+  const hasEventLocation = await tx.eventLocation.findUnique({
+    where: {
+      eventId_locationId: { eventId: event.id, locationId: location.id },
+    },
+  });
+  if (!hasEventLocation) {
+    const hasAnyEventLocation = typeof tx.eventLocation?.count === 'function'
+      ? (await tx.eventLocation.count({ where: { eventId: event.id } })) > 0
+      : false;
+    if (hasAnyEventLocation) {
+      throw ApiError.validation("Địa điểm chưa được gán cho sự kiện");
+    }
+  }
   return { ...data, startAt, endAt };
 }
 for (const role of ["admin", "partner"])
@@ -703,9 +708,12 @@ async function saveProposal(r, id) {
         : proposalInput,
       { ...input, ...(devices ? { devices } : {}) },
     );
-    const checked = old && proposalMetadata(old.managementNotes).standaloneEvent
-      ? await checkIndependentSchedule(tx, { ...old, ...cleanInput })
-      : await checkSchedule(tx, { ...old, ...cleanInput });
+    const scheduleChanged = !id || cleanInput.startAt !== undefined || cleanInput.endAt !== undefined || cleanInput.locationId !== undefined;
+    const checked = !scheduleChanged
+      ? { ...old, ...cleanInput }
+      : (old && proposalMetadata(old.managementNotes).standaloneEvent
+          ? await checkIndependentSchedule(tx, { ...old, ...cleanInput })
+          : await checkSchedule(tx, { ...old, ...cleanInput }));
     if (!id) {
       const settings = await tx.eventSettings.findUnique({
         where: { eventId: checked.eventId },

@@ -90,6 +90,7 @@ export function App() {
 
   const [partnerOrg, setPartnerOrg] = useState<PartnerOrganization | null>(null);
   const [partnerApp, setPartnerApp] = useState<PartnerEventApplication | null>(null);
+  const [partnerApps, setPartnerApps] = useState<PartnerEventApplication[]>([]);
   const [partnerBooths, setPartnerBooths] = useState<PartnerBooth[]>([]);
   const [partnerEventLocations, setPartnerEventLocations] = useState<Array<{ id: string; name: string; capacity: number }>>([]);
   const [partnerAssets, setPartnerAssets] = useState<Array<{ id: string; name: string; totalQuantity: number }>>([]);
@@ -225,6 +226,7 @@ export function App() {
         if (cancelled) return;
         setPartnerOrg(org);
         setPartnerApp(activeApp);
+        setPartnerApps(apps);
         setPartnerBooths(booths);
         setPartnerEventLocations(locations);
         setPartnerAssets(assets);
@@ -320,16 +322,30 @@ export function App() {
     const endAt = `${year}-${month}-${day}T${endTime}:00+07:00`;
     const devices = (newAct.requiredEquipments || []).map(name => ({ name, quantity: 1 }));
 
-    if (partnerApp?.eventId) {
+    const finalAudience = newAct.targetAudience?.trim() || 'Mọi lứa tuổi, độc giả yêu sách';
+    const activityDate = `${year}-${month}-${day}`;
+
+    // Find if the activity date matches any approved event the partner joined
+    const matchedApp = newAct.eventId 
+      ? partnerApps.find(app => app.eventId === newAct.eventId && app.status === 'approved')
+      : partnerApps.find(app => {
+          if (app.status !== 'approved') return false;
+          if (!app.startDate || !app.endDate) return false;
+          return activityDate >= app.startDate && activityDate <= app.endDate;
+        });
+
+    const targetEventId = newAct.eventId || matchedApp?.eventId;
+
+    if (targetEventId) {
       await partnerApi.submitActivityProposal({
-        eventId: partnerApp.eventId,
+        eventId: targetEventId,
         title: newAct.title,
         kind,
         locationId,
         startAt,
         endAt,
         capacity: newAct.capacity,
-        targetAudience: newAct.targetAudience,
+        targetAudience: finalAudience,
         description: newAct.description,
         speaker: newAct.speaker,
         imageUrl: newAct.imageUrl || undefined,
@@ -343,7 +359,7 @@ export function App() {
         startAt,
         endAt,
         capacity: newAct.capacity,
-        targetAudience: newAct.targetAudience,
+        targetAudience: finalAudience,
         description: newAct.description,
         speaker: newAct.speaker,
         imageUrl: newAct.imageUrl || undefined,
@@ -353,8 +369,8 @@ export function App() {
     }
 
     const [activities, reports] = await Promise.all([
-      partnerApi.getActivityProposals(partnerApp?.eventId),
-      partnerApi.getReports(partnerApp?.eventId),
+      partnerApi.getActivityProposals(),
+      partnerApi.getReports(targetEventId || partnerApp?.eventId),
     ]);
     setPartnerActivities(activities);
     if (reports) setPartnerReports(reports);
@@ -454,6 +470,7 @@ export function App() {
               activities={partnerActivities}
               todos={partnerTodos}
               totalEngagementCount={partnerReports?.totalParticipants || 0}
+              joinedEventsCount={partnerApps.filter(app => app.status === 'approved').length || (partnerApp ? 1 : 0)}
               onOpenAttendanceModal={() => setActiveAttendanceActivityId(partnerActivities[0]?.id || '')}
             /> : <div className="partner-page"><p className="app-loading-state">Mở “Lịch sự kiện” để đăng ký sự kiện mới độc lập. Bạn không cần tham gia một sự kiện khác trước đó.</p></div>
           } />
@@ -499,6 +516,12 @@ export function App() {
               activities={partnerActivities}
               locations={partnerEventLocations}
               assets={partnerAssets}
+              events={partnerApps.filter(app => app.status === 'approved').map(app => ({
+                id: app.eventId,
+                title: app.eventTitle,
+                startDate: app.startDate,
+                endDate: app.endDate,
+              }))}
               onAddActivity={handleAddPartnerActivity}
               onOpenAttendanceModal={(id) => setActiveAttendanceActivityId(id)}
             />

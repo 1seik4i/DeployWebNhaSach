@@ -14,6 +14,7 @@ interface ActivityProposalPageProps {
   activities: PartnerActivityProposal[];
   locations?: Array<{ id: string; name: string; capacity: number }>;
   assets?: Array<{ id: string; name: string; totalQuantity: number }>;
+  events?: Array<{ id: string; title: string; startDate?: string; endDate?: string }>;
   onAddActivity: (newAct: Omit<PartnerActivityProposal, 'id'>) => void | Promise<void>;
   onOpenAttendanceModal?: (activityId: string) => void;
 }
@@ -24,6 +25,7 @@ export const ActivityProposalPage: React.FC<ActivityProposalPageProps> = ({
   activities,
   locations = [],
   assets = [],
+  events = [],
   onAddActivity,
 }) => {
   const [activeTab, setActiveTab] = useUrlTab(['all', 'pending', 'approved', 'need_changes', 'rejected', 'withdrawn'], 'all');
@@ -31,6 +33,23 @@ export const ActivityProposalPage: React.FC<ActivityProposalPageProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalLocations, setModalLocations] = useState(locations);
   const [modalAssets, setModalAssets] = useState(assets);
+  const [modalEvents, setModalEvents] = useState(events);
+
+  useEffect(() => {
+    if (events && events.length > 0) {
+      setModalEvents(events);
+    } else {
+      void partnerApi.getApplications().then(apps => {
+        const approved = (apps || []).filter(a => a.status === 'approved').map(a => ({
+          id: a.eventId,
+          title: a.eventTitle,
+          startDate: a.startDate,
+          endDate: a.endDate,
+        }));
+        if (approved.length > 0) setModalEvents(approved);
+      }).catch(() => {});
+    }
+  }, [events]);
 
   useEffect(() => {
     if (locations.length === 0) {
@@ -275,6 +294,8 @@ export const ActivityProposalPage: React.FC<ActivityProposalPageProps> = ({
           locations={modalLocations}
           assets={modalAssets}
           organization={organization}
+          events={modalEvents}
+          isActivity
           titleOverride={language === 'vi' ? 'Đăng ký hoạt động mới' : 'Register New Activity'}
           subtitleOverride={language === 'vi' 
             ? 'Thiết lập thông tin hoạt động, diễn giả, thời gian và số người tham gia' 
@@ -300,14 +321,14 @@ export const ActivityProposalPage: React.FC<ActivityProposalPageProps> = ({
               location: regData.location,
               capacity: regData.capacity,
               registeredCount: 0,
-              targetAudience: regData.targetAudience || '',
+              targetAudience: regData.targetAudience?.trim() || 'Mọi lứa tuổi, độc giả yêu sách',
               description: regData.description || '',
               speaker: regData.speaker,
               requiredEquipments: (regData.devices || []).map(d => d.name),
               imageUrl: regData.thumbnail || '',
               status: 'pending',
-              eventId: '',
-              eventName: '',
+              eventId: regData.eventId || '',
+              eventName: modalEvents.find(e => e.id === regData.eventId)?.title || '',
               feedbacks: '',
             });
             window.dispatchEvent(new Event('duongsach:data-changed'));

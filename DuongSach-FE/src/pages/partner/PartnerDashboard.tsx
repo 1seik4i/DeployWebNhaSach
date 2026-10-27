@@ -32,6 +32,7 @@ interface PartnerDashboardProps {
   activities: PartnerActivityProposal[];
   todos: PartnerTodoItem[];
   totalEngagementCount?: number;
+  joinedEventsCount?: number;
   onOpenAttendanceModal?: () => void;
 }
 
@@ -43,6 +44,7 @@ export const PartnerDashboard: React.FC<PartnerDashboardProps> = ({
   activities,
   todos,
   totalEngagementCount = 0,
+  joinedEventsCount = 1,
 }) => {
   const proposedActivitiesCount = activities.length;
   const today = vietnamDateKey();
@@ -219,8 +221,8 @@ export const PartnerDashboard: React.FC<PartnerDashboardProps> = ({
             <span className="stat-label-muted">{language === 'vi' ? 'Sự kiện tham gia' : 'Joined Events'}</span>
             <div className="stat-icon-wrap icon-blue"><CalendarDays size={18} /></div>
           </div>
-          <div className="stat-num-box">1</div>
-          <div className="stat-card-hint">{language === 'vi' ? 'Sự kiện đang diễn ra' : 'Active event'}</div>
+          <div className="stat-num-box">{joinedEventsCount}</div>
+          <div className="stat-card-hint">{language === 'vi' ? 'Sự kiện đã tham gia' : 'Joined events'}</div>
         </Link>
 
         {/* Card 2: Assigned Booths */}

@@ -165,6 +165,8 @@ export interface PartnerEventApplication {
   dateRange: string;
   location: string;
   imageUrl: string;
+  startDate?: string;
+  endDate?: string;
   status: 'draft' | 'submitted' | 'approved' | 'rejected' | 'need_changes';
   submittedAt: string;
   step: number; // 1 to 4
