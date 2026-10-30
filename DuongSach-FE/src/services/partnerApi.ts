@@ -97,6 +97,8 @@ export const partnerApi = {
       id: String(application.id),
       eventId: String(application.eventId),
       eventTitle: String(application.event?.title || ''),
+      startDate: application.event?.startAt ? String(application.event.startAt).slice(0, 10) : undefined,
+      endDate: application.event?.endAt ? String(application.event.endAt).slice(0, 10) : undefined,
       dateRange: `${formatDate(application.event?.startAt)} - ${formatDate(application.event?.endAt)}`,
       location: String(application.event?.venue?.name || ''),
       imageUrl: String(application.event?.coverImageUrl || ''),

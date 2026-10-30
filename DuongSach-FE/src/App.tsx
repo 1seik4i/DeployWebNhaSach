@@ -90,6 +90,7 @@ export function App() {
 
   const [partnerOrg, setPartnerOrg] = useState<PartnerOrganization | null>(null);
   const [partnerApp, setPartnerApp] = useState<PartnerEventApplication | null>(null);
+  const [partnerApps, setPartnerApps] = useState<PartnerEventApplication[]>([]);
   const [partnerBooths, setPartnerBooths] = useState<PartnerBooth[]>([]);
   const [partnerEventLocations, setPartnerEventLocations] = useState<Array<{ id: string; name: string; capacity: number }>>([]);
   const [partnerAssets, setPartnerAssets] = useState<Array<{ id: string; name: string; totalQuantity: number }>>([]);
@@ -217,14 +218,15 @@ export function App() {
         const activeApp = apps.find(item => item.status === 'approved') || apps[0] || null;
         const eventId = activeApp?.eventId;
         const [booths, locations, activities, reports] = await Promise.all([
-          partnerApi.getBooths(),
-          eventId ? partnerApi.getEventLocations(eventId) : Promise.resolve([]),
+          partnerApi.getBooths(eventId),
+          partnerApi.getEventLocations(eventId),
           partnerApi.getActivityProposals(),
-          partnerApi.getReports(),
+          partnerApi.getReports(eventId),
         ]);
         if (cancelled) return;
         setPartnerOrg(org);
         setPartnerApp(activeApp);
+        setPartnerApps(apps);
         setPartnerBooths(booths);
         setPartnerEventLocations(locations);
         setPartnerAssets(assets);
@@ -303,32 +305,75 @@ export function App() {
   };
 
   const handleAddPartnerActivity = async (newAct: Omit<PartnerActivityProposal, 'id'>) => {
-    if (!partnerApp) throw new Error('Chưa có sự kiện đối tác đang tham gia');
     const [day, month, year] = newAct.date.split('/');
     const [startTime, endTime] = newAct.time.split('–').map(value => value.trim());
-    const kindByCategory: Record<PartnerActivityProposal['category'], string> = {
-      Workshop: 'workshop', Talkshow: 'talkshow', Minigame: 'minigame', Signings: 'signing', Exhibition: 'exhibition',
+    const kindByCategory: Record<string, string> = {
+      Workshop: 'workshop', workshop: 'workshop',
+      Talkshow: 'talkshow', talkshow: 'talkshow',
+      Minigame: 'minigame', minigame: 'minigame',
+      Signings: 'signing', signing: 'signing',
+      Exhibition: 'exhibition', exhibition: 'exhibition',
+      launch: 'launch', Launch: 'launch',
     };
-    const locationId = partnerEventLocations.find(location => location.id === newAct.location || location.name === newAct.location)?.id;
-    if (!locationId) throw new Error('Địa điểm hoạt động không còn tồn tại trong sự kiện');
-    await partnerApi.submitActivityProposal({
-      eventId: partnerApp.eventId,
-      title: newAct.title,
-      kind: kindByCategory[newAct.category],
-      locationId,
-      startAt: `${year}-${month}-${day}T${startTime}:00+07:00`,
-      endAt: `${year}-${month}-${day}T${endTime}:00+07:00`,
-      capacity: newAct.capacity,
-      targetAudience: newAct.targetAudience,
-      description: newAct.description,
-      speaker: newAct.speaker,
-      devices: newAct.requiredEquipments.map(name => ({ name, quantity: 1 })),
-    });
+    const kind = kindByCategory[newAct.category] || 'talkshow';
+    const locationId = partnerEventLocations.find(location => location.id === newAct.location || location.name === newAct.location)?.id || newAct.location;
+    if (!locationId) throw new Error('Địa điểm hoạt động không còn tồn tại');
+    const startAt = `${year}-${month}-${day}T${startTime}:00+07:00`;
+    const endAt = `${year}-${month}-${day}T${endTime}:00+07:00`;
+    const devices = (newAct.requiredEquipments || []).map(name => ({ name, quantity: 1 }));
+
+    const finalAudience = newAct.targetAudience?.trim() || 'Mọi lứa tuổi, độc giả yêu sách';
+    const activityDate = `${year}-${month}-${day}`;
+
+    // Find if the activity date matches any approved event the partner joined
+    const matchedApp = newAct.eventId 
+      ? partnerApps.find(app => app.eventId === newAct.eventId && app.status === 'approved')
+      : partnerApps.find(app => {
+          if (app.status !== 'approved') return false;
+          if (!app.startDate || !app.endDate) return false;
+          return activityDate >= app.startDate && activityDate <= app.endDate;
+        });
+
+    const targetEventId = newAct.eventId || matchedApp?.eventId;
+
+    if (targetEventId) {
+      await partnerApi.submitActivityProposal({
+        eventId: targetEventId,
+        title: newAct.title,
+        kind,
+        locationId,
+        startAt,
+        endAt,
+        capacity: newAct.capacity,
+        targetAudience: finalAudience,
+        description: newAct.description,
+        speaker: newAct.speaker,
+        imageUrl: newAct.imageUrl || undefined,
+        devices,
+      });
+    } else {
+      await partnerApi.registerEvent({
+        title: newAct.title,
+        kind,
+        locationId,
+        startAt,
+        endAt,
+        capacity: newAct.capacity,
+        targetAudience: finalAudience,
+        description: newAct.description,
+        speaker: newAct.speaker,
+        imageUrl: newAct.imageUrl || undefined,
+        isPublished: false,
+        devices,
+      });
+    }
+
     const [activities, reports] = await Promise.all([
-      partnerApi.getActivityProposals(partnerApp.eventId), partnerApi.getReports(),
+      partnerApi.getActivityProposals(),
+      partnerApi.getReports(targetEventId || partnerApp?.eventId),
     ]);
     setPartnerActivities(activities);
-    setPartnerReports(reports);
+    if (reports) setPartnerReports(reports);
   };
 
   const handleUpdatePartnerActivity = async (id: string, updated: Partial<PartnerActivityProposal>) => {
@@ -425,6 +470,7 @@ export function App() {
               activities={partnerActivities}
               todos={partnerTodos}
               totalEngagementCount={partnerReports?.totalParticipants || 0}
+              joinedEventsCount={partnerApps.filter(app => app.status === 'approved').length || (partnerApp ? 1 : 0)}
               onOpenAttendanceModal={() => setActiveAttendanceActivityId(partnerActivities[0]?.id || '')}
             /> : <div className="partner-page"><p className="app-loading-state">Mở “Lịch sự kiện” để đăng ký sự kiện mới độc lập. Bạn không cần tham gia một sự kiện khác trước đó.</p></div>
           } />
@@ -466,9 +512,16 @@ export function App() {
           <Route path="/partner/activities" element={
             <ActivityProposalPage
               language={language}
+              organization={visiblePartnerOrg}
               activities={partnerActivities}
               locations={partnerEventLocations}
               assets={partnerAssets}
+              events={partnerApps.filter(app => app.status === 'approved').map(app => ({
+                id: app.eventId,
+                title: app.eventTitle,
+                startDate: app.startDate,
+                endDate: app.endDate,
+              }))}
               onAddActivity={handleAddPartnerActivity}
               onOpenAttendanceModal={(id) => setActiveAttendanceActivityId(id)}
             />

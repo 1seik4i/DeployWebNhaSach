@@ -438,21 +438,6 @@ export const PartnerActivityDetailPage: React.FC<PartnerActivityDetailPageProps>
               <span>{activity.eventName}</span> • <span>{activity.category}</span>
             </div>
           </div>
-
-          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-            <button
-              type="button"
-              className={isEditing ? 'btn-part-secondary' : 'btn-part-primary'}
-              onClick={() => {
-                setActiveTab('info');
-                setIsEditing(!isEditing);
-              }}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', padding: '0.55rem 1.15rem', borderRadius: '8px', fontWeight: 650 }}
-            >
-              <Edit3 size={16} />
-              <span>{isEditing ? (language === 'vi' ? 'Đóng chỉnh sửa' : 'Close Edit') : (language === 'vi' ? 'Chỉnh sửa' : 'Edit')}</span>
-            </button>
-          </div>
         </div>
 
         {/* Tabs */}

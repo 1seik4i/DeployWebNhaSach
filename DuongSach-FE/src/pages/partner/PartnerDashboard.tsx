@@ -32,6 +32,7 @@ interface PartnerDashboardProps {
   activities: PartnerActivityProposal[];
   todos: PartnerTodoItem[];
   totalEngagementCount?: number;
+  joinedEventsCount?: number;
   onOpenAttendanceModal?: () => void;
 }
 
@@ -43,6 +44,7 @@ export const PartnerDashboard: React.FC<PartnerDashboardProps> = ({
   activities,
   todos,
   totalEngagementCount = 0,
+  joinedEventsCount = 1,
 }) => {
   const proposedActivitiesCount = activities.length;
   const today = vietnamDateKey();
@@ -67,16 +69,16 @@ export const PartnerDashboard: React.FC<PartnerDashboardProps> = ({
   const getActivityStatusBadge = (status: PartnerActivityProposal['status']) => {
     switch (status) {
       case 'approved':
-        return { className: 'approved', label: language === 'vi' ? '✓ Đã được chấp thuận' : '✓ Approved' };
+        return { className: 'approved', label: language === 'vi' ? 'Đã được chấp thuận' : 'Approved' };
       case 'need_changes':
-        return { className: 'need_changes', label: language === 'vi' ? '⚠ Cần điều chỉnh' : '⚠ Need changes' };
+        return { className: 'need_changes', label: language === 'vi' ? 'Cần điều chỉnh' : 'Need changes' };
       case 'rejected':
-        return { className: 'rejected', label: language === 'vi' ? '✕ Đã từ chối' : '✕ Rejected' };
+        return { className: 'rejected', label: language === 'vi' ? 'Đã từ chối' : 'Rejected' };
       case 'withdrawn':
         return { className: 'withdrawn', label: language === 'vi' ? 'Đã rút' : 'Withdrawn' };
       case 'pending':
       default:
-        return { className: 'pending', label: language === 'vi' ? '⏳ Đang chờ duyệt' : '⏳ Pending review' };
+        return { className: 'pending', label: language === 'vi' ? 'Đang chờ duyệt' : 'Pending review' };
     }
   };
 
@@ -196,7 +198,7 @@ export const PartnerDashboard: React.FC<PartnerDashboardProps> = ({
               </div>
               <div>
                 <span className="status-badge approved">
-                  ✓ {language === 'vi' ? 'Đã được chấp thuận' : 'Approved'}
+                  {language === 'vi' ? 'Đã được chấp thuận' : 'Approved'}
                 </span>
               </div>
             </div>
@@ -219,8 +221,8 @@ export const PartnerDashboard: React.FC<PartnerDashboardProps> = ({
             <span className="stat-label-muted">{language === 'vi' ? 'Sự kiện tham gia' : 'Joined Events'}</span>
             <div className="stat-icon-wrap icon-blue"><CalendarDays size={18} /></div>
           </div>
-          <div className="stat-num-box">1</div>
-          <div className="stat-card-hint">{language === 'vi' ? 'Sự kiện đang diễn ra' : 'Active event'}</div>
+          <div className="stat-num-box">{joinedEventsCount}</div>
+          <div className="stat-card-hint">{language === 'vi' ? 'Sự kiện đã tham gia' : 'Joined events'}</div>
         </Link>
 
         {/* Card 2: Assigned Booths */}
