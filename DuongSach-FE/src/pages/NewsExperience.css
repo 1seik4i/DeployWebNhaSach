@@ -861,7 +861,7 @@
 }
 
 .news-detail-container {
-  width: min(860px, calc(100% - 40px));
+  width: min(1240px, calc(100% - 48px));
   margin: 2.5rem auto 0;
   background: #FFFFFF;
   border-radius: 20px;
@@ -873,7 +873,8 @@
 
 @media (max-width: 768px) {
   .news-detail-container {
-    padding: 1.75rem 1.25rem;
+    width: calc(100% - 24px);
+    padding: 1.5rem 1.25rem;
     margin-top: 1.5rem;
     border-radius: 14px;
   }
