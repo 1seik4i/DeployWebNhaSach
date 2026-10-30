@@ -988,6 +988,104 @@
   gap: 0.75rem;
 }
 
+/* Event registration: the form is intentionally denser on desktop, but turns
+   into a bottom sheet on phones so labels and form controls are never squeezed. */
+.event-registration-modal form {
+  min-height: 0;
+}
+
+@media (max-width: 640px) {
+  .org-modal-backdrop:has(.event-registration-modal) {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .event-registration-modal {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: none !important;
+    height: min(100dvh, 820px);
+    max-height: 100dvh;
+    border-width: 1px 0 0;
+    border-radius: 22px 22px 0 0 !important;
+  }
+
+  .event-registration-header {
+    flex: 0 0 auto;
+    padding: 1rem 1.25rem !important;
+    align-items: flex-start !important;
+  }
+
+  .event-registration-header h3 {
+    font-size: 1.15rem !important;
+    line-height: 1.25;
+  }
+
+  .event-registration-header p {
+    max-width: 250px;
+    font-size: 0.78rem !important;
+    line-height: 1.45;
+  }
+
+  .event-registration-header button {
+    width: 36px !important;
+    height: 36px !important;
+    flex: 0 0 auto;
+  }
+
+  .event-registration-modal form {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    flex-direction: column;
+  }
+
+  .event-registration-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none !important;
+    padding: 1rem 1.25rem 1.25rem !important;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .event-registration-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.85rem !important;
+    margin-bottom: 1rem !important;
+  }
+
+  .event-registration-schedule {
+    padding: 1rem !important;
+    margin-bottom: 1rem !important;
+    border-radius: 14px !important;
+  }
+
+  .event-registration-schedule-grid {
+    gap: 0.75rem !important;
+  }
+
+  .event-registration-schedule input,
+  .event-registration-schedule select {
+    min-height: 40px;
+  }
+
+  .event-registration-footer {
+    flex: 0 0 auto;
+    padding: 0.75rem 1.25rem calc(0.75rem + env(safe-area-inset-bottom)) !important;
+    gap: 0.65rem !important;
+    justify-content: stretch !important;
+  }
+
+  .event-registration-footer button {
+    min-height: 44px;
+    flex: 1 1 0;
+    padding: 0.5rem 0.75rem !important;
+    white-space: nowrap;
+  }
+}
+
 /* PROFILE & TOGGLE COMPONENT STYLES */
 .org-profile-container {
   max-width: 1140px;

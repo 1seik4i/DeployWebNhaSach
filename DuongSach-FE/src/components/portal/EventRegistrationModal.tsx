@@ -165,7 +165,7 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
   return (
     <div className="org-modal-backdrop" style={{ zIndex: 1200 }} onClick={() => { if (!isSubmitting) onClose(); }}>
       <div 
-        className="org-modal-box" 
+        className="org-modal-box event-registration-modal" 
         style={{ 
           maxWidth: '720px', 
           background: '#FFFFFF',
@@ -177,7 +177,7 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
         onClick={e => e.stopPropagation()}
       >
         {/* Modal Header */}
-        <div className="org-modal-header" style={{ padding: '1.25rem 1.75rem', background: '#FFFFFF', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div className="org-modal-header event-registration-header" style={{ padding: '1.25rem 1.75rem', background: '#FFFFFF', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, color: '#17382E', fontFamily: 'var(--font-serif, serif)' }}>
               {language === 'vi' ? (organization ? 'Đăng ký sự kiện mới' : 'Tạo sự kiện mới') : (organization ? 'Register New Event' : 'Create New Event')}
@@ -212,7 +212,7 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
 
         {/* Modal Body */}
         <form onSubmit={handleSubmit} data-event-registration-form>
-          <div className="org-modal-body" style={{ padding: '1.5rem 1.75rem', maxHeight: 'calc(85vh - 140px)', overflowY: 'auto' }}>
+          <div className="org-modal-body event-registration-body" style={{ padding: '1.5rem 1.75rem', maxHeight: 'calc(85vh - 140px)', overflowY: 'auto' }}>
             {error && (
               <div style={{
                 padding: '0.75rem 1rem',
@@ -259,7 +259,7 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
             </div>
 
             {/* 2. Grid 2x2: Type & Associated Event */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.1rem' }}>
+            <div className="event-registration-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.1rem' }}>
               <div>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.82rem', fontWeight: 650, color: '#1F2937', marginBottom: '0.4rem' }}>
                   <Tag size={14} color="#17382E" />
@@ -319,7 +319,7 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
             </div>
 
             {/* 3. Grid 2x2: Speaker & Capacity */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.1rem' }}>
+            <div className="event-registration-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.1rem' }}>
               <div>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.82rem', fontWeight: 650, color: '#1F2937', marginBottom: '0.4rem' }}>
                   <Mic size={14} color="#17382E" />
@@ -376,7 +376,7 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
             </div>
 
             {/* 4. Schedule Card: Date & Time */}
-            <div style={{ 
+            <div className="event-registration-schedule" style={{ 
               background: '#F8FAF9', 
               borderRadius: '12px', 
               padding: '1.1rem 1.25rem', 
@@ -387,7 +387,7 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
                 <Calendar size={14} />
                 <span>{language === 'vi' ? 'THỜI GIAN & ĐỊA ĐIỂM TỔ CHỨC' : 'SCHEDULE & LOCATION'}</span>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '0.85rem', marginBottom: '0.85rem' }}>
+              <div className="event-registration-schedule-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '0.85rem', marginBottom: '0.85rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.76rem', color: '#556B65', fontWeight: 600, marginBottom: '0.25rem' }}>
                     {language === 'vi' ? 'Ngày bắt đầu *' : 'Start date *'}
@@ -590,7 +590,7 @@ export const EventRegistrationModal: React.FC<EventRegistrationModalProps> = ({
           </div>
 
           {/* Modal Footer */}
-          <div className="org-modal-footer" style={{ padding: '1rem 1.75rem', background: '#F9FAFB', borderTop: '1px solid #E5E7EB', display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+          <div className="org-modal-footer event-registration-footer" style={{ padding: '1rem 1.75rem', background: '#F9FAFB', borderTop: '1px solid #E5E7EB', display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
             <button 
               type="button" 
               className="btn-org-secondary"
