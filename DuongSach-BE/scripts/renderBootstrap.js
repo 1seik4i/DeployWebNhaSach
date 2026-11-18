@@ -4,6 +4,7 @@ import { applyApiCompletion } from './applyApiCompletion.js';
 import { upgradeDemoPasswords } from './upgradeDemoPasswords.js';
 import { installBundledMap } from './installBundledMap.js';
 import { ensureLandingContent } from './ensureLandingContent.js';
+import { waitForDatabase } from './waitForDatabase.js';
 
 const command = (name) => (process.platform === 'win32' ? `${name}.cmd` : name);
 
@@ -31,6 +32,7 @@ async function hasSeedData() {
 export async function bootstrapDatabase() {
   console.log('Preparing PostgreSQL schema for Render...');
   run('npx', ['prisma', 'generate']);
+  await waitForDatabase();
   run('npx', ['prisma', 'db', 'push']);
 
   if (await hasSeedData()) {
